@@ -4,9 +4,9 @@ import "time"
 
 type SingleMeal struct {
 	MealName string
-	MealType int
+	MealType MealType
 	MealDate time.Time
-	Foods    SingleFoodProduct
+	Food     SingleFoodProduct
 }
 
 type SingleFoodProduct struct {
@@ -14,3 +14,6 @@ type SingleFoodProduct struct {
 	BrandName   string
 	ServingSize string
 }
+
+// ENUM(Breakfast, Lunch, Dinner, Snacks, Supper)
+type MealType int

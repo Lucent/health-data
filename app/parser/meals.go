@@ -2,39 +2,51 @@ package parser
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
 
 	"github.com/samber/lo"
 	"table.reader.lucent/models"
+	"table.reader.lucent/utils"
 )
 
 func ParseMeal(meal []string) {
 	splittedDate := strings.Split(strings.TrimSpace(meal[0]), " ")
 
 	date := ParseDate(splittedDate)
-	fmt.Println("CURRENTLY AT DATE: " + date.String())
+	// fmt.Println("CURRENTLY AT DATE: " + date.String())
 	mealWithoutDate := meal[1:]
-
+	currentMealType := models.MealTypeBreakfast
 	for x := range mealWithoutDate {
+		singleMeal := &models.SingleMeal{}
+		var foodItem models.SingleFoodProduct
+		singleMeal.MealDate = date
 		trimmedString := strings.TrimSpace(mealWithoutDate[x])
-		fmt.Println("orig: " + trimmedString)
-
-		if strings.Contains(trimmedString, "Breakfast") || trimmedString == "Lunch" ||
-			trimmedString == "Dinner" ||
-			trimmedString == "Snacks" || strings.Contains(trimmedString, "Supper") ||
-			strings.Contains(trimmedString, "TOTAL") ||
-			trimmedString == "FOODS                                                                          Calories Carbs Fat Protein Cholest      Sodium Sugars Fiber" ||
-			strings.Contains(trimmedString, "EXERCISES") ||
-			strings.Contains(trimmedString, "Cardiovascular") ||
-
-			len(trimmedString) < 63 {
-			fmt.Println("LOST :" + trimmedString)
+		if utils.IsMeal(trimmedString) {
+			mealType, err := models.ParseMealType(trimmedString)
+			if err != nil {
+				log.Fatalln(err)
+				return
+			}
+			currentMealType = mealType
+		} else if utils.SkipLine(trimmedString) {
 			continue
 		}
+		lo.TryCatch(func() error {
+			foodItem = getFoodDetails(trimmedString)
+			return nil
+		}, func() {
+			fmt.Println("Failed at Line: " + trimmedString)
+		})
 
-		foodItem := getFoodDetails(trimmedString)
-		fmt.Println("brand: "+foodItem.BrandName, "food: "+foodItem.FoodName)
+		if len(foodItem.FoodName) > 0 {
+			singleMeal.Food = foodItem
+			singleMeal.MealType = currentMealType
+			fmt.Println(singleMeal)
+
+		}
+		singleMeal = nil
 	}
 }
 
@@ -43,32 +55,25 @@ func getFoodDetails(line string) models.SingleFoodProduct {
 	var trimmed string
 	var servingSize string
 	var singleFoodProduct models.SingleFoodProduct
-	lo.TryCatch(func() error {
-		if found {
-			lastIndex := strings.Index(after, ",")
-			space := regexp.MustCompile(`\s+`)
-			digits := regexp.MustCompile(`[^(][0-9]{3}[^cup][^oz]`)
-
-			if lastIndex != -1 {
-				trimmed = strings.TrimSpace(after[:lastIndex])
-				s := space.ReplaceAllString(after, " ")
-				result := digits.Split(s, -1)
-				splitted := strings.Split(result[0], ",")
-				digits = regexp.MustCompile(`[^(][0-9]{2}[^cup][^oz][^Pizza][^Tbsp]`)
-				servingSize = strings.TrimSpace(digits.Split(splitted[1], 2)[0])
-			}
-			singleFoodProduct = models.SingleFoodProduct{
-				BrandName:   strings.TrimSpace(before),
-				FoodName:    trimmed,
-				ServingSize: servingSize,
-			}
-			// return strings.TrimSpace(splitted[0])
+	if found {
+		lastIndex := strings.Index(after, ",")
+		space := regexp.MustCompile(`\s+`)
+		digits := regexp.MustCompile(`[^(][0-9]{3}[^cup][^oz]`)
+		if lastIndex != -1 {
+			trimmed = strings.TrimSpace(after[:lastIndex])
+			s := space.ReplaceAllString(after, " ")
+			result := digits.Split(s, -1)
+			splitted := strings.Split(result[0], ",")
+			digits = regexp.MustCompile(`[^(][0-9]{2}[^cup][^oz][^Pizza][^Tbsp]`)
+			servingSize = strings.TrimSpace(digits.Split(splitted[1], 2)[0])
 		}
-		return nil
-	}, func() {
-		// caught = true
 
-	})
+		singleFoodProduct = models.SingleFoodProduct{
+			BrandName:   strings.TrimSpace(before),
+			FoodName:    trimmed,
+			ServingSize: servingSize,
+		}
+	}
 
 	// if len(parts) == 2 { // Get the string after the dash
 	// 	afterDash := strings.TrimSpace(parts[1])
