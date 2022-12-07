@@ -1,19 +1,53 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 
+	"golang.org/x/sync/errgroup"
 	"table.reader.lucent/app/parser"
 	"table.reader.lucent/utils"
 )
 
 func main() {
-	file, err := os.Open("Food-2012.txt")
+	errGrp, _ := errgroup.WithContext(context.Background())
+	files, err := utils.ListFoodHistories()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalln(err.Error())
 	}
-	defer file.Close()
+	for x := range files {
+		// loop variable x captured by func literalloopclosure
+		// thats why I cache it here
+		currentNum := x
+		errGrp.Go(func() error {
+			file, err := os.Open("./food-history/" + files[currentNum].Name())
+			if err != nil {
+				return err
+			}
+			defer file.Close()
+			cleanedFile, dateIndex, err := utils.LineCleaner(file)
+			if err != nil {
+				return err
+			}
+			for x, v := range dateIndex {
+				if x == len(dateIndex)-1 {
+					parser.ParseMeal(cleanedFile[v:])
+					continue
+				}
+				currentMeal := cleanedFile[v:dateIndex[x+1]]
+				parser.ParseMeal(currentMeal)
+
+			}
+
+			return nil
+		})
+	}
+	err = errGrp.Wait()
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+
 	// client := gosseract.NewClient()
 	// defer client.Close()
 
@@ -61,19 +95,6 @@ func main() {
 
 	// }
 
-	cleanedFile, dateIndex, err := utils.LineCleaner(file)
-	if err != nil {
-		log.Fatalln(err.Error())
-	}
-	for x, v := range dateIndex {
-		if x == len(dateIndex)-1 {
-			parser.ParseMeal(cleanedFile[v:])
-			continue
-		}
-		currentMeal := cleanedFile[v:dateIndex[x+1]]
-		parser.ParseMeal(currentMeal)
-
-	}
 }
 
 // // sortByNumber is a function that compares two strings and returns
