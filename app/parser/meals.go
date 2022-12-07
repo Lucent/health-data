@@ -43,8 +43,6 @@ func ParseMeal(meal []string) {
 		if len(foodItem.FoodName) > 0 {
 			singleMeal.Food = foodItem
 			singleMeal.MealType = currentMealType
-			fmt.Println(singleMeal)
-
 		}
 		singleMeal = nil
 	}
