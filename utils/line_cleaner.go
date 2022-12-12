@@ -15,23 +15,6 @@ func LineCleaner(file *os.File) ([]string, []int, error) {
 	counter := 0
 	scanner := bufio.NewScanner(file)
 
-	// for x := range file {
-	// 	currentLine := file[x]
-	// 	text := currentLine + "\n"
-	// 	if strings.Contains(text, "Lucent") || strings.Contains(text, "From") ||
-	// 		strings.Contains(text, "Diary") || strings.Contains(text, "diary") || len(currentLine) == 0 {
-	// 		continue
-	// 	}
-	// 	trimmedString := strings.TrimSpace(text)
-
-	// 	splitted := strings.Split(trimmedString, " ")
-	// 	if slices.Contains(constants.Months, splitted[0]) && !strings.Contains(splitted[0], "Mayfield") &&
-	// 		!strings.Contains(splitted[0], "Octoberfest") {
-	// 		diaryDateIndex = append(diaryDateIndex, counter)
-	// 	}
-	// 	tmpStrings = append(tmpStrings, text)
-	// 	counter++
-	// }
 	for scanner.Scan() {
 		text := scanner.Text() + "\n"
 		if strings.Contains(text, "Lucent") || strings.Contains(text, "From") ||
