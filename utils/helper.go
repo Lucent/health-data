@@ -16,9 +16,10 @@ func IsMeal(trimmedString string) bool {
 
 func SkipLine(trimmedString string) bool {
 	return strings.Contains(trimmedString, "TOTAL") ||
-		strings.Contains(trimmedString, "Calories Carbs Fat Protein Cholest") ||
+		strings.Contains(trimmedString, "FOODS") ||
 		strings.Contains(trimmedString, "EXERCISES") ||
 		strings.Contains(trimmedString, "Cardiovascular") ||
+		strings.Contains(trimmedString, "Hospital") ||
 		len(trimmedString) < 63
 }
 
