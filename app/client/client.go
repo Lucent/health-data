@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -20,7 +19,6 @@ func doRequest(req *http.Request) (io.ReadCloser, http.Header, error) {
 	if err != nil {
 		return nil, http.Header{}, errors.New("request failed")
 	}
-	fmt.Println(resp.StatusCode)
 
 	return resp.Body, resp.Header, nil
 }
