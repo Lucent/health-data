@@ -9,6 +9,7 @@ There's no reason to engage with this dataset unless you're convinced it is high
 
 # Arguments for model subject
 Ideally, if you could collect 10+ years of data, you want a subject with the fewest low-hanging fruits. You don't want easily-solved causes of obesity like massive cola or fast food intake or a high-stress life in a food desert or a profession with exposure to industrial contaminants or taking a variety of medicines.
+* Actual **capture of significant weight loss and regain** with many plateaus.
 * **Leisurely, low-stress, retiree-like life**. I do not go into an office. My weekends aren't much different from weekdays. I haven't been through any very high stress situations, no kids, pets, etc. I don't "eat my feelings." I am just hungrier than most people and delicious foods seem to give me significantly more joy than most people.
 * **Understanding of nutrition labels**. I have a good understanding of nutrition and food labels and am mathematically inclined. I know if the label says fib**re**, carbs are already subtracted. I instantly spot erroneous labels, like ghee having a serving size of 1oz and claiming only 14g of fat.
 * **No consumption of meat** potentially simplifying sources of contaminants.
