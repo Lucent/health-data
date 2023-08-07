@@ -16,4 +16,6 @@
 * What best predicts whether a day will become a binge (> 2800)? Sugar intake the previous day? Being below current set point?
 * What conditions push the set point down? Are there magic months where I lose 3 lbs and don't regain it for a long time?
 
-Very open to use of LLMs for the purpose of estimating other nutrient data. "The following food named x has nutrient profile y. Estimate ingredients and ratio of PUFA to MUFA." OpenAI API key available for these requests.
+Very open to [use of LLMs for the purpose of estimating other nutrient data](https://chat.openai.com/share/b77dc121-0580-4d66-9e67-131fb3b18a8a). "The following food named x has nutrient profile y. Estimate ingredients and ratio of PUFA to MUFA." OpenAI API key available for these requests.
+
+Slime Mold recommends [modeling as a control system](https://slimemoldtimemold.com/2022/03/15/control-and-correlation/) where control input has no correlation with modeled variables, but is instead a homeostatic mechanism. A day's macros or total consumed may have no correlation with previous or next days or any other available variable, but instead be correlated with a hidden variable, set point, that meanders slowly up or down. Much like RMR, a secret set point could be determined from the data and binges occur when I am below the set point. 
