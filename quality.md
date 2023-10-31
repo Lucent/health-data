@@ -1,6 +1,7 @@
 # Arguments for data quality
 There's no reason to engage with this dataset unless you're convinced it is high enough quality to distinguish signal from noise or systematic error. Below are factors affecting data quality.
 
+* **Dozens of hidden, overlapping experiments** run over years. Due to waves of fixation on foods and exercise, many multimodal experiments are hidden in the data. Runs of low carb or high leafy greens or different oils or daily ice cream or one processed food. Ideal for finding if multiple simulatenous factors are required to shift set point.
 * Nearly **zero fast food and minimal restaurant** consumption (1 meal/week, usually the same meal at one of only maybe 3 restaurants).
 * **Full time food scale use** with increasing attention paid to high caloric density foods. Soy sauce may be added thoughtlessly, but butter, oil, and peanut butter never are. A food scale is always used. I travel with one.
 * **Binges recorded**. Virtually no one uses calorie counting apps when they eat a whole pizza. I do. Every single time. Zero days are missing in 12 years.
