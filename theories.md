@@ -6,8 +6,8 @@
 * Look for set point abruptly increasing or decreasing and examine the few days or weeks when it appeared to happen. Is it possible only multi-day binges can shift set-point up, like 3 days of 3000 calories? Do days of 3000 calories spread out cause no shift in set point?
 * Possible that set point only moves up in the presence of protein to capture high-effort hunted meals? Studies showing 20% protein = 10% protein + 500 calories.
 * Look for long runs (months) of stable weight (±3 lbs) and see if intake does not support no change, which would be evidence for a set point that can only drift under certain circumstances.
-* Are there conditions that must be met to shift set point down? Runs of restriction without steps resulted in no loss but with > 5000 steps did?
-* Test gravitostat theory by computing foot-pounds exerted per day (current weight * steps) and seeing if that leads to less intake the following day.
+* Are there conditions that must be met to shift set point down? Days of restriction without steps resulted in no loss but with > 5000 steps did?
+* Test gravitostat theory by computing foot-pounds exerted per day (current weight * steps) and seeing if that leads to less intake the following day. Impressive if this model can detect anomalies like days I wore a weighted vest.
 * Use sleep/wake times to count hours of overlap with local sunrise/sunset and see if that corresponds to intake.
 * Create a database of distinct foods eaten (there aren't many) and see if scaling their calories up or down produces a better fit, suggesting a misestimate of a frequent restaurant meal, or more interestingly, super fattening or near-zero calorie type foods like pistachios were predicted to be.
 * Does eating over 1000 calories for breakfast and lunch combined predict a lower total for the day?
@@ -15,6 +15,7 @@
 * Fiber consumed in breakfast+lunch inversely correlated with daily intake?
 * What best predicts whether a day will become a binge (> 2800)? Sugar intake the previous day? Being below current set point?
 * What conditions push the set point down? Are there magic months where I lose 3 lbs and don't regain it for a long time?
+* Can a control system predict RMR/next day's intake? If omega-6 to 3 ratio exceeds 10:1 and protein exceeds 50g, lower RMR to store all fat consumed, else raise RMR to maintain current set point.
 
 Very open to [use of LLMs for the purpose of estimating other nutrient data](https://chat.openai.com/share/b77dc121-0580-4d66-9e67-131fb3b18a8a). "The following food named x has nutrient profile y. Estimate ingredients and ratio of PUFA to MUFA." OpenAI API key available for these requests.
 
