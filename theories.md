@@ -10,6 +10,8 @@
 * Test gravitostat theory by computing foot-pounds exerted per day (current weight * steps) and seeing if that leads to less intake the following day. Impressive if this model can detect anomalies like days I wore a weighted vest.
 * Use sleep/wake times to count hours of overlap with local sunrise/sunset and see if that corresponds to intake.
 * Create a database of distinct foods eaten (there aren't many) and see if scaling their calories up or down produces a better fit, suggesting a misestimate of a frequent restaurant meal, or more interestingly, super fattening or near-zero calorie type foods like pistachios were predicted to be.
+* Correlate a nutrient, food, or food classification (NOVA) with subsequent binges.
+* Track an independent "willpower" variable that when exhausted predicts a binge.
 * Does eating over 1000 calories for breakfast and lunch combined predict a lower total for the day?
 * There are runs of 6 months of keto, 1 month of low protein, 2 or 3 tries at potato only, weekend 60-hour fasts. Do these stand out in any way?
 * Fiber consumed in breakfast+lunch inversely correlated with daily intake?
