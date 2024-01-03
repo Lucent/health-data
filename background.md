@@ -16,7 +16,7 @@
 * FTO gene SNPs were all maxed out. Need to investigate specifics again. I probably experience this as stronger hunger and more joy from food.
 
 ## Substance use
-* No exposure to deodorant or lotions
+* No exposure to deodorant or lotions (Unusually low BO. Socks or underwear worn for days are indistinguishable by smell from freshly laundered) 
 * Head & Shoulders shampoo (zinc pyrithione)
 * No prescription drug use
 * Prescription acne topical cream history (basic stuff, no Accutane)
