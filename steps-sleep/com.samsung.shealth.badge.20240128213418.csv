@@ -1,0 +1,6 @@
+﻿com.samsung.shealth.badge,6261011,1
+number_of_streak,start_time,exercise_type,device_type,status,sleep_coaching_session_uuid,update_time,create_time,source_pkg_name,key,program_id,is_shown,time_offset,extra_data,deviceuuid,pkg_name,exercise_data_uuid,controller_id,end_time,datauuid
+,2023-07-08 04:00:00.000,,100003,1,,2023-07-16 23:31:14.352,2023-07-16 23:31:14.352,com.sec.android.app.shealth,step_milestone_10k_steps,,,UTC-0500,8698.364020586014,riNzA2w1UR,com.sec.android.app.shealth,,tracker.pedometer,2023-07-08 04:00:00.000,3b6e5774-9f44-41fb-b148-4905726bb251,
+,2023-08-16 19:28:07.818,1002,,1,,2023-08-16 20:02:40.373,2023-08-16 19:56:45.537,,running_first_run,,1,UTC-0400,,f5OzzNknPX,com.sec.android.app.shealth,cc26e8e9-38a2-4331-9754-4d98db4d25d6,tracker.exercise,2023-08-16 19:56:45.129,71a21eab-a810-4362-beb4-004f626f982a,
+,2023-09-08 20:15:20.277,1002,,1,,2023-09-08 21:13:28.256,2023-09-08 21:03:19.431,,running_5K,,1,UTC-0400,,f5OzzNknPX,com.sec.android.app.shealth,1e2f335d-0e6d-42aa-9580-bbab00e9fbef,tracker.exercise,2023-09-08 21:03:15.134,27df647d-ce8d-4c24-aa5f-c5fe66b200d8,
+,2023-09-11 23:42:07.756,,,0,,2023-09-11 23:42:07.759,2023-09-11 23:42:07.759,,step_milestone_10k_steps,,,UTC-0400,7833.888177394867,2Rs3UPxJn5,com.sec.android.app.shealth,,tracker.pedometer,2023-09-11 23:42:07.756,f21943ee-0c4b-4b53-adb9-592b1311515a,

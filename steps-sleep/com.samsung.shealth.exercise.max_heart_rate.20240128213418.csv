@@ -1,0 +1,6 @@
+﻿com.samsung.shealth.exercise.max_heart_rate,6261011,2
+at_heart_rate,start_time,max_heart_rate,update_time,create_time,time_offset,deviceuuid,ant_heart_rate,pkg_name,datauuid
+132,2023-08-16 19:28:08.248,180,2023-08-16 19:56:46.358,2023-08-16 19:56:46.358,UTC-0400,f5OzzNknPX,169,com.sec.android.app.shealth,cdd854fe-1aa4-4bec-9195-5af72b938d3c,
+137,2023-09-08 20:15:20.679,180,2023-09-08 21:03:22.730,2023-09-08 21:03:22.730,UTC-0400,f5OzzNknPX,168,com.sec.android.app.shealth,426c5889-2017-4717-a7ec-ade97b00b0a4,
+138,2023-09-22 21:24:19.508,180,2023-09-22 22:14:53.777,2023-09-22 22:14:53.777,UTC-0400,2Rs3UPxJn5,167,com.sec.android.app.shealth,659a69e3-0148-4158-9109-9670cb68318b,
+138,2023-09-25 21:30:11.067,180,2023-09-25 22:25:24.588,2023-09-25 22:25:24.588,UTC-0400,2Rs3UPxJn5,167,com.sec.android.app.shealth,c124fa60-4a06-4461-9442-e153949847ae,
