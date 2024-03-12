@@ -58,8 +58,12 @@ def plot_best_fit_lines(data, split_points, output_file=None):
 		bmr, initial_weight = find_best_fit_line(data, prev_split, split_point)[0]
 		predicted_weight = (data['cumulative_calories'][prev_split:split_point+1] - bmr * np.arange(split_point-prev_split+1)) / CALORIES_PER_POUND + initial_weight
 		plt.plot(data['date'][prev_split:split_point+1], predicted_weight, color=colors[i%len(colors)], label=f'Fit Line {i+1} (BMR: {bmr:.0f})')
+
+		start_date = data['date'].iloc[prev_split].strftime('%Y-%m-%d')
+		end_date = data['date'].iloc[split_point].strftime('%Y-%m-%d')
+		print(f"BMR for segment {i+1} ({start_date} to {end_date}): {bmr:.0f}")
+
 		prev_split = split_point + 1
-		print(f"BMR for segment {i+1}: {bmr:.0f}")
 
 	plt.plot(data['date'], data['weight'], 'o', label='Actual Weight')
 
