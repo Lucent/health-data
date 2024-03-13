@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import sys
 
 CALORIES_PER_POUND = 3500
-MIN_SEGMENT_LENGTH = 14  # Minimum number of days for each fit line segment
+MIN_SEGMENT_LENGTH = 12  # Minimum number of days for each fit line segment
 
 def objective_function(params, data, start_index, end_index):
 	slope, intercept = params
@@ -32,15 +32,17 @@ def find_best_fit_lines(data, num_lines):
 			dp[0, i] = error
 
 	for j in range(1, num_lines):
-		for i in range(j, n):
-			for k in range(max(j-1, i-MIN_SEGMENT_LENGTH), i):
-				prev_error = dp[j-1, k]
-				line_params, current_error = find_best_fit_line(data, k+1, i)
-				if line_params is not None:
-					total_error = prev_error + current_error
-					if total_error < dp[j, i]:
-						dp[j, i] = total_error
-						path[j, i] = k
+		for i in range(n):
+			print(f"Checking {i} {n} of line {j}")
+			if i + 1 >= MIN_SEGMENT_LENGTH * (j + 1):
+				for k in range(j * MIN_SEGMENT_LENGTH - 1, i - MIN_SEGMENT_LENGTH + 1):
+					prev_error = dp[j-1, k]
+					line_params, current_error = find_best_fit_line(data, k+1, i)
+					if line_params is not None:
+						total_error = prev_error + current_error
+						if total_error < dp[j, i]:
+							dp[j, i] = total_error
+							path[j, i] = k
 
 	split_points = [-1] * num_lines
 	split_points[-1] = n-1
@@ -80,7 +82,7 @@ def plot_best_fit_lines(data, split_points, output_file=None):
 		plt.show()
 
 # Read the CSV file
-data = pd.read_csv('intake-calories.csv')
+data = pd.read_csv('intake-weight.csv')
 
 # Convert 'date' column to datetime
 data['date'] = pd.to_datetime(data['date'])
@@ -92,10 +94,10 @@ data['cumulative_calories'] = data['calorie_intake'].cumsum()
 data['weight'] = pd.to_numeric(data['weight'], errors='coerce')
 
 # Specify the number of fit lines
-num_lines = 3
+NUM_LINES = 3
 
 # Find the best fit lines
-split_points = find_best_fit_lines(data, num_lines)
+split_points = find_best_fit_lines(data, NUM_LINES)
 
 # Check if an output file is provided as a command line argument
 output_file = "best_fit_lines.png"
