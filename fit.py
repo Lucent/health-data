@@ -1,3 +1,9 @@
+"""
+* Read CSV containing daily calorie intake (NO GAPS) and weight data (intermittent)
+* Fill in missing weight values using RMR and linear interpolation
+* Split data into segments and finds NUM_LINES-1 breakpoints that gives the lowest total R^2 between new left and right fit lines
+"""
+
 import pandas as pd
 import numpy as np
 from scipy.optimize import minimize
@@ -6,7 +12,7 @@ import sys
 
 NUM_LINES = 4
 CALORIES_PER_POUND = 3500
-MIN_SEGMENT_LENGTH = 12  # Minimum number of days for each fit line segment
+MIN_SEGMENT_LENGTH = 20  # Minimum number of days for each fit line segment
 OUTPUT_IMAGE = "best_fit_lines.png"
 
 def objective_function(params, data, start_index, end_index):
