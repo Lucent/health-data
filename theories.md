@@ -22,3 +22,10 @@
 Very open to [use of LLMs for the purpose of estimating other nutrient data](https://chat.openai.com/share/b77dc121-0580-4d66-9e67-131fb3b18a8a). "The following food named x has nutrient profile y. Estimate ingredients and ratio of PUFA to MUFA." OpenAI API key available for these requests.
 
 Slime Mold recommends [modeling as a control system](https://slimemoldtimemold.com/2022/03/15/control-and-correlation/) where control input has no correlation with modeled variables, but is instead a homeostatic mechanism. A day's macros or total consumed may have no correlation with previous or next days or any other available variable, but instead be correlated with a hidden variable, set point, that meanders slowly up or down. Much like RMR, a secret set point could be determined from the data and binges occur when I am below the set point. 
+
+## [/analysis-bmr-fit](/analysis-bmr-fit/fit.py)
+* Tries to find breakpoints of changing BMR by splitting a time period until the left and right segments' best fit lines have the highest R^2 value.
+* Does not appear to be a great approach.
+* Next step: revert script to NUM_LINES=1 and instead add modifier columns and target an increase of a single trendline's R^2 by:
+  * smoothing weight (control system that sheds water weight or increases it from previous days' rolling consumption)
+  * giving calorie values to daily steps
