@@ -10,7 +10,7 @@ from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 import sys
 
-NUM_LINES = 4
+NUM_LINES = 1
 CALORIES_PER_POUND = 3500
 MIN_SEGMENT_LENGTH = 20  # Minimum number of days for each fit line segment
 OUTPUT_IMAGE = "best_fit_lines.png"
@@ -18,7 +18,8 @@ OUTPUT_IMAGE = "best_fit_lines.png"
 def objective_function(params, data, start_index, end_index):
 	slope, intercept = params
 	predicted_weight = (data['cumulative_calories'][start_index:end_index+1] - slope * np.arange(end_index-start_index+1)) / CALORIES_PER_POUND + intercept
-	actual_weight = data['weight'][start_index:end_index+1]
+	actual_weight = data['smoothed_weight'][start_index:end_index+1]
+#	actual_weight = data['weight'][start_index:end_index+1]
 	return np.sum((actual_weight - predicted_weight)**2)
 
 def fill_missing_weights(data):
@@ -76,13 +77,15 @@ def find_best_fit_line(data, start_index, end_index):
 	if end_index - start_index + 1 < MIN_SEGMENT_LENGTH:
 		return None, -np.inf
 
-	initial_weight = data['weight'][start_index]
+#	initial_weight = data['weight'][start_index]
+	initial_weight = data['smoothed_weight'][start_index]
 	initial_params = [2500, initial_weight]
 	result = minimize(objective_function, initial_params, args=(data, start_index, end_index), method='Nelder-Mead')
 
 	slope, intercept = result.x
 	predicted_weight = (data['cumulative_calories'][start_index:end_index+1] - slope * np.arange(end_index-start_index+1)) / CALORIES_PER_POUND + intercept
-	actual_weight = data['weight'][start_index:end_index+1]
+	#actual_weight = data['weight'][start_index:end_index+1]
+	actual_weight = data['smoothed_weight'][start_index:end_index+1]
 
 	sse = np.sum((actual_weight - predicted_weight)**2)
 	sst = np.sum((actual_weight - np.mean(actual_weight))**2)
@@ -117,9 +120,42 @@ def find_best_fit_lines(data, num_lines):
 	find_best_fit_lines_recursive(data, num_lines, split_points)
 	return split_points[1:-1]
 
+def smooth_weights(data, REF_RMR, SMOOTHING_FACTOR):
+	smoothed_data = data.copy()
+
+	# Initialize the smoothed weight column
+	smoothed_data['smoothed_weight'] = smoothed_data['weight']
+
+	# Initialize the last valid smoothed weight and cumulative weight change
+	last_smoothed_weight = smoothed_data.loc[0, 'smoothed_weight']
+	cumulative_weight_change = 0
+
+	# Iterate over the data and smooth the weights
+	for i in range(1, len(smoothed_data)):
+		curr_weight = smoothed_data.loc[i, 'weight']
+		curr_intake = smoothed_data.loc[i, 'calorie_intake']
+
+		# Calculate the weight change based on the current day's calorie intake
+		weight_change = (curr_intake - REF_RMR) / CALORIES_PER_POUND
+		cumulative_weight_change += weight_change
+
+		if pd.isna(curr_weight):
+			# If the current weight is missing, interpolate based on the cumulative weight change
+			smoothed_data.loc[i, 'smoothed_weight'] = last_smoothed_weight + cumulative_weight_change
+		else:
+			# If the current weight is available, smooth it with the interpolated weight
+			interpolated_weight = last_smoothed_weight + cumulative_weight_change
+			smoothed_data.loc[i, 'smoothed_weight'] = SMOOTHING_FACTOR * curr_weight + (1 - SMOOTHING_FACTOR) * interpolated_weight
+			last_smoothed_weight = smoothed_data.loc[i, 'smoothed_weight']
+			cumulative_weight_change = 0
+
+		print(f"Day {i}: Curr Weight = {curr_weight:.2f}, Curr Intake = {curr_intake:.0f}, Weight Change = {weight_change:.2f}, Cumulative Change = {cumulative_weight_change:.2f}, Smoothed Weight = {smoothed_data.loc[i, 'smoothed_weight']:.2f}")
+
+	return smoothed_data
+
 def plot_best_fit_lines(data, split_points, output_file=None):
-	plt.figure(figsize=(10, 6))
-	colors = ['r', 'g', 'b', 'c', 'm', 'y', 'k']
+	plt.figure(figsize=(30, 10))
+	colors = ['#FF9999', '#000033', '#0000FF', '#CCCCCC', '#FF00FF', '#FFFF00', '#000000']
 	split_points = [0] + split_points + [len(data) - 1]  # Add start and end indices to split_points
 
 	for i in range(len(split_points) - 1):
@@ -129,13 +165,14 @@ def plot_best_fit_lines(data, split_points, output_file=None):
 		(bmr, initial_weight), r_squared = find_best_fit_line(data, start_index, end_index)
 		line_length = end_index - start_index + 1
 		predicted_weight = (data['cumulative_calories'][start_index:end_index+1] - bmr * np.arange(end_index-start_index+1)) / CALORIES_PER_POUND + initial_weight
-		plt.plot(data['date'][start_index:end_index+1], predicted_weight, color=colors[i%len(colors)], label=f'BMR: {bmr:.0f}, R^2: {r_squared:.2f}')
+	#	plt.plot(data['date'][start_index:end_index+1], predicted_weight, color=colors[i%len(colors)], label=f'BMR: {bmr:.0f}, R^2: {r_squared:.2f}')
 
 		start_date = data['date'].iloc[start_index].strftime('%Y-%m-%d')
 		end_date = data['date'].iloc[end_index].strftime('%Y-%m-%d')
 		print(f"BMR for segment {i+1} ({start_date} to {end_date}): {bmr:.0f}, R^2: {r_squared:.3f}")
 
-	plt.plot(data['date'], data['weight'], 'o', label='Actual Weight')
+	plt.plot(data['date'], data['weight'], '-o', label='Actual Weight')
+	plt.plot(data['date'], data['smoothed_weight'], '-', label='Smoothed Weight')
 
 	plt.xlabel('Date')
 	plt.ylabel('Weight (lbs)')
@@ -146,27 +183,24 @@ def plot_best_fit_lines(data, split_points, output_file=None):
 
 	plt.savefig(output_file)
 
-# Read the CSV file
+
 data = pd.read_csv('intake-weight.csv')
 
-# Convert 'date' column to datetime
 data['date'] = pd.to_datetime(data['date'])
 
-# Calculate the cumulative total of calories
 data['cumulative_calories'] = data['calorie_intake'].cumsum()
 
-# Convert weight to float and handle missing values
 data['weight'] = pd.to_numeric(data['weight'], errors='coerce')
 
-# Fill in missing weight values
-filled_data = fill_missing_weights(data)
+REF_RMR = 2400
 
-# Find the best fit lines
-split_points = find_best_fit_lines(filled_data, NUM_LINES)
+SMOOTHING_FACTOR = 0.2 # 0 = intake data only, 1 = weights only
+smoothed_data = smooth_weights(data, REF_RMR, SMOOTHING_FACTOR)
+data['smoothed_weight'] = smoothed_data['smoothed_weight']
 
-# Check if an output file is provided as a command line argument
+split_points = find_best_fit_lines(smoothed_data, NUM_LINES)
+
 if len(sys.argv) > 1:
 	output_file = sys.argv[1]
 
-# Plot the best fit lines
 plot_best_fit_lines(data, split_points, OUTPUT_IMAGE)
