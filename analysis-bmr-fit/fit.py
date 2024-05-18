@@ -10,7 +10,7 @@ from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 import sys
 
-NUM_LINES = 1
+NUM_LINES = 4
 CALORIES_PER_POUND = 3500
 MIN_SEGMENT_LENGTH = 20  # Minimum number of days for each fit line segment
 OUTPUT_IMAGE = "best_fit_lines.png"
@@ -120,36 +120,43 @@ def find_best_fit_lines(data, num_lines):
 	find_best_fit_lines_recursive(data, num_lines, split_points)
 	return split_points[1:-1]
 
-def smooth_weights(data, REF_RMR, SMOOTHING_FACTOR):
-	smoothed_data = data.copy()
+def smooth_weights_bidirectional(data, REF_RMR, SMOOTHING_FACTOR_RANGE):
+	forward_smoothed_data = smooth_weights(data, REF_RMR, SMOOTHING_FACTOR_RANGE, direction='forward')
+	backward_smoothed_data = smooth_weights(data, REF_RMR, SMOOTHING_FACTOR_RANGE, direction='backward')
 
-	# Initialize the smoothed weight column
+	bidirectional_smoothed_data = data.copy()
+	bidirectional_smoothed_data['smoothed_weight'] = (forward_smoothed_data['smoothed_weight'] + backward_smoothed_data['smoothed_weight']) / 2
+
+	return bidirectional_smoothed_data
+
+def smooth_weights(data, REF_RMR, SMOOTHING_FACTOR_RANGE, direction='forward'):
+	smoothed_data = data.copy()
 	smoothed_data['smoothed_weight'] = smoothed_data['weight']
 
-	# Initialize the last valid smoothed weight and cumulative weight change
-	last_smoothed_weight = smoothed_data.loc[0, 'smoothed_weight']
+	last_smoothed_weight = smoothed_data.loc[0, 'smoothed_weight'] if direction == 'forward' else smoothed_data.loc[len(smoothed_data) - 1, 'smoothed_weight']
 	cumulative_weight_change = 0
 
-	# Iterate over the data and smooth the weights
-	for i in range(1, len(smoothed_data)):
+	iter_range = range(1, len(smoothed_data)) if direction == 'forward' else range(len(smoothed_data) - 2, -1, -1)
+
+	for i in iter_range:
 		curr_weight = smoothed_data.loc[i, 'weight']
 		curr_intake = smoothed_data.loc[i, 'calorie_intake']
 
-		# Calculate the weight change based on the current day's calorie intake
 		weight_change = (curr_intake - REF_RMR) / CALORIES_PER_POUND
 		cumulative_weight_change += weight_change
 
 		if pd.isna(curr_weight):
-			# If the current weight is missing, interpolate based on the cumulative weight change
 			smoothed_data.loc[i, 'smoothed_weight'] = last_smoothed_weight + cumulative_weight_change
 		else:
-			# If the current weight is available, smooth it with the interpolated weight
 			interpolated_weight = last_smoothed_weight + cumulative_weight_change
-			smoothed_data.loc[i, 'smoothed_weight'] = SMOOTHING_FACTOR * curr_weight + (1 - SMOOTHING_FACTOR) * interpolated_weight
+
+			# Calculate the adaptive smoothing factor based on the time gap
+			time_gap = (smoothed_data.loc[i, 'date'] - smoothed_data.loc[i - 1, 'date']).days if direction == 'forward' else (smoothed_data.loc[i + 1, 'date'] - smoothed_data.loc[i, 'date']).days
+			adaptive_smoothing_factor = SMOOTHING_FACTOR_RANGE[0] + (SMOOTHING_FACTOR_RANGE[1] - SMOOTHING_FACTOR_RANGE[0]) * (time_gap - 1) / (MAX_GAP - 1)
+
+			smoothed_data.loc[i, 'smoothed_weight'] = adaptive_smoothing_factor * curr_weight + (1 - adaptive_smoothing_factor) * interpolated_weight
 			last_smoothed_weight = smoothed_data.loc[i, 'smoothed_weight']
 			cumulative_weight_change = 0
-
-		print(f"Day {i}: Curr Weight = {curr_weight:.2f}, Curr Intake = {curr_intake:.0f}, Weight Change = {weight_change:.2f}, Cumulative Change = {cumulative_weight_change:.2f}, Smoothed Weight = {smoothed_data.loc[i, 'smoothed_weight']:.2f}")
 
 	return smoothed_data
 
@@ -165,7 +172,7 @@ def plot_best_fit_lines(data, split_points, output_file=None):
 		(bmr, initial_weight), r_squared = find_best_fit_line(data, start_index, end_index)
 		line_length = end_index - start_index + 1
 		predicted_weight = (data['cumulative_calories'][start_index:end_index+1] - bmr * np.arange(end_index-start_index+1)) / CALORIES_PER_POUND + initial_weight
-	#	plt.plot(data['date'][start_index:end_index+1], predicted_weight, color=colors[i%len(colors)], label=f'BMR: {bmr:.0f}, R^2: {r_squared:.2f}')
+		plt.plot(data['date'][start_index:end_index+1], predicted_weight, color=colors[i%len(colors)], label=f'BMR: {bmr:.0f}, R^2: {r_squared:.2f}')
 
 		start_date = data['date'].iloc[start_index].strftime('%Y-%m-%d')
 		end_date = data['date'].iloc[end_index].strftime('%Y-%m-%d')
@@ -193,9 +200,10 @@ data['cumulative_calories'] = data['calorie_intake'].cumsum()
 data['weight'] = pd.to_numeric(data['weight'], errors='coerce')
 
 REF_RMR = 2400
+SMOOTHING_FACTOR_RANGE = (0.2, 0.8)  # Min and max smoothing factors based on time gap
+MAX_GAP = 10  # Maximum expected time gap between weight measurements
 
-SMOOTHING_FACTOR = 0.2 # 0 = intake data only, 1 = weights only
-smoothed_data = smooth_weights(data, REF_RMR, SMOOTHING_FACTOR)
+smoothed_data = smooth_weights_bidirectional(data, REF_RMR, SMOOTHING_FACTOR_RANGE)
 data['smoothed_weight'] = smoothed_data['smoothed_weight']
 
 split_points = find_best_fit_lines(smoothed_data, NUM_LINES)
