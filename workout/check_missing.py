@@ -4,7 +4,7 @@
 #   if (cells.length >= 3)
 #       return cells[3].innerText.trim();
 #   return null;
-# ).filter(text => text !== null);
+# }).filter(text => text !== null);
 # console.log(JSON.stringify(data));
 
 import json
