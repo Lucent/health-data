@@ -1,0 +1,71 @@
+date,lab,fatty_acid,value_pct,unit,notes
+2019-03-26,ClevelandHeartLab,Omega-3 total,2.8,% by wt,
+2019-03-26,ClevelandHeartLab,EPA (20:5n3),0.3,% by wt,flagged low
+2019-03-26,ClevelandHeartLab,DPA (22:5n3),1.4,% by wt,
+2019-03-26,ClevelandHeartLab,DHA (22:6n3),1.1,% by wt,flagged low
+2019-03-26,ClevelandHeartLab,Omega-6 total,41.3,% by wt,
+2019-03-26,ClevelandHeartLab,Arachidonic Acid (AA 20:4n6),10.9,% by wt,flagged high (ref <9.0)
+2019-03-26,ClevelandHeartLab,Linoleic Acid (18:2n6),26.9,% by wt,flagged high (ref <20.0)
+2019-03-26,ClevelandHeartLab,OmegaCheck (EPA+DPA+DHA),2.8,% by wt,high risk (<3.7)
+2019-03-26,ClevelandHeartLab,AA:EPA ratio,36.3,ratio,flagged high (ref <5.0)
+2019-03-26,ClevelandHeartLab,Omega-6:Omega-3 ratio,14.8,ratio,flagged high (ref <4.5)
+2024-09-05,OmegaQuant,Omega-3 total,4.78,% whole blood,
+2024-09-05,OmegaQuant,Omega-3 Index (RBC),4.93,%,desirable 8-12%
+2024-09-05,OmegaQuant,Alpha-Linolenic ALA (18:3n3),0.53,%,
+2024-09-05,OmegaQuant,EPA (20:5n3),0.54,%,
+2024-09-05,OmegaQuant,DPA-n3 (22:5n3),1.08,%,
+2024-09-05,OmegaQuant,DHA (22:6n3),2.63,%,
+2024-09-05,OmegaQuant,Omega-6 total,35.80,%,
+2024-09-05,OmegaQuant,Linoleic Acid (18:2n6),25.03,%,
+2024-09-05,OmegaQuant,Gamma-Linolenic (18:3n6),0.31,%,
+2024-09-05,OmegaQuant,Eicosadienoic (20:2n6),0.35,%,
+2024-09-05,OmegaQuant,DGLA (20:3n6),1.38,%,
+2024-09-05,OmegaQuant,Arachidonic Acid (AA 20:4n6),7.52,%,
+2024-09-05,OmegaQuant,Docosatetraenoic (22:4n6),0.94,%,
+2024-09-05,OmegaQuant,DPA-n6 (22:5n6),0.29,%,
+2024-09-05,OmegaQuant,cis-MUFA total,24.39,%,
+2024-09-05,OmegaQuant,Palmitoleic (16:1n7),0.92,%,excess carb marker
+2024-09-05,OmegaQuant,Oleic (18:1n9),22.85,%,
+2024-09-05,OmegaQuant,Eicosenoic (20:1n9),0.19,%,
+2024-09-05,OmegaQuant,Nervonic (24:1n9),0.44,%,
+2024-09-05,OmegaQuant,Saturated total,34.22,%,
+2024-09-05,OmegaQuant,Myristic (14:0),1.03,%,
+2024-09-05,OmegaQuant,Palmitic (16:0),22.15,%,
+2024-09-05,OmegaQuant,Stearic (18:0),10.07,%,
+2024-09-05,OmegaQuant,Arachidic (20:0),0.19,%,
+2024-09-05,OmegaQuant,Behenic (22:0),0.42,%,
+2024-09-05,OmegaQuant,Lignoceric (24:0),0.36,%,
+2024-09-05,OmegaQuant,Trans total,0.80,%,
+2024-09-05,OmegaQuant,Trans Fat Index,0.67,%,desirable <1%
+2024-09-05,OmegaQuant,AA:EPA ratio,14.0,ratio,desirable 2.5-11
+2024-09-05,OmegaQuant,Omega-6:Omega-3 ratio,7.5,ratio,desirable 3-5
+2025-09-05,OmegaQuant,Omega-3 total,5.68,% whole blood,
+2025-09-05,OmegaQuant,Omega-3 Index (RBC),6.06,%,desirable 8-12%
+2025-09-05,OmegaQuant,Alpha-Linolenic ALA (18:3n3),0.23,%,
+2025-09-05,OmegaQuant,EPA (20:5n3),0.45,%,
+2025-09-05,OmegaQuant,DPA-n3 (22:5n3),1.29,%,
+2025-09-05,OmegaQuant,DHA (22:6n3),3.71,%,
+2025-09-05,OmegaQuant,Omega-6 total,34.83,%,
+2025-09-05,OmegaQuant,Linoleic Acid (18:2n6),22.93,%,
+2025-09-05,OmegaQuant,Gamma-Linolenic (18:3n6),0.13,%,
+2025-09-05,OmegaQuant,Eicosadienoic (20:2n6),0.14,%,
+2025-09-05,OmegaQuant,DGLA (20:3n6),1.17,%,
+2025-09-05,OmegaQuant,Arachidonic Acid (AA 20:4n6),8.93,%,
+2025-09-05,OmegaQuant,Docosatetraenoic (22:4n6),1.24,%,
+2025-09-05,OmegaQuant,DPA-n6 (22:5n6),0.30,%,
+2025-09-05,OmegaQuant,cis-MUFA total,24.30,%,
+2025-09-05,OmegaQuant,Palmitoleic (16:1n7),0.53,%,excess carb marker — dropped from 0.92
+2025-09-05,OmegaQuant,Oleic (18:1n9),23.03,%,
+2025-09-05,OmegaQuant,Eicosenoic (20:1n9),0.19,%,
+2025-09-05,OmegaQuant,Nervonic (24:1n9),0.55,%,
+2025-09-05,OmegaQuant,Saturated total,34.65,%,
+2025-09-05,OmegaQuant,Myristic (14:0),0.43,%,
+2025-09-05,OmegaQuant,Palmitic (16:0),21.59,%,
+2025-09-05,OmegaQuant,Stearic (18:0),10.96,%,
+2025-09-05,OmegaQuant,Arachidic (20:0),0.23,%,
+2025-09-05,OmegaQuant,Behenic (22:0),0.82,%,
+2025-09-05,OmegaQuant,Lignoceric (24:0),0.62,%,
+2025-09-05,OmegaQuant,Trans total,0.54,%,
+2025-09-05,OmegaQuant,Trans Fat Index,0.44,%,desirable <1%
+2025-09-05,OmegaQuant,AA:EPA ratio,19.8,ratio,desirable 2.5-11
+2025-09-05,OmegaQuant,Omega-6:Omega-3 ratio,6.1,ratio,desirable 3-5
