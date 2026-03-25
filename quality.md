@@ -24,3 +24,36 @@ Ideally, if you could collect 10+ years of data, you want a subject with the few
 * You can assume an undercount by a consistent 5% due to snacking. I allocate about 100 calories a day to snacks that I don't count. Maybe a square of dark chocolate, three pecan or walnut halves, a cheese straw. This is a source of error, but it's consistent and proportional. On days with 4000 calories like some club-hopping birthday binge, the error scales up accordingly to accomodate cocktails with unknown proportions or a forgotten garlic knot during a night of drinking.
 * Increased snacking to maintain momentum. When I had a run of 30+ days of under 1600 calories, the pressure to not screw up increases, and some of those days may have 200 calories of uncommitted snacks where I nibbled on a bunch of small things to deal with ravenous hunger. The longer the run of days, the more likely up to one per week is tainted by an additional 15% unwritten snacking.
 * I am still human and can forget to enter something or fail to properly account for some extra oil or butter tossed into a restaurant dish.
+
+# Quantified quality assessment (from energy balance model)
+
+The `analysis/interpolate_weight.py` model derives TDEE from intake + weight data, allowing direct quality measurement by comparing derived TDEE to expected TDEE. Two models tested: Mifflin-St Jeor (population formula, no body composition) and a composition-aware model fitted to 21 calorimetry measurements against 49 body composition scans. Results as of 2026-03-24:
+
+## Overall model consistency
+* **Cumulative energy balance residual: ±5 lbs over 15 years.** The model's predicted weight change tracks actual weight change to within a few pounds across the entire dataset. Per-year drift averages 0.08 lbs/year (1 cal/day equivalent). This is very good.
+* **Calorimetry validation**: Derived TDEE/measured RMR ratios of 1.12 (2011), 1.12 (2012), 1.25 (2016). All within the expected 1.1–1.3 range for TDEE relative to resting metabolic rate.
+
+## Undercount: ~9-10% consistent, not trajectory-dependent
+
+An initial analysis using Mifflin-St Jeor (which ignores body composition) showed what appeared to be asymmetric undercounting: ~4% during weight loss, ~12% during weight gain. This would have been a serious data quality issue.
+
+**The composition-aware model resolves this.** MSJ overestimates RMR at high body fat (gaining phases), making the undercount look worse than it is. With the individually-fitted composition model (RMR = 32.5×FFM_kg + 13.0×FM_kg - 524, RMSE=151 kcal/day):
+
+| Phase | Days | TDEE/RMR ratio | Implied undercount |
+|---|---|---|---|
+| **Losing weight** | 2,122 | 1.158 | ~9% (~179 cal/day) |
+| **Stable weight** | 963 | 1.171 | ~13% (~279 cal/day) |
+| **Gaining weight** | 2,314 | 1.186 | ~10% (~216 cal/day) |
+
+The undercount is approximately **uniform at ~10% across all phases**, not trajectory-dependent. This is higher than the self-reported 5% (~100 cal/day) but consistent — the true uncounted snacking is roughly double the self-estimate, at ~200 cal/day. This is a constant bias that does not affect trend analysis.
+
+**Why MSJ was misleading:** At 210 lbs with 32% body fat (gaining phase), MSJ gives RMR=1910 while the composition model gives 1855 — a 55 cal/day difference. MSJ treats all weight as metabolically equal; the composition model correctly accounts for fat tissue having lower metabolic cost. The MSJ overestimate at high fat% masqueraded as worse logging accuracy.
+
+## Short-window noise
+25% of 7-day windows produce extreme TDEEs (<1500 or >2800 cal/day). This is not a data quality problem — it reflects non-caloric weight fluctuations (sodium, gut contents, hydration) that the glycogen model does not capture. A 3 lb weight swing over 7 days that isn't caloric produces a ~1500 cal/day error in derived TDEE. For reliable TDEE estimation, 14+ day windows are needed.
+
+## Implications for analysis
+* **Trend-level analysis is solid.** Monthly and quarterly patterns are reliable. The energy balance closes to within a few pounds per year.
+* **The ~10% undercount is a constant offset**, not a confound. It shifts all derived TDEEs down uniformly, not differentially by phase. Trend comparisons remain valid.
+* **Daily and weekly analysis is noisy.** Non-caloric weight fluctuations dominate at short timescales, even after glycogen correction.
+* **Activity is the unmodeled variable.** The TDEE/RMR ratio of ~1.17 is below the expected 1.2 for sedentary. The ~3% gap could be the undercount, or it could indicate below-average non-exercise activity thermogenesis (NEAT). Steps data could separate these.

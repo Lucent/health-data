@@ -25,16 +25,37 @@
 ### Data gaps to fill
 - **2025-11**: Missing MHTML file. Export pending (meals at Lighthaven need to be entered first).
 - **2018-02-20 to 2018-02-28**: Can be re-exported from MFP (data available from Feb 20, 2018 onward). Would fill the last OXPS-only gap in the HTML era.
-- **Samsung Health**: New export needed to extend steps/sleep past 2024-01-28.
+- **Samsung Health**: Export current through 2026-03-24 (4,275 step days, 2,057 sleep days).
 - **Weight**: Recent weigh-ins may not yet be in the spreadsheet. Potential split of bathroom scale export from hand-recorded weights.
 - **Cosmed Fitmate RMR**: Additional indirect calorimetry measurements exist beyond the 3 in RMR/. Need to export from device.
 - **Withings thermometer**: Two account exports merged into `temperature/temperature.csv`. 1,315 readings, 364 days, Dec 2023 – Mar 2026. Ready to join with intake data.
 
+### Body composition extraction — DONE
+Built `composition/extract.py` → `composition/composition.csv`. 49 measurements across 3 eras (bodpod, inbody_partial, inbody_full). Era-aware column mapping: core fields always populated, extended fields (segmental, visceral, water compartments) only for InBody eras.
+
+### RMR extraction — DONE
+Built `RMR/extract.py` → `RMR/rmr.csv`. 21 measurements (3 lab Cosmed, 18 home Cosmed Fitmate). More readings exportable from device.
+
+### Composition-aware RMR model — DONE
+Built `analysis/rmr_model.py`. Fits individual-specific RMR coefficients (RMR = 32.5×FFM_kg + 13.0×FM_kg - 524) from 21 calorimetry measurements against composition-interpolated FM/FFM. Forbes curve partitions daily weight changes into fat/lean between composition anchors. RMSE=151 kcal/day (at instrument noise floor). Outputs `analysis/daily_composition.csv` (5,429 days: FM, FFM, fat%, expected RMR). Used by interpolate_weight.py for long-gap TDEE derivation.
+
+### Medicine extraction + tirzepatide pharmacokinetics — DONE
+Built `drugs/extract.py` → `drugs/medicine.csv` (89 entries) + `drugs/tirzepatide.csv` (560 daily rows). Dose escalation: 2.5→5→7.5→10→12.5mg over 80 weekly injections, Sep 2024 to Mar 2026.
+
+**Pharmacokinetic blood level model** using FDA label parameters (t½=5.0 days, Tmax=24h, ka=3.31/day). Sums one-compartment SC absorption curves from all prior injections, capturing weekly sawtooth and multi-week accumulation (steady state ~week 5, accumulation ratio 1.6×).
+
+**Blood level → intake: r = -0.50** (partial, controlling for time trend). The weekly sawtooth directly tracks appetite: injection day = 1652 cal, day 5 (trough) = 2220 cal — a 568 cal/day swing within each week. Dose-response: each mg reduces intake ~35 cal/day.
+
+**Tachyphylaxis (dose tolerance)**: effectiveness decays exponentially with time on current dose. Decay rate = 0.0217/week → half-life of 32 weeks. After 20 weeks at the same dose, effectiveness falls to 65%. Correlation with intake improves from r=-0.40 (raw blood level) to r=-0.43 (with tachyphylaxis). Resets partially on dose escalation.
+
+**Intake prediction**: `calories = 2345 - 49 × effective_level`
+- Zero drug: 2345 cal/day
+- Fresh 12.5mg (effective ~17): 1504 cal/day
+- 12.5mg after 20 weeks (effective ~11): 1800 cal/day
+
 ### Extraction not yet done
-- **Body composition** (`composition/Body composition.xlsx`): 49 measurements across 3 eras (BOD POD, InBody partial, InBody full). Needs era-aware column mapping to CSV.
-- **Medicine** (`drugs/medicine.xlsx`): 83 entries. Simple extraction to CSV. Critical for modeling — tirzepatide starting 2024-09 is a massive intervention.
 - **Workout PDFs** (`workout/`): ~200 gym session PDFs. Need OCR or PDF text extraction to structured sets/reps data.
-- **RMR** (`RMR/RMR.xlsx`): Already has 21 measurements (3 lab + 18 home). Small enough to use directly from the XLSX. More readings exportable from the Cosmed Fitmate device.
+- **Additional RMR**: More readings exportable from Cosmed Fitmate device.
 
 ### Join into analysis table
 Build a single daily table joining: intake, weight, steps, sleep, medicine (as binary/dose columns), composition (interpolated). This is the input to all theories in theories.md.
@@ -42,18 +63,24 @@ Build a single daily table joining: intake, weight, steps, sleep, medicine (as b
 ### MFP API micronutrient enrichment
 Use food names from intake_foods.csv to query MFP API for iron, potassium, vitamin D, saturated fat, added sugars. Match by name + calorie checksum per the approach in `/myfitnesspal/README.md`. The 1,092 macro-mismatch foods from sanity_check.py are highest priority (their existing data is unreliable).
 
-### Analysis (theories.md) — NEXT UP
-**Glycogen-water smoothing** is the immediate next task. Prerequisite for all other analysis.
+### Water weight smoothing (glycogen + sodium) — DONE
+Built `analysis/glycogen_smooth.py` with two independent corrections, both validated by the same criterion (nutrient→weight partial correlation drops to ~zero after correction):
+- **Glycogen**: target-seeking model, tuned via grid search (G_max=600g, carb_ref=350g, rate_up=0.60, rate_down=0.45). Carb→weight partial r: 0.27 → ~0.
+- **Sodium**: linear model, k=0.00030 lbs/mg (=136ml/g Na, literature 130-150). Sodium→weight partial r: 0.175 → -0.015.
+- Both use 1-day lag (morning weight reflects previous day's intake), centered on median.
+- **Combined: 14.3% global variance reduction**. Per-window: 40% (fasts), 62% (high-sodium-variance periods), 9-23% (other dense periods).
+- Steps tested: r=0.014 partial correlation with weight change. No detectable signal at any timescale. Not included.
+- Output: `analysis/smoothed_weight.csv`
 
-Inputs:
-- `intake/intake_daily.csv` — daily calories and carbs
-- `weight/weight.csv` — daily weight (with gaps to interpolate)
+### Weight interpolation + TDEE derivation — DONE
+Built `analysis/interpolate_weight.py`. Derives TDEE by inverting the energy balance between each pair of weigh-ins, then simulates daily weight through gaps using that TDEE.
+- 360 TDEE windows (min 7 days each): short windows get constant TDEE, long windows (>60d) get weight-dependent TDEE via Mifflin-St Jeor scale factor.
+- Snaps to every observed weight (0.00 lbs max interpolation error at observations).
+- Complete 5,429-day series: `analysis/daily_weight.csv` with interpolated weight, glycogen-corrected smoothed weight, and per-window TDEE.
+- Validated against 3 indirect calorimetry measurements: derived TDEE/measured RMR ratios of 1.21, 1.14, 1.27 (expected 1.1-1.3 for TDEE/RMR).
+- TDEE distribution: median 2158, P5=1792, P95=3207.
 
-Model: each gram of glycogen retains ~3g water. Glycogen depleted over ~2 days of restriction, recaptured within hours of refeeding. Daily carb intake drives glycogen stores; the model predicts water weight fluctuations, which when subtracted from scale weight reveal true fat mass trajectory.
-
-Validation: the Oct-Nov 2019 weekend fasts (36-hour, visible in intake data as <150 cal Sat/Sun) should show weight drops far exceeding caloric deficit, with immediate bounce-back on refeeding days. If the model correctly predicts the bounce magnitude, it's working.
-
-Then:
+### Analysis — NEXT UP
 2. **Set point estimation** — Kalman filter / state-space model extracting the hidden variable
 3. **Hunger vs. food noise separation** — compare binge frequency at equivalent deficits pre- vs. post-tirzepatide
 4. **Binge prediction from set point distance** — does cumulative gap below set point predict binges better than any dietary variable?

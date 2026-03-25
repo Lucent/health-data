@@ -39,6 +39,46 @@ Sleep periods from Samsung Health. Assigned to wake-up date. 1,279 days from 201
 Columns: `date, sleep_start, sleep_end, sleep_hours, time_offset`
 Times are local. Regenerate with `python steps-sleep/extract.py`
 
+## analysis/smoothed_weight.csv
+Daily weight with glycogen-water correction. Removes ~4 lb swings from glycogen depletion/refill. 1,544 days.
+Columns: `date, weight_lbs, glycogen_g, glycogen_correction_lbs, smoothed_weight_lbs`
+
+- `glycogen_g`: estimated glycogen stores at time of weigh-in (lagged 1 day from intake)
+- `glycogen_correction_lbs`: water weight added back (0 on normal days, up to +4 lbs after fasting)
+- `smoothed_weight_lbs`: `weight_lbs + glycogen_correction_lbs` — use this for analysis
+- Regenerate with `python analysis/glycogen_smooth.py`
+
+## analysis/daily_weight.csv
+Complete daily series with interpolated weight and derived TDEE. 5,429 days (every day with intake data).
+Columns: `date, calories, carbs_g, observed_weight_lbs, glycogen_g, glycogen_correction_lbs, interpolated_weight_lbs, smoothed_weight_lbs, tdee, window_id`
+
+- `observed_weight_lbs`: raw scale reading (NaN most days)
+- `interpolated_weight_lbs`: simulated scale weight (matches observed where available)
+- `smoothed_weight_lbs`: underlying fat mass trajectory (glycogen-corrected)
+- `tdee`: derived total daily energy expenditure for the enclosing window
+- TDEE derived by inverting energy balance between weigh-ins (not from a formula)
+- Validated against 3 indirect calorimetry measurements: TDEE/RMR ratios of 1.14-1.27
+- Regenerate with `python analysis/interpolate_weight.py`
+
+## drugs/tirzepatide.csv
+Daily tirzepatide pharmacokinetic state. 560 days from Sep 2024 to Mar 2026.
+Columns: `date, dose_mg, days_since_injection, injection_date, blood_level, effective_level`
+
+- `blood_level`: modeled serum concentration (arbitrary units) from one-compartment SC PK model. FDA parameters: t½=5.0d, Tmax=24h. Sums contributions from all prior injections (accumulation + weekly sawtooth).
+- `effective_level`: blood_level adjusted for tachyphylaxis. `= blood_level × exp(-0.0217 × weeks_on_current_dose)`. Half-life of effectiveness: 32 weeks.
+- Correlates with daily intake at r=-0.50 (partial). Injection day: 1652 cal. Trough day: 2220 cal.
+- Regenerate with `python drugs/extract.py`
+
+## composition/composition.csv
+Body composition measurements. 49 rows across 3 eras (BOD POD, InBody partial, InBody full).
+Columns: `date, weight_lbs, fat_mass_lbs, fat_pct, lean_mass_lbs, smm_lbs, bmi, era, [extended InBody columns]`
+Regenerate with `python composition/extract.py`
+
+## RMR/rmr.csv
+Resting metabolic rate from indirect calorimetry. 21 measurements (3 lab Cosmed, 18 home Cosmed Fitmate).
+Columns: `date, rmr_kcal, device, fasted`
+Regenerate with `python RMR/extract.py`
+
 # Raw Data Directories
 
 ## /intake
@@ -54,8 +94,10 @@ Body composition measurements in XLSX. Scans are backups.
 - 47 InBody measurements (2017-2024) — bioelectric impedance, includes segmental muscle/fat, visceral fat, water compartments
 
 ## /drugs
-medicine.xlsx — injection/medication log.
+medicine.xlsx — injection/medication log. Extracted to `drugs/medicine.csv` + `drugs/tirzepatide.csv`.
 - 80 Zepbound (tirzepatide) weekly injections, 2024-09-17 to present. Dose escalation: 2.5→5→7.5→10→12.5mg. Includes subjective strength ratings and injection sites.
+- Pharmacokinetic blood level modeled from FDA parameters (t½=5d, Tmax=24h). Blood level correlates with daily intake at r=-0.50. Weekly appetite swing: 568 cal from injection day to trough.
+- Tachyphylaxis modeled: effectiveness half-life 32 weeks. After 20 weeks on same dose, 65% effective.
 - 3 days metformin XR 500, 2025-03-31 (prophylactic COVID exposure per COVID-OUT trial)
 
 ## /RMR

@@ -21,4 +21,11 @@ python weight/extract.py            → weight/weight.csv
 python steps-sleep/extract.py       → steps-sleep/steps.csv + steps-sleep/sleep.csv
 python intake/sanity_check.py       — Atwater factor validation
 python intake/compare_extractors.py — cross-validates OXPS vs HTML extractors
+python composition/extract.py       → composition/composition.csv
+python RMR/extract.py               → RMR/rmr.csv
+python drugs/extract.py             → drugs/medicine.csv + drugs/tirzepatide.csv
+python analysis/glycogen_smooth.py  → analysis/smoothed_weight.csv + validation plot
+python analysis/rmr_model.py        → analysis/daily_composition.csv (run BEFORE interpolate)
+python analysis/interpolate_weight.py → analysis/daily_weight.csv + diagnostic plot
+python analysis/plot_models.py      → diagnostic plots in analysis/
 ```
