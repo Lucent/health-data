@@ -1,0 +1,5 @@
+group,days,mean_steps,mean_same_day_calories,mean_future7_calories,mean_future14_calories,mean_future7_tdee_rmr_ratio,mean_future14_tdee_rmr_ratio,step_distance_to_match
+paired_walk_days,99,8763.69,2066.42,2158.51,2173.75,1.0987,1.0994,
+other_high_step_days,1161,8604.15,2307.97,2251.22,2234.5,1.0861,1.0855,
+lower_step_days,3015,2298.25,2146.45,2165.06,2171.39,1.0735,1.0737,
+step_matched_pair_minus_other_high_mean,99,8763.69,,,-27.89,,0.0236,4.86

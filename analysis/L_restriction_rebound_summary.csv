@@ -1,0 +1,11 @@
+dimension,value,n_runs,next7_mean_calories,next7_any_binge_rate,next7_any_high_rate,next7_max_calories,post_minus_pre_ratio
+long_run,False,103,2010.9,0.2621,0.5922,2588.6,-0.0093
+long_run,True,30,2008.5,0.2333,0.6,2605.4,0.0038
+deep_run,False,97,2045.7,0.2887,0.5876,2625.4,-0.0058
+deep_run,True,36,1915.1,0.1667,0.6111,2503.4,-0.0076
+low_carb,False,95,2018.8,0.2632,0.5895,2615.7,-0.0095
+low_carb,True,38,1989.4,0.2368,0.6053,2533.9,0.0016
+low_protein,False,99,2036.8,0.2727,0.6263,2619.5,-0.0044
+low_protein,True,34,1933.6,0.2059,0.5,2513.3,-0.0119
+high_steps,False,98,1986.0,0.2653,0.5918,2587.9,-0.0022
+high_steps,True,35,2078.7,0.2286,0.6,2604.8,-0.0177

@@ -1,0 +1,10 @@
+target,term,coef
+run_minus_pre_ratio,intercept,0.007693
+run_minus_pre_ratio,fat_mass_start,0.000154
+run_minus_pre_ratio,falling_vs_rising,-0.029471
+post_minus_pre_ratio,intercept,0.015027
+post_minus_pre_ratio,fat_mass_start,0.000154
+post_minus_pre_ratio,falling_vs_rising,-0.053436
+post_minus_run_ratio,intercept,0.007335
+post_minus_run_ratio,fat_mass_start,-0.0
+post_minus_run_ratio,falling_vs_rising,-0.023972

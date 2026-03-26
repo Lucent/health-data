@@ -1,0 +1,16 @@
+model,term,coef
+overall,intercept,98.392511
+overall,fat_mass_lbs,-0.010221
+overall,on_tirz,-0.275518
+overall,phase_falling,0.12102
+overall,phase_rising,0.324519
+overall,effective_level,0.011977
+on_tirz_only,intercept,98.181562
+on_tirz_only,fat_mass_lbs,-0.010244
+on_tirz_only,phase_falling,0.070525
+on_tirz_only,phase_rising,0.199062
+on_tirz_only,effective_level,0.010376
+pre_tirz_only,intercept,99.06364
+pre_tirz_only,fat_mass_lbs,-0.018576
+pre_tirz_only,phase_falling,0.0
+pre_tirz_only,phase_rising,0.469795

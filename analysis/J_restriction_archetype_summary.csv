@@ -1,0 +1,11 @@
+dimension,value,n_runs,mean_run_minus_pre_ratio,mean_post_minus_pre_ratio,mean_post_minus_pre_tdee,mean_fat_delta_30d
+long_run,False,103,-0.004,-0.0102,-25.3,-0.81
+long_run,True,30,0.0072,0.0028,-3.8,-1.73
+deep_run,False,97,-0.0023,-0.0067,-18.4,-0.78
+deep_run,True,36,0.0009,-0.0089,-25.8,-1.66
+low_carb,False,95,-0.0035,-0.0103,-26.1,-1.19
+low_carb,True,38,0.0036,0.0002,-6.2,-0.6
+low_protein,False,99,-0.0013,-0.0053,-16.2,-0.63
+low_protein,True,34,-0.002,-0.013,-32.7,-2.14
+high_steps,False,98,0.0006,-0.0031,-12.4,-1.25
+high_steps,True,35,-0.0071,-0.0188,-42.8,-0.39

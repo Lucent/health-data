@@ -1,0 +1,3 @@
+cohort,n_runs,mean_run_days,mean_run_calories,next7_mean_calories,next7_binge_rate,next7_high_or_binge_rate
+on_tirzepatide,23,3.52,1557.1,1937.8,0.1304,0.7391
+pre_tirzepatide,135,5.26,1595.1,2012.7,0.2593,0.5926

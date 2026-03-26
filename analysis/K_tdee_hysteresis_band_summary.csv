@@ -1,0 +1,4 @@
+fat_band_lbs,mean_fat_mass_lbs,rising_days,falling_days,rising_mean_tdee,falling_mean_tdee,falling_minus_rising_tdee,rising_mean_ratio,falling_mean_ratio,falling_minus_rising_ratio,rising_mean_tdee_minus_rmr,falling_mean_tdee_minus_rmr,falling_minus_rising_tdee_minus_rmr
+25-45,35.51,324,413,2100.3,2195.5,95.2,1.0688,1.0629,-0.006,135.1,127.9,-7.1
+45-65,54.78,329,244,2065.0,2352.2,287.3,1.063,1.1279,0.065,121.1,267.6,146.6
+65-85,72.97,504,165,2207.8,2489.5,281.7,1.1102,1.2217,0.1115,219.2,450.9,231.7

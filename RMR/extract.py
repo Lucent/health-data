@@ -1,79 +1,151 @@
-"""Extract RMR (resting metabolic rate) measurements from XLSX to CSV.
+#!/usr/bin/env python3
+"""Extract canonical RMR measurements for patient 1."""
 
-21 indirect calorimetry measurements:
-- 3 lab (Cosmed, 2011-2016)
-- 18 home (Cosmed Fitmate, 2022-2023)
-
-Idempotent. Re-run to regenerate CSV from XLSX.
-
-Output: RMR/rmr.csv
-"""
+from __future__ import annotations
 
 import csv
 from pathlib import Path
+
 import openpyxl
 
+from fitmate_dump import TIPO_RMR, open_table, parse_rmr_blob
+
+
 ROOT = Path(__file__).resolve().parent
-XLSX = ROOT / "RMR.xlsx"
+OUT = ROOT / "rmr_fitmate_user1.csv"
 OUT = ROOT / "rmr.csv"
+XLSX = ROOT / "RMR.xlsx"
+PATIENT_ID = 1
 
-FIELDS = ["date", "rmr_kcal", "device", "fasted"]
+FIELDS = [
+    "date",
+    "rmr_kcal",
+    "device",
+    "fasted",
+]
+def load_patient_name() -> str:
+    for rec in open_table(str(ROOT), "ANAGRAFE.DBF"):
+        row = dict(rec)
+        if row["PROGRESS"] == PATIENT_ID:
+            return f"{row['A_LASTNAME']}, {row['A_FRSTNAME']}"
+    raise SystemExit("Patient 1 not found in ANAGRAFE.DBF")
 
-# Lab measurements are labeled "Cosmed" in the Device column.
-# Home measurements have no device label — they're from a personally owned Cosmed Fitmate.
-# Per background.md: "Any measure before noon is fasted"
-NOON_HOUR = 12
+
+def extract_patient_tests() -> list[dict[str, object]]:
+    records = []
+    for rec in open_table(str(ROOT), "TEST.DBF"):
+        row = dict(rec)
+        if row["T_ANAG"] != PATIENT_ID or row["T_TIPO"] != TIPO_RMR:
+            continue
+        parsed = parse_rmr_blob(row.get("T_TEST"))
+        if parsed["rmr_kcal"] == 0:
+            continue
+        records.append(
+            {
+                "date": row["T_DATE"].isoformat(),
+                "rmr_kcal": int(parsed["rmr_kcal"]),
+                "device": "cosmed_fitmate",
+                "fasted": True,
+            }
+        )
+    records.sort(key=lambda row: row["date"])
+    return records
 
 
-def extract():
+def load_xlsx_rows() -> tuple[list[dict[str, object]], list[dict[str, object]]]:
     wb = openpyxl.load_workbook(XLSX, data_only=True)
     ws = wb.active
-
-    rows = list(ws.iter_rows(min_row=2, values_only=True))
-    print(f"Read {len(rows)} rows from {XLSX.name}")
-
-    records = []
-    for row in rows:
-        date_val, rmr_val, device_val = row[0], row[1], row[2] if len(row) > 2 else None
-
+    lab_rows = []
+    other_rows = []
+    for date_val, rmr_val, device_val, *_ in ws.iter_rows(min_row=2, values_only=True):
         if date_val is None or rmr_val is None:
             continue
-
-        date_str = date_val.strftime("%Y-%m-%d") if hasattr(date_val, "strftime") else str(date_val)[:10]
-
-        # Determine device
-        if device_val and "cosmed" in str(device_val).lower():
-            device = "cosmed_lab"
+        rmr_kcal = int(float(rmr_val))
+        if rmr_kcal == 0:
+            continue
+        device_str = "" if device_val is None else str(device_val).strip().lower()
+        row = {
+            "date": date_val.strftime("%Y-%m-%d"),
+            "rmr_kcal": rmr_kcal,
+            "device": "cosmed_lab" if device_str == "cosmed" else "cosmed_fitmate",
+            "fasted": True,
+        }
+        if device_str == "cosmed":
+            lab_rows.append(row)
         else:
-            device = "cosmed_fitmate"
+            other_rows.append(row)
+    lab_rows.sort(key=lambda row: row["date"])
+    other_rows.sort(key=lambda row: row["date"])
+    return lab_rows, other_rows
 
-        # Determine fasting status: lab measurements are known fasted,
-        # home measurements assumed fasted (taken in morning routine)
-        fasted = "true"
 
-        records.append({
-            "date": date_str,
-            "rmr_kcal": int(float(rmr_val)),
-            "device": device,
-            "fasted": fasted,
-        })
+def compare_to_xlsx(dbf_rows: list[dict[str, object]], xlsx_rows: list[dict[str, object]]) -> list[dict[str, object]]:
+    dbf_map = {row["date"]: row["rmr_kcal"] for row in dbf_rows}
+    xlsx_map = {row["date"]: row["rmr_kcal"] for row in xlsx_rows}
 
-    records.sort(key=lambda r: r["date"])
+    all_dates = sorted(set(dbf_map) | set(xlsx_map))
+    compare_rows = []
+    for date in all_dates:
+        dbf_val = dbf_map.get(date)
+        xlsx_val = xlsx_map.get(date)
+        if dbf_val is not None and xlsx_val is not None:
+            if dbf_val == xlsx_val:
+                status = "match"
+            else:
+                status = "value_mismatch"
+        elif dbf_val is not None:
+            status = "dbf_only"
+        else:
+            status = "xlsx_only"
+        compare_rows.append(
+            {
+                "date": date,
+                "dbf_rmr_kcal": "" if dbf_val is None else dbf_val,
+                "xlsx_rmr_kcal": "" if xlsx_val is None else xlsx_val,
+                "status": status,
+            }
+        )
+    return compare_rows
 
-    lab = sum(1 for r in records if r["device"] == "cosmed_lab")
-    home = len(records) - lab
 
-    with open(OUT, "w", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=FIELDS)
-        w.writeheader()
-        w.writerows(records)
+def write_csv(path: Path, rows: list[dict[str, object]], fieldnames: list[str]) -> None:
+    with open(path, "w", newline="") as fh:
+        writer = csv.DictWriter(fh, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(rows)
 
-    print(f"Wrote {len(records)} measurements to {OUT.name}")
-    print(f"  Date range: {records[0]['date']} to {records[-1]['date']}")
-    print(f"  Lab (Cosmed): {lab}")
-    print(f"  Home (Fitmate): {home}")
-    print(f"  RMR range: {min(r['rmr_kcal'] for r in records)}-{max(r['rmr_kcal'] for r in records)} kcal/day")
+
+def main() -> None:
+    patient_name = load_patient_name()
+    dbf_rows = extract_patient_tests()
+    lab_rows, xlsx_fitmate_rows = load_xlsx_rows()
+    compare_rows = compare_to_xlsx(dbf_rows, xlsx_fitmate_rows)
+
+    dbf_dates = {row["date"] for row in dbf_rows}
+    manual_fitmate_rows = [row for row in xlsx_fitmate_rows if row["date"] not in dbf_dates]
+    combined_rows = sorted(lab_rows + dbf_rows + manual_fitmate_rows, key=lambda row: row["date"])
+
+    write_csv(OUT, combined_rows, FIELDS)
+
+    statuses = {}
+    for row in compare_rows:
+        statuses[row["status"]] = statuses.get(row["status"], 0) + 1
+
+    xlsx_dates = {row["date"] for row in xlsx_fitmate_rows}
+    is_superset = xlsx_dates.issubset(dbf_dates) and statuses.get("value_mismatch", 0) == 0
+
+    print(f"Patient: {patient_name} [1]")
+    print(f"DBF rows: {len(dbf_rows)}")
+    print(f"XLSX fitmate rows: {len(xlsx_fitmate_rows)}")
+    print(f"Lab rows from XLSX: {len(lab_rows)}")
+    print(f"Manual XLSX-only fitmate rows kept: {len(manual_fitmate_rows)}")
+    print(f"Date range: {combined_rows[0]['date']} to {combined_rows[-1]['date']}")
+    print(f"Superset of XLSX fitmate rows: {'yes' if is_superset else 'no'}")
+    for status in ["match", "dbf_only", "xlsx_only", "value_mismatch"]:
+        if statuses.get(status):
+            print(f"  {status}: {statuses[status]}")
+    print(f"Wrote: {OUT}")
 
 
 if __name__ == "__main__":
-    extract()
+    main()

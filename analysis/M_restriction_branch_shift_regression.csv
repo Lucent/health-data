@@ -1,0 +1,13 @@
+target,term,coef
+run_minus_pre_ratio,intercept,-0.003029
+run_minus_pre_ratio,long_run,0.011587
+run_minus_pre_ratio,deep_run,-0.000245
+run_minus_pre_ratio,low_carb,0.005153
+run_minus_pre_ratio,low_protein,0.000572
+run_minus_pre_ratio,high_steps,-0.00823
+post_minus_run_ratio,intercept,-0.000646
+post_minus_run_ratio,long_run,0.003826
+post_minus_run_ratio,deep_run,-0.005834
+post_minus_run_ratio,low_carb,0.001085
+post_minus_run_ratio,low_protein,-0.00663
+post_minus_run_ratio,high_steps,-0.009682

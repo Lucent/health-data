@@ -1,0 +1,10 @@
+subset,phase,n_days,coef_fat_mass,coef_calories
+all,falling,940,7.6953,-0.01766
+all,stable,2753,3.9902,0.01713
+all,rising,1206,3.0004,0.0085
+deadzone,falling,229,6.3977,0.05275
+deadzone,stable,1079,3.9071,0.03653
+deadzone,rising,426,3.7853,-0.02636
+outside_deadzone,falling,711,8.2165,-0.01632
+outside_deadzone,stable,1674,4.0649,0.01685
+outside_deadzone,rising,780,2.5414,0.00947

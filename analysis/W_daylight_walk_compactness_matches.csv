@@ -1,0 +1,5 @@
+walk_date,smeared_date,walk_steps,smeared_steps,step_diff,walk_active_minutes,smeared_active_minutes,walk_span_minutes,smeared_span_minutes,walk_steps_per_span_min,smeared_steps_per_span_min,walk_top60_share,smeared_top60_share
+2026-02-20,2026-03-18,63.0,64.0,1.0,5,3,91.0,153.0,0.6923,0.4183,0.6667,0.8594
+2026-03-06,2026-02-27,284.0,235.0,49.0,10,13,77.0,114.0,3.6883,2.0614,0.8873,0.7149
+2026-03-07,2026-03-21,1716.0,1494.0,222.0,18,25,168.0,115.0,10.2143,12.9913,0.9709,0.9772
+2026-03-10,2026-03-14,1484.0,1328.0,156.0,22,47,174.0,175.0,8.5287,7.5886,0.845,0.808

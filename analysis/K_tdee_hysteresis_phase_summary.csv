@@ -1,0 +1,4 @@
+phase,n_days,mean_fat_mass_lbs,mean_tdee,mean_expected_rmr,mean_tdee_minus_rmr,mean_tdee_rmr_ratio
+falling,940,45.13,2272.8,2068.6,204.2,1.0995
+rising,1206,55.94,2135.0,1971.9,163.1,1.0828
+stable,2663,55.81,2141.9,2001.2,140.7,1.0711

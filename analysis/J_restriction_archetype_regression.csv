@@ -1,0 +1,7 @@
+term,coef_post_minus_pre_ratio,coef_post_minus_pre_tdee
+intercept,-0.00415,-12.739
+long_run,0.01547,26.745
+deep_run,-0.00649,-14.839
+low_carb,0.00558,10.792
+low_protein,-0.0064,-13.671
+high_steps,-0.01824,-35.351

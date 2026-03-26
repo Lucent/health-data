@@ -1,0 +1,5 @@
+term,coef,interpretation
+intercept,1943.2025,baseline stable-phase TDEE at zero fat mass (not directly meaningful)
+fat_mass_lbs,3.5606,"cal/day increase in TDEE per additional lb fat mass, holding phase fixed"
+falling_vs_stable,168.9283,phase offset for falling vs stable at matched fat mass
+rising_vs_stable,-7.4085,phase offset for rising vs stable at matched fat mass

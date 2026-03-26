@@ -1,0 +1,17 @@
+metric,value
+analysis_start,2017-01-01
+days,1511
+binges,205
+baseline_prev_cal_auc,0.704
+best_half_life_days,2
+latent_auc,0.693
+combo_prev_cal_plus_latent_auc,0.7131
+selected_strain_features,"ew_low_calorie_day,ew_monotony,ew_high_steps,ew_restriction_streak"
+selected_recovery_features,ew_recovery_ease
+mean_latent_before_binge,0.5462
+mean_latent_before_non_binge,-0.0857
+ew_low_calorie_day,-0.6299
+ew_monotony,-0.1881
+ew_high_steps,0.0388
+ew_restriction_streak,0.2136
+ew_recovery_ease,0.3648

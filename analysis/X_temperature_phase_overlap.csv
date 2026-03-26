@@ -1,0 +1,6 @@
+phase,on_tirz,n_days,mean_fat_mass_lbs,mean_temp_f,mean_tdee_rmr_ratio
+rising,False,14,84.43,97.9651,1.1904
+stable,False,159,81.5,97.5497,1.2056
+falling,True,138,70.77,97.608,1.096
+rising,True,23,83.75,97.554,1.1408
+stable,True,28,81.07,97.3979,1.1331

@@ -1,0 +1,6 @@
+group,days,mean_calories,mean_carbs_g,mean_fat_g,mean_protein_g,binge_rate,mean_tdee_rmr_ratio,fat_start_lbs,fat_end_lbs,fat_delta_lbs,fat_delta_per_30d_lbs
+potato_epoch_days,69.0,1929.6,251.9,85.4,48.7,0.0,1.1685,,,,
+matched_non_potato_days,2532.0,1874.1,209.3,84.9,74.8,0.0,1.0761,,,,
+potato_epoch_window_mean,,1877.5,275.1,,38.8,0.0,1.1768,,,-1.96,
+potato_post_window_mean,,2628.9,277.8,,80.2,0.1965,1.1143,,,1.72,
+potato_pre_window_mean,,2518.8,264.9,,74.9,0.1429,1.1856,,,0.69,

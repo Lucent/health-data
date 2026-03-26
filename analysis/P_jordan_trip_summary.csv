@@ -1,0 +1,7 @@
+trip,phase,days,mean_calories,mean_carbs_g,mean_fat_g,mean_protein_g,binge_rate,mean_tdee_rmr_ratio,fat_start_lbs,fat_end_lbs,fat_delta_lbs,fat_delta_per_30d_lbs,mean_tdee,weight_start_lbs,weight_end_lbs,weight_delta_lbs
+Jordan 2015,pre,28,2054.3,238.7,81.1,77.4,0.0714,1.0719,36.94,36.65,-0.29,-0.32,2106.4,,182.95,
+Jordan 2015,during,31,3261.5,357.2,142.9,85.6,0.7097,1.0568,36.56,46.83,10.27,10.27,2071.3,,,
+Jordan 2015,post,28,1808.4,213.3,69.5,72.8,0.0,1.0512,47.12,45.2,-1.92,-2.13,2055.0,,189.9,
+Jordan 2019,pre,28,1960.0,174.5,100.0,96.2,0.0714,0.9798,61.36,60.49,-0.87,-0.97,2041.6,,,
+Jordan 2019,during,29,2528.9,260.2,117.6,68.6,0.1379,0.9723,60.71,65.1,4.39,4.7,2020.7,,,
+Jordan 2019,post,28,1579.8,163.2,72.7,78.1,0.0,0.9604,64.93,61.79,-3.14,-3.49,1990.5,,,
