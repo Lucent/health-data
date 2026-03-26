@@ -1,4 +1,4 @@
 phase,n_days,mean_distance_lbs,mean_calories,binge_rate
-falling,940,-7.88,2018.2,0.0904
-rising,1206,4.59,2232.7,0.1468
-stable,2663,0.49,2193.3,0.1239
+falling,916,-7.94,2017.1,0.0939
+rising,1179,4.22,2250.4,0.1544
+stable,2714,0.59,2184.8,0.1194

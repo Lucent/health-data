@@ -8,7 +8,7 @@ Each section has a `Command:` line pointing to the standalone script that reprod
 
 Does the intake data close against weight and calorimetry?
 
-Cumulative energy balance residual: ±5 lbs over 15 years. Undercount by trajectory phase (composition-aware model, 25 calorimetry × 70 composition measurements): gaining 13.2%, losing 9.7%, stable 13.9%. Approximately uniform.
+Cumulative energy balance residual: ±5 lbs over 15 years. Undercount by trajectory phase (composition-aware model, 25 calorimetry × 70 composition measurements): gaining 14.7%, losing 8.6%, stable 12.4%. Approximately uniform.
 
 Command: `python analysis/A_energy_balance_quality.py`
 
@@ -18,24 +18,24 @@ Does derived TDEE vary with weight, or does the body defend a band?
 
 | Year | TDEE | Intake | Gap | Fat (lbs) | Lean (lbs) | TDEE/RMR |
 |---|---|---|---|---|---|---|
-| 2011 | 2604 | 1772 | +832 | 102→49 | 159→157 | 1.198 |
-| 2012 | 2200 | 1917 | +283 | 49→32 | 157→154 | 1.037 |
-| 2013 | 2038 | 1847 | +191 | 32→20 | 154→152 | 0.983 |
-| 2014 | 2111 | 2105 | +6 | 20→33 | 152→149 | 1.048 |
-| 2015 | 2100 | 2130 | -30 | 33→46 | 149→146 | 1.061 |
-| 2016 | 2120 | 1954 | +166 | 46→47 | 146→141 | 1.097 |
-| 2017 | 2084 | 2140 | -56 | 47→58 | 141→144 | 1.065 |
-| 2018 | 2056 | 2005 | +51 | 58→64 | 144→150 | 1.040 |
-| 2019 | 2002 | 2018 | -16 | 64→69 | 150→146 | 0.977 |
-| 2020 | 2160 | 2120 | +40 | 70→69 | 146→146 | 1.087 |
-| 2021 | 2154 | 2136 | +18 | 69→74 | 146→143 | 1.079 |
-| 2022 | 2242 | 2224 | +18 | 74→76 | 143→143 | 1.137 |
-| 2023 | 2316 | 2267 | +49 | 77→83 | 143→144 | 1.166 |
-| 2024 | 2378 | 2274 | +103 | 83→80 | 144→140 | 1.183 |
-| 2025 | 2150 | 1943 | +207 | 80→62 | 140→142 | 1.099 |
-| 2026 | 2047 | 1844 | +203 | 62→60 | 142→143 | 1.048 |
+| 2011 | 2661 | 1772 | +890 | 106→53 | 159→157 | 1.223 |
+| 2012 | 2230 | 1917 | +313 | 53→36 | 157→154 | 1.049 |
+| 2013 | 2044 | 1847 | +197 | 36→25 | 154→152 | 0.991 |
+| 2014 | 2050 | 2105 | -55 | 25→37 | 152→149 | 1.015 |
+| 2015 | 2084 | 2130 | -46 | 37→50 | 149→146 | 1.057 |
+| 2016 | 2137 | 1954 | +183 | 50→48 | 146→141 | 1.107 |
+| 2017 | 2138 | 2140 | -2 | 49→56 | 141→144 | 1.084 |
+| 2018 | 2025 | 2005 | +20 | 57→63 | 144→150 | 1.029 |
+| 2019 | 2015 | 2018 | -3 | 63→67 | 150→146 | 0.982 |
+| 2020 | 2125 | 2120 | +6 | 68→71 | 146→146 | 1.069 |
+| 2021 | 2142 | 2136 | +6 | 71→75 | 146→143 | 1.076 |
+| 2022 | 2248 | 2224 | +24 | 75→78 | 143→143 | 1.138 |
+| 2023 | 2264 | 2267 | -3 | 79→86 | 143→144 | 1.142 |
+| 2024 | 2388 | 2274 | +114 | 86→80 | 144→140 | 1.189 |
+| 2025 | 2148 | 1943 | +205 | 80→62 | 140→142 | 1.095 |
+| 2026 | 2041 | 1844 | +197 | 62→60 | 142→143 | 1.045 |
 
-Start→end of year, Kalman-filtered. Fat and lean are lbs (fat-free mass includes water, bone, organs). Lost 80 lbs fat and 18 lbs lean (102→20 fat, 159→141 lean) over 2011-2016, regained 63 lbs fat but only 3 lbs lean (20→83 fat, 141→144 lean) over 2014-2024. On tirzepatide: fat 83→60 while lean stable at 140-143.
+Start→end of year, Kalman v2. Fat and lean in lbs. Lost 81 lbs fat and 18 lbs lean (106→25 fat, 159→141 lean) over 2011-2016, regained 61 lbs fat but only 3 lbs lean (25→86 fat, 141→144 lean) over 2014-2024. On tirzepatide: fat 86→60 while lean stable at 140-143.
 
 Command: `python analysis/Z_tdee_by_year.py`
 Artifact: `analysis/P4_kalman_daily.csv`
@@ -44,7 +44,7 @@ Artifact: `analysis/P4_kalman_daily.csv`
 
 Do acute caloric deficits produce lasting fat loss, or does the body recover through reduced expenditure?
 
-Seven consecutive Sat-Sun 36-hour fasts (Oct-Nov 2019). Mean deficit per fast: 3,300 cal. Kalman FM change Fri→Mon: -0.76 lbs (80% of expected). Kalman FM change Fri→Fri+7: +0.15 lbs. Post-fast weekday intake: 2,369 cal (78 cal/day below pre-fast 2,447). Zero compensatory overeating. The deficit disappears through reduced expenditure within a week.
+Seven consecutive Sat-Sun 36-hour fasts (Oct-Nov 2019). Mean deficit per fast: 3,300 cal. Kalman FM change Fri→Mon: -0.76 lbs (80% of expected). Kalman FM change Fri→Fri+7: +0.08 lbs. Post-fast weekday intake: 2,369 cal (78 cal/day below pre-fast 2,447). Zero compensatory overeating. The deficit disappears through reduced expenditure within a week.
 
 Command: `python analysis/B_weekend_fasting.py`
 
@@ -53,11 +53,11 @@ Command: `python analysis/B_weekend_fasting.py`
 At the same fat mass, does TDEE differ depending on whether weight was reached from above (falling) or below (rising)?
 
 Matched fat-mass bands (pre-tirzepatide, retrospective Kalman states):
-- FM 25-45 lbs: rising 2091 vs falling 2196 (+106)
-- FM 45-65 lbs: rising 2073 vs falling 2358 (+285)
-- FM 65-85 lbs: rising 2208 vs falling 2490 (+282)
+- FM 25-45 lbs: rising 2095 vs falling 2207 (+112)
+- FM 45-65 lbs: rising 2082 vs falling 2347 (+266)
+- FM 65-85 lbs: rising 2166 vs falling 2498 (+332)
 
-Regression: TDEE = 1943 + 3.56×FM + 169×falling - 7×rising.
+Regression: TDEE = 1892 + 4.28×FM + 202×falling - 19×rising.
 
 Command: `python analysis/K_tdee_hysteresis.py`
 Artifact: `analysis/K_tdee_hysteresis_phase_summary.csv`, `analysis/K_tdee_hysteresis_band_summary.csv`, `analysis/K_tdee_hysteresis_regression.csv`
@@ -76,10 +76,10 @@ Artifact: `analysis/I_deadzone_phase_bin_summary.csv`, `analysis/I_deadzone_phas
 Do all restriction runs (<1800 cal, ≥3 days) produce the same metabolic penalty?
 
 Average post-run TDEE/RMR penalty: -0.0063 (-19 cal/day). By archetype:
-- Long runs (≥6 days): +0.0038 (recover best)
-- Low-carb (<170g/day): +0.0016 (recover well)
-- Low-protein (<58g/day): -0.0119 (worst recovery)
-- High-steps (≥4200/day): -0.0167 (-39 cal/day, worst overall)
+- Long runs (≥6 days): +0.0005 (recover best)
+- Low-carb (<170g/day): -0.0005 (recover well)
+- Low-protein (<58g/day): -0.0080 (worst recovery)
+- High-steps (≥4200/day): -0.0112 (-29 cal/day, worst overall)
 
 Command: `python analysis/J_restriction_archetypes.py`
 Artifact: `analysis/J_restriction_runs.csv`, `analysis/J_restriction_archetype_summary.csv`, `analysis/J_restriction_archetype_regression.csv`
@@ -228,8 +228,8 @@ Direct calorimetry (25 measurements, 3 during tirzepatide era): RMR dropped from
 
 Energy budget: -450 intake, +200 metabolic clawback, net -250 cal/day deficit.
 
-Command: `python analysis/F_tirzepatide_pk.py`
-Artifact: `drugs/tirzepatide.csv`
+Command: `python analysis/F_tirzepatide_pk.py`, `python analysis/P2_rmr_model.py` (RMR/calorimetry numbers)
+Artifact: `drugs/tirzepatide.csv`, `RMR/rmr.csv`
 
 ## G. Transition dynamics
 
@@ -271,7 +271,7 @@ Artifact: `analysis/X_temperature_daily.csv`, `analysis/X_temperature_phase_over
 
 Do the 22 manually annotated diet epochs in `intake/diet_epochs.csv` separate meaningful regimes? Do potato diets have special metabolic properties?
 
-Travel binges: 2716 cal/day, 32.1% binge rate, +10.4 lbs fat. Keto: 2163 cal, 110.5g protein, 2.1% binges. Potato diet (4 epochs, 69 days): 1930 cal, 48.6g protein, 0% binges, -7.85 lbs fat.
+Travel binges: 2716 cal/day, 32.1% binge rate, +9.5 lbs fat. Keto: 2163 cal, 110.5g protein, 2.1% binges. Potato diet (4 epochs, 69 days): 1930 cal, 48.6g protein, 0% binges, -7.3 lbs fat.
 
 Potato diets: TDEE/RMR 1.168 before, 1.159 during (unchanged), 1.098 after. Post-potato rebound: 2629 cal/day, 19.6% binge rate. Potatoes are a monotone binge-suppressing cut, not a uniquely expenditure-preserving intervention.
 
@@ -325,3 +325,33 @@ Does running suppress appetite more than walking at the same step count? (Exerci
 Era-matched within 2014-2016 only, step-matched (90 pairs, mean 9650 steps): same-day cal difference -50, next-day +30, next-3d -46. All within noise. TDEE/RMR: run 1.072 vs walk 1.098 (-0.026). No exercise-induced anorexia detected. Running and walking produce equivalent intake effects at matched steps within the same era.
 
 Command: `python analysis/AB_running_vs_walking.py`
+
+## AC. The 2013 inflection
+
+Fat mass bottomed at 17 lbs (Oct 2013) and rose every year for a decade. What triggered the regain — metabolic adaptation forcing intake up, or behavioral momentum?
+
+Bottom (2013 Jul-Sep): intake 1864, TDEE 2021, ratio 0.977, binge rate 1%. Regain (2014 Jul-Dec): intake 2359, TDEE 2058, ratio 1.026, binge rate 20%.
+
+TDEE recovered +38 cal from bottom to regain. Intake increased +495 cal. Intake outran TDEE recovery by 457 cal/day. The metabolic adaptation was easing — ratio went from 0.98 to 1.03. But binge frequency exploded: 0% (Jul-Aug 2013) → 13% (Oct) → 20-23% (Nov-Dec) → sustained 12-26% through all of 2014. By 2014-H2, binges were running at 20%.
+
+The trigger was behavioral, not metabolic. The body's expenditure defense was releasing. Food noise — the variance, the binge clustering — took hold at FM=17 and never let go for a decade.
+
+Command: `python analysis/AC_inflection_2013.py`
+
+## AD. What predicts measured RMR beyond body composition?
+
+Exhaustive sweep of trailing dietary, activity, and sleep features at 7 windows (7-60 days) against 23 Cosmed Fitmate calorimetry measurements with real Samsung Health data (2016+, dropping 2 pre-Samsung measurements with backfilled steps). Leave-one-cluster-out cross-validation with ridge regression. 12 independent clusters.
+
+**Null results.** Baseline (expected_rmr only): CV RMSE = 183. Dietary features (calories, protein %, carbs, fat, sodium) at every window: best CV RMSE = 169, no improvement over the Fitmate noise floor (~170 cal). Step counts at every window: best CV RMSE = 151 (steps_14d). Sleep at every window: negative R² throughout. Strength training count: no signal.
+
+**Walk sessions predict RMR.** The count of deliberate walks Samsung Health logged as exercise in the prior 30 days predicts RMR at CV RMSE = 116 (R² = 0.49), well below the Fitmate noise floor. The coefficient: +14 cal RMR per walk session. Going from 3 walks/month (Sep 2025, RMR 1750) to 33 walks/month (May 2022, RMR 2292) corresponds to a 420 cal/day difference — at nearly identical body composition (FM 66-68 in 2022 vs 68 in 2025).
+
+Walk sessions beat walk minutes (CV RMSE 135) and total steps (CV RMSE 179) at the same 30-day window. The count of distinct outings matters more than total duration or total movement.
+
+**Not season.** Walk sessions and summer are correlated at r = 0.83 (more walks in warm months). But: (1) Season alone barely helps — `is_summer` reduces CV RMSE from 183 to only 175, while walk sessions reduce it to 116. (2) Adding season on top of walk sessions adds nothing (CV RMSE 116 → 116). (3) Controlling for season, the partial correlation between walk sessions and RMR is still r = 0.47 (steps drop to r = 0.13). (4) Within winter only (n=12), walk sessions still predict RMR at r = 0.63. (5) Within 2022-2023 where FM was nearly constant (66-75 lbs, n=18), walk sessions vs RMR: r = 0.68, partial controlling for expected_rmr: r = 0.62. (6) Within the May-Jun 2022 cluster alone (n=8, same FM=66-68, same season), walk sessions vs RMR: r = 0.69.
+
+**Not tirzepatide, not body composition.** Only 2 of 23 measurements are on the drug. Adding tirz_level to the model doesn't change the walk session coefficient (CV RMSE 117 vs 116). Walk sessions are uncorrelated with fat mass (r = -0.02) and negatively correlated with expected_rmr (r = -0.28) — the effect is not mediated by composition changes.
+
+**Interpretation.** Deliberate sustained walks (typically 20+ min continuous, enough for Samsung Health to log as an exercise session) raise resting metabolic rate in a way that total step count — which includes all incidental movement — does not. The mechanism is consistent with NEAT upregulation: intentional exercise sessions may activate a metabolic afterburn that persists at rest, while shuffling around the house does not. The effect size (+14 cal/session, ~420 cal/day at 30 vs 3 sessions/month) is large but consistent across subgroups. The remaining confound is that with 23 measurements clustered by month, we cannot fully exclude an unmeasured seasonal factor that drives both walking and RMR.
+
+Command: `python analysis/AD_tdee_formula_sweep.py`

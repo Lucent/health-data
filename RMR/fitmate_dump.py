@@ -12,8 +12,13 @@ Usage:
   python fitmate_dump.py "DAYAH"        # dump RMR results by last name
 """
 
-import struct, sys, os, statistics
+import csv, struct, sys, os, statistics
 from pathlib import Path
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
 
 try:
     from dbfread import DBF, FieldParser
@@ -125,6 +130,168 @@ def parse_rmr_blob(blob):
     }
 
 
+def _stpd_factor(pb_mmhg):
+    """BTPS-to-STPD correction factor (body temp 37°C, PH2O=47 mmHg)."""
+    return (pb_mmhg - 47) / 760.0 * 273.15 / 310.15
+
+
+def _vo2_stpd(ve, feo2, rq, pb_mmhg):
+    """Per-breath VO2 in mL/min STPD using Haldane transformation.
+
+    ve:   minute ventilation (L/min, BTPS)
+    feo2: expired O2 fraction (%)
+    rq:   respiratory quotient (assumed)
+    pb_mmhg: barometric pressure
+    """
+    feco2 = (FIO2 - feo2) * rq
+    fen2 = 100.0 - feo2 - feco2
+    fin2 = 100.0 - FIO2 - 0.04  # 0.04% atmospheric CO2
+    vi = ve * fen2 / fin2  # Haldane: inspired volume
+    vo2_btps = vi * FIO2 / 100.0 - ve * feo2 / 100.0  # L/min BTPS
+    return vo2_btps * _stpd_factor(pb_mmhg) * 1000.0  # mL/min STPD
+
+
+def _minute_bin_cv(times_min, values):
+    """CV% computed from 1-minute bin averages (Fitmate method)."""
+    if len(values) < 2:
+        return 0.0
+    t0 = times_min[0]
+    total = int(times_min[-1] - t0) + 1
+    bins = []
+    for m in range(total):
+        mask = (times_min >= t0 + m) & (times_min < t0 + m + 1)
+        if np.any(mask):
+            bins.append(np.mean(values[mask]))
+    if len(bins) < 2:
+        return 0.0
+    bins = np.array(bins)
+    return float(np.std(bins, ddof=1) / np.mean(bins) * 100.0)
+
+
+def compute_rmr_stats(parsed):
+    """Compute summary stats from a parsed RMR blob for rmr.csv columns."""
+    breaths = parsed.get('breaths', [])
+    n = len(breaths)
+    skip = parsed.get('skip', 0)
+    rq = parsed.get('rq', 0.85)
+    pb = parsed.get('pb_mmhg', 760)
+    if n == 0 or skip >= n:
+        return {}
+
+    window = breaths[skip:]
+    ve   = np.array([b['ve']   for b in window])
+    rf   = np.array([b['rf']   for b in window])
+    feo2 = np.array([b['feo2'] for b in window])
+    vo2  = np.array([_vo2_stpd(b['ve'], b['feo2'], rq, pb) for b in window])
+
+    # Time axis for the averaging window
+    times = []
+    t = 0.0
+    for b in window:
+        times.append(t)
+        if b['rf'] > 0:
+            t += 60.0 / b['rf']
+    times = np.array(times) / 60.0
+
+    return {
+        'vo2_mL_min': round(float(np.mean(vo2)), 1),
+        've_L_min': round(float(np.mean(ve)), 2),
+        'rf_br_min': round(float(np.mean(rf)), 1),
+        'feo2_pct': round(float(np.mean(feo2)), 2),
+        'cv_ve_pct': round(_minute_bin_cv(times, ve), 1),
+        'cv_vo2_pct': round(_minute_bin_cv(times, vo2), 1),
+        'n_breaths': n,
+        'skip': skip,
+        'duration_min': round(parsed.get('total_min', 0), 1),
+    }
+
+
+def plot_rmr_test(parsed, date, out_path):
+    """Plot breath-by-breath RMR test data to PNG."""
+    breaths = parsed['breaths']
+    n = len(breaths)
+    if n == 0:
+        return
+
+    # Cumulative time axis from per-breath Rf
+    times = []
+    t = 0.0
+    for b in breaths:
+        times.append(t)
+        if b['rf'] > 0:
+            t += 60.0 / b['rf']  # seconds per breath
+    times = np.array(times) / 60.0  # convert to minutes
+
+    rf   = np.array([b['rf']   for b in breaths])
+    ve   = np.array([b['ve']   for b in breaths])
+    feo2 = np.array([b['feo2'] for b in breaths])
+    vt   = np.array([b['vt']   for b in breaths])
+    hr   = np.array([b['hr']   for b in breaths])
+
+    # Per-breath VO2 (mL/min STPD) and RMR (kcal/day) via Haldane + STPD
+    rq = parsed['rq']
+    pb = parsed['pb_mmhg']
+    vo2 = np.array([_vo2_stpd(v, f, rq, pb) for v, f in zip(ve, feo2)])
+    rmr_breath = vo2 / 1000.0 * (3.941 + 1.106 * rq) * 1440.0
+
+    skip = parsed['skip']
+    rmr = parsed['rmr_kcal']
+
+    has_hr = np.any(hr > 0)
+    n_panels = 5 if has_hr else 4
+    fig, axes = plt.subplots(n_panels, 1, figsize=(10, 2.2 * n_panels + 0.8),
+                             sharex=True)
+
+    panels = [
+        (rmr_breath, 'RMR', 'kcal/day', 'tab:red'),
+        (ve,         'VE',  'L/min',    'tab:blue'),
+        (feo2,       'FeO₂', '%',       'tab:green'),
+        (rf,         'Rf',  'br/min',   'tab:purple'),
+    ]
+    if has_hr:
+        panels.append((hr, 'HR', 'bpm', 'tab:orange'))
+
+    for ax, (y, label, unit, color) in zip(axes, panels):
+        ax.plot(times, y, color=color, linewidth=0.8, alpha=0.85)
+        if skip > 0 and skip < n:
+            ax.axvline(times[skip], color='gray', linestyle='--', linewidth=0.7,
+                       alpha=0.6)
+        # Averaging window mean
+        avg_vals = y[skip:] if skip < n else y
+        avg_mean = np.mean(avg_vals)
+        t_start = times[skip] if skip < n else times[0]
+        ax.hlines(avg_mean, t_start, times[-1], color=color,
+                  linestyle=':', linewidth=1.0, alpha=0.7)
+        ax.set_ylabel(f'{label} ({unit})', fontsize=9)
+        ax.tick_params(labelsize=8)
+        ax.grid(True, alpha=0.2)
+
+    axes[-1].set_xlabel('Time (min)', fontsize=9)
+
+    # Summary stats annotation
+    stats = compute_rmr_stats(parsed)
+    if stats:
+        text = (
+            f"VO₂  {stats['vo2_mL_min']:.0f} mL/min  (CV {stats['cv_vo2_pct']:.1f}%)\n"
+            f"VE   {stats['ve_L_min']:.1f} L/min  (CV {stats['cv_ve_pct']:.1f}%)\n"
+            f"FeO₂ {stats['feo2_pct']:.2f}%\n"
+            f"Rf   {stats['rf_br_min']:.1f} br/min\n"
+            f"{stats['n_breaths']} breaths, skip {stats['skip']}, {stats['duration_min']:.1f} min"
+        )
+        fig.text(0.99, 0.99, text, transform=fig.transFigure,
+                 fontsize=8, fontfamily='monospace',
+                 verticalalignment='top', horizontalalignment='right',
+                 bbox=dict(boxstyle='round,pad=0.4', facecolor='white',
+                           edgecolor='gray', alpha=0.9))
+
+    fig.suptitle(f'RMR Test — {date}    RMR={rmr} kcal/day    RQ={rq:.3f}',
+                 fontsize=11, fontweight='bold')
+    fig.tight_layout(rect=[0, 0, 0.78, 0.96])
+    fig.savefig(out_path, dpi=150)
+    plt.close(fig)
+    print(f"  → {out_path}")
+
+
 def main():
     dbf_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -142,19 +309,21 @@ def main():
             'sex': 'F' if d.get('A_SEX') else 'M',
         }
 
-    # Load sessions
+    # Load sessions (optional — file may not be present)
     sessions = {}
-    for rec in open_table(dbf_dir, 'SESSIONI.DBF'):
-        d = dict(rec)
-        sid = d['PROGRESS']
-        sessions[sid] = {
-            'id': sid,
-            'anag': d['S_ANAG'],
-            'opened': d.get('S_OPENEDON'),
-            'closed': d.get('S_CLOSEDON'),
-            'height': d.get('S_HEIGHT') or 0,
-            'weight': d.get('S_WEIGHT') or 0,
-        }
+    sess_path = os.path.join(dbf_dir, 'SESSIONI.DBF')
+    if os.path.exists(sess_path):
+        for rec in open_table(dbf_dir, 'SESSIONI.DBF'):
+            d = dict(rec)
+            sid = d['PROGRESS']
+            sessions[sid] = {
+                'id': sid,
+                'anag': d['S_ANAG'],
+                'opened': d.get('S_OPENEDON'),
+                'closed': d.get('S_CLOSEDON'),
+                'height': d.get('S_HEIGHT') or 0,
+                'weight': d.get('S_WEIGHT') or 0,
+            }
 
     # No argument: list patients
     if len(sys.argv) < 2:
@@ -226,6 +395,9 @@ def main():
               f"{t['weight']:5.1f} "
               f"{dur:>5} "
               f"{parsed['n_breaths']:4d}")
+
+        png_path = os.path.join(dbf_dir, f"{t['date']}.png")
+        plot_rmr_test(parsed, t['date'], png_path)
 
     # Detailed per-breath dump if -v
     if len(sys.argv) > 2 and sys.argv[2] == '-v':

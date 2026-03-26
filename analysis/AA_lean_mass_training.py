@@ -77,8 +77,17 @@ def fit_model(comp, workouts):
     return result.x, result
 
 
+def fit_baseline_only(weight, lean):
+    """Best linear baseline without any training term."""
+    X = np.column_stack([weight, np.ones(len(weight))])
+    a, b = np.linalg.lstsq(X, lean, rcond=None)[0]
+    return a, b
+
+
 def main():
     comp, workouts = load()
+    lean = comp["lean_mass_lbs"].values
+    weight = comp["weight_lbs"].values
 
     # Simple correlations first
     print("=== Simple correlations: trailing workouts vs lean mass ===")
@@ -119,17 +128,19 @@ def main():
 
     # Validation: predicted vs actual
     te = training_effect(comp["date"], workouts["date"], delta, half_life)
-    predicted = a * comp["weight_lbs"].values + b + te
-    residuals = comp["lean_mass_lbs"].values - predicted
+    predicted = a * weight + b + te
+    residuals = lean - predicted
     rmse = np.sqrt(np.mean(residuals ** 2))
 
     # Compare to baseline-only model (no training effect)
-    pred_baseline = a * comp["weight_lbs"].values + b
-    rmse_baseline = np.sqrt(np.mean((comp["lean_mass_lbs"].values - pred_baseline) ** 2))
+    a0, b0 = fit_baseline_only(weight, lean)
+    pred_baseline = a0 * weight + b0
+    rmse_baseline = np.sqrt(np.mean((lean - pred_baseline) ** 2))
 
     print(f"\n  RMSE with training effect: {rmse:.2f} lbs")
     print(f"  RMSE baseline only (weight): {rmse_baseline:.2f} lbs")
     print(f"  Improvement: {(1 - rmse / rmse_baseline) * 100:.1f}%")
+    print(f"  Baseline-only fit: lean = {a0:.3f} × weight + {b0:.1f}")
 
     # Show the effect at different training densities
     print(f"\n=== Steady-state training effect ===")

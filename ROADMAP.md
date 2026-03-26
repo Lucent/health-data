@@ -8,7 +8,7 @@
 - `steps-sleep/extract.py` → `steps_samsung.csv`, `sleep.csv`, `exercises_samsung.csv`
 - `steps-sleep/merge_steps.py` → `steps.csv` (canonical merged, 4,540 days including MFP/calendar backfill)
 - `composition/extract.py` → `composition.csv` (70 measurements, 4 eras)
-- `RMR/extract.py` → `rmr.csv` (25 measurements: 3 lab + 22 home Cosmed Fitmate)
+- `RMR/extract.py` → `rmr.csv` (25 Cosmed Fitmate measurements: 3 at sports medicine clinic, 22 at home)
 - `drugs/extract.py` → `medicine.csv`, `tirzepatide.csv`
 - `workout/merge.py` → `workout/strength.csv` (session dates)
 

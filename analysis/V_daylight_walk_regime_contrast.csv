@@ -1,6 +1,6 @@
 group,days,mean_steps,mean_same_day_calories,mean_future14_calories,mean_future14_tdee_rmr_ratio,mean_walk_regime_duration_min,step_distance_to_match
-paired_daylight_walk,148,8543.49,2101.2,2190.37,1.1125,67.49,
-borderline_paired_daylight_walk,51,8393.8,2412.1,2274.97,1.1407,50.7,
-single_daylight_walk,149,6376.44,2180.8,2235.02,1.118,31.77,
-paired_daylight_walk_step_matched_minus_other_days,148,8543.49,,-56.62,0.0192,67.49,4.55
-single_daylight_walk_step_matched_minus_other_days,148,6387.48,,17.23,0.0266,31.77,2.78
+paired_daylight_walk,148,8543.49,2101.2,2190.37,1.116,67.49,
+borderline_paired_daylight_walk,51,8393.8,2412.1,2274.97,1.1391,50.7,
+single_daylight_walk,149,6376.44,2180.8,2235.02,1.1155,31.77,
+paired_daylight_walk_step_matched_minus_other_days,148,8543.49,,-56.62,0.0252,67.49,4.55
+single_daylight_walk_step_matched_minus_other_days,148,6387.48,,17.23,0.0233,31.77,2.78

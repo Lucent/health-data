@@ -1,10 +1,11 @@
 phase,distance_bin,n_days,mean_calories,binge_rate
-falling,-10 to -5,362,2045.9,0.0884
-falling,-5 to 0,281,2088.0,0.1388
-stable,-10 to -5,209,2090.7,0.1292
-stable,-5 to 0,1134,2165.9,0.119
-stable,0 to 5,1025,2267.5,0.1298
-stable,5 to 10,98,2114.7,0.102
-rising,-5 to 0,189,2222.0,0.127
-rising,0 to 5,583,2235.1,0.1355
-rising,5 to 10,269,2274.2,0.171
+falling,-10 to -5,349,2063.0,0.0974
+falling,-5 to 0,261,2065.5,0.1418
+falling,0 to 5,40,1850.2,0.05
+stable,-10 to -5,128,2004.8,0.0781
+stable,-5 to 0,1270,2166.5,0.122
+stable,0 to 5,1040,2253.8,0.125
+stable,5 to 10,109,2095.1,0.0734
+rising,-5 to 0,144,2189.9,0.0972
+rising,0 to 5,616,2288.3,0.1542
+rising,5 to 10,310,2202.8,0.1548

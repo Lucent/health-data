@@ -1,8 +1,8 @@
 model,auc,n_days,n_binge
-distance_only,0.5341,4278,554
-phase_only,0.5027,4278,554
-distance_plus_phase,0.5186,4278,554
+distance_only,0.5336,4278,554
+phase_only,0.5104,4278,554
+distance_plus_phase,0.5257,4278,554
 prev_cal_only,0.7241,4278,554
-prev_cal_plus_distance,0.727,4278,554
-prev_cal_plus_phase,0.7205,4278,554
-prev_cal_plus_distance_plus_phase,0.7188,4278,554
+prev_cal_plus_distance,0.7285,4278,554
+prev_cal_plus_phase,0.7234,4278,554
+prev_cal_plus_distance_plus_phase,0.7249,4278,554

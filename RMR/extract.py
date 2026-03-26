@@ -8,7 +8,7 @@ from pathlib import Path
 
 import openpyxl
 
-from fitmate_dump import TIPO_RMR, open_table, parse_rmr_blob
+from fitmate_dump import TIPO_RMR, open_table, parse_rmr_blob, compute_rmr_stats
 
 
 ROOT = Path(__file__).resolve().parent
@@ -22,6 +22,14 @@ FIELDS = [
     "rmr_kcal",
     "device",
     "fasted",
+    "vo2_mL_min",
+    "ve_L_min",
+    "rf_br_min",
+    "feo2_pct",
+    "cv_ve_pct",
+    "cv_vo2_pct",
+    "n_breaths",
+    "duration_min",
 ]
 def load_patient_name() -> str:
     for rec in open_table(str(ROOT), "ANAGRAFE.DBF"):
@@ -40,14 +48,18 @@ def extract_patient_tests() -> list[dict[str, object]]:
         parsed = parse_rmr_blob(row.get("T_TEST"))
         if parsed["rmr_kcal"] == 0:
             continue
-        records.append(
-            {
-                "date": row["T_DATE"].isoformat(),
-                "rmr_kcal": int(parsed["rmr_kcal"]),
-                "device": "cosmed_fitmate",
-                "fasted": True,
-            }
-        )
+        stats = compute_rmr_stats(parsed)
+        rec = {
+            "date": row["T_DATE"].isoformat(),
+            "rmr_kcal": int(parsed["rmr_kcal"]),
+            "device": "cosmed_fitmate",
+            "fasted": True,
+        }
+        for k in ("vo2_mL_min", "ve_L_min", "rf_br_min", "feo2_pct",
+                   "cv_ve_pct", "cv_vo2_pct",
+                   "n_breaths", "duration_min"):
+            rec[k] = stats.get(k, "")
+        records.append(rec)
     records.sort(key=lambda row: row["date"])
     return records
 
