@@ -1,4 +1,4 @@
 fat_band,falling_runs,rising_runs,mean_fat_mass_start,falling_run_minus_pre_ratio,rising_run_minus_pre_ratio,falling_minus_rising_run_minus_pre_ratio,falling_post_minus_pre_ratio,rising_post_minus_pre_ratio,falling_minus_rising_post_minus_pre_ratio,falling_post_minus_run_ratio,rising_post_minus_run_ratio,falling_minus_rising_post_minus_run_ratio
-"[35, 50)",9,14,42.98,-0.0177,0.002,-0.0197,-0.0279,0.0006,-0.0285,-0.0102,-0.0015,-0.0088
-"[50, 65)",9,8,56.96,-0.023,0.0196,-0.0426,-0.048,0.034,-0.082,-0.025,0.0144,-0.0393
-"[65, 80)",11,13,71.96,-0.0099,0.0317,-0.0416,-0.032,0.0448,-0.0769,-0.0222,0.0131,-0.0353
+"[35, 50)",9,14,42.98,-0.0182,0.0018,-0.02,-0.0288,0.0003,-0.029,-0.0106,-0.0015,-0.0091
+"[50, 65)",9,9,57.38,-0.0237,0.0146,-0.0383,-0.0493,0.0246,-0.0739,-0.0256,0.01,-0.0356
+"[65, 80)",11,12,72.26,-0.0104,0.0357,-0.0462,-0.0331,0.0511,-0.0843,-0.0227,0.0154,-0.0381

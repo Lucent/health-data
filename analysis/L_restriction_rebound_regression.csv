@@ -1,9 +1,9 @@
 term,coef_post_minus_pre_ratio
-intercept,-0.033131
-long_run,0.015253
-deep_run,-0.004257
-low_carb,0.006809
-low_protein,-0.004667
-high_steps,-0.018701
-next7_mean_calories,1.4e-05
-next7_any_binge,0.002406
+intercept,-0.027465
+long_run,0.015107
+deep_run,-0.003898
+low_carb,0.004341
+low_protein,-0.003306
+high_steps,-0.016415
+next7_mean_calories,1.1e-05
+next7_any_binge,0.003731

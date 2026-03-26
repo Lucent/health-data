@@ -1,0 +1,961 @@
+date,name,calories,minutes,source
+2011-04-26,Hospital,300,240,html
+2011-05-03,Hospital,300,240,html
+2011-05-10,Hospital,300,240,html
+2011-05-16,Hospital,300,240,html
+2011-05-17,Hospital,300,240,html
+2011-05-24,Hospital,300,240,html
+2011-05-31,Hospital,300,240,html
+2011-06-07,Hospital,300,240,html
+2011-06-08,Hospital,300,240,html
+2011-06-11,"Vision, P3, L5",300,48,html
+2011-06-14,Hospital,300,240,html
+2011-06-16,Hospital,300,240,html
+2011-06-16,"Walking, 2.5 mph, leisurely pace",336,60,html
+2011-06-17,Hospital,300,240,html
+2011-06-20,Hospital,300,240,html
+2011-06-21,Hospital,300,240,html
+2011-07-05,Hospital,300,240,html
+2011-07-06,Hospital,300,240,html
+2011-07-08,Hospital,300,240,html
+2011-07-12,Hospital,300,240,html
+2011-07-13,Hospital,300,240,html
+2011-07-14,Hospital,300,240,html
+2011-07-15,Hospital,300,240,html
+2011-07-18,Hospital,300,240,html
+2011-07-19,Hospital,300,240,html
+2011-07-21,Hospital,300,240,html
+2011-07-26,Hospital,300,240,html
+2011-07-27,Hospital,300,240,html
+2011-07-28,Hospital,300,240,html
+2011-07-29,Hospital,300,240,html
+2011-08-02,Hospital,300,240,html
+2011-08-05,Hospital,300,240,html
+2011-08-09,Hospital,300,240,html
+2011-08-15,Hospital,300,240,html
+2011-08-16,Hospital,300,240,html
+2011-08-18,Hospital,300,240,html
+2011-08-23,Hospital,300,240,html
+2011-08-30,Hospital,300,240,html
+2011-09-06,Hospital,300,240,html
+2011-09-11,Hospital,300,240,html
+2011-09-20,Hospital,300,240,html
+2011-09-21,Hospital,300,240,html
+2011-09-27,Hospital,300,240,html
+2011-10-04,Hospital,300,240,html
+2011-10-11,Hospital,300,240,html
+2011-10-13,Hospital,300,240,html
+2011-10-15,Hospital,300,240,html
+2011-10-18,Hospital,300,240,html
+2011-10-25,Hospital,300,240,html
+2011-11-01,Hospital,300,240,html
+2011-11-08,Hospital,300,240,html
+2011-11-15,Hospital,300,240,html
+2011-11-22,Hospital,300,240,html
+2011-11-23,Hospital,300,240,html
+2011-11-25,Hospital,300,240,html
+2011-11-26,Hospital,300,240,html
+2011-11-27,Hospital,300,240,html
+2011-11-29,Hospital,300,240,html
+2011-12-06,Hospital,300,240,html
+2011-12-13,Hospital,300,240,html
+2011-12-20,Hospital,300,240,html
+2011-12-22,Hospital,300,240,html
+2011-12-23,Hospital,300,240,html
+2011-12-27,Hospital,300,240,html
+2012-01-03,Hospital,300,240,html
+2012-01-08,Hospital,300,240,html
+2012-01-10,Hospital,300,240,html
+2012-01-16,Hospital,300,240,html
+2012-01-17,Hospital,300,240,html
+2012-01-23,Hospital,300,240,html
+2012-01-24,Hospital,300,240,html
+2012-01-24,Hospital,300,240,html
+2012-01-31,Hospital,300,240,html
+2012-02-13,Hospital,300,240,html
+2012-02-14,Hospital,300,240,html
+2012-02-20,Hospital,300,240,html
+2012-02-21,Hospital,300,240,html
+2012-02-28,Hospital,300,240,html
+2012-03-06,Hospital,600,480,html
+2012-03-13,Hospital,300,240,html
+2012-03-20,Hospital,300,240,html
+2012-03-21,Hospital,300,240,html
+2012-03-23,Hospital,600,480,html
+2012-03-27,Hospital,300,240,html
+2012-04-03,Hospital,300,240,html
+2012-04-06,Hospital,300,240,html
+2012-04-10,Hospital,300,240,html
+2012-04-17,Hospital,300,240,html
+2012-04-24,Hospital,300,240,html
+2012-05-01,Hospital,300,240,html
+2012-05-08,Hospital,300,240,html
+2012-05-14,"Bicycling, 10-12 mph, light (cycling, biking, bike riding)",704,80,html
+2012-05-15,"Bicycling, <10 mph, leisure (cycling, biking, bike riding)",146,25,html
+2012-05-16,"Bicycling, <10 mph, leisure (cycling, biking, bike riding)",146,25,html
+2012-05-22,Hospital,300,240,html
+2012-05-29,Hospital,300,240,html
+2012-06-04,Hospital,600,480,html
+2012-06-05,Hospital,300,240,html
+2012-06-08,Hospital,300,240,html
+2012-06-11,Hospital,300,240,html
+2012-06-12,Hospital,300,240,html
+2012-06-14,Hospital,600,480,html
+2012-06-15,Hospital,300,240,html
+2012-06-19,Hospital,600,480,html
+2012-06-22,Hospital,300,240,html
+2012-06-26,Hospital,300,240,html
+2012-06-28,Hospital,600,480,html
+2012-07-03,Hospital,300,240,html
+2012-07-05,Hospital,300,240,html
+2012-07-10,Hospital,300,240,html
+2012-07-12,Hospital,300,240,html
+2012-07-17,Hospital,600,480,html
+2012-07-19,Hospital,600,480,html
+2012-07-24,Hospital,600,480,html
+2012-07-26,Hospital,300,240,html
+2012-07-31,Hospital,300,240,html
+2012-08-02,Hospital,300,240,html
+2012-08-06,Hospital,600,480,html
+2012-08-07,Hospital,600,480,html
+2012-08-09,Hospital,600,480,html
+2012-08-14,Hospital,600,480,html
+2012-08-21,Hospital,300,240,html
+2012-08-28,Hospital,300,240,html
+2012-08-30,Hospital,300,240,html
+2012-09-04,Hospital,300,240,html
+2012-09-11,Hospital,300,240,html
+2012-09-18,Hospital,300,240,html
+2012-09-19,Hospital,300,240,html
+2012-09-21,Hospital,300,240,html
+2012-09-25,Hospital,300,240,html
+2012-10-02,Hospital,300,240,html
+2012-10-06,Hospital,300,240,html
+2012-10-08,Hospital,300,240,html
+2012-10-09,Hospital,300,240,html
+2012-10-16,Hospital,300,240,html
+2012-10-23,Hospital,600,480,html
+2012-10-30,Hospital,300,240,html
+2012-11-06,Hospital,300,240,html
+2012-11-13,Hospital,300,240,html
+2012-11-20,Hospital,600,480,html
+2012-11-27,Hospital,300,240,html
+2012-12-04,Hospital,300,240,html
+2012-12-11,Hospital,300,240,html
+2012-12-18,Hospital,300,240,html
+2012-12-20,Hospital,300,240,html
+2012-12-21,Hospital,300,240,html
+2012-12-26,Hospital,300,240,html
+2012-12-28,Hospital,300,240,html
+2013-01-04,Hospital,300,240,oxps
+2013-01-08,Hospital,300,240,oxps
+2013-01-15,Hospital,300,240,oxps
+2013-01-22,Hospital,300,240,oxps
+2013-01-29,Hospital,300,240,oxps
+2013-02-05,Hospital,300,240,oxps
+2013-02-07,Hospital,300,240,oxps
+2013-02-12,Hospital,300,240,oxps
+2013-02-18,Hospital,300,240,oxps
+2013-02-19,Hospital,300,240,oxps
+2013-02-19,Hospital,300,240,oxps
+2013-03-05,Hospital,300,240,oxps
+2013-03-06,Hospital,300,240,oxps
+2013-03-12,Hospital,300,240,oxps
+2013-03-19,Hospital,300,240,oxps
+2013-03-25,Hospital,300,240,oxps
+2013-03-26,Hospital,300,240,oxps
+2013-03-27,Hospital,300,240,oxps
+2013-03-28,Hospital,300,240,oxps
+2013-03-29,Hospital,300,240,oxps
+2013-04-02,Hospital,300,240,oxps
+2013-04-06,Hospital,300,240,oxps
+2013-04-09,Hospital,300,240,oxps
+2013-04-15,"Running (jogging), 5 mph (12 min mile)",169,16,oxps
+2013-04-16,Hospital,300,240,oxps
+2013-04-16,"Running (jogging), 5 mph (12 min mile)",232,22,oxps
+2013-04-18,"Running (jogging), 5 mph (12 min mile)",243,23,oxps
+2013-04-18,"Running (jogging), 5 mph (12 min mile)",53,5,oxps
+2013-04-22,"Running (jogging), 5 mph (12 min mile)",253,24,oxps
+2013-04-23,Hospital,300,240,oxps
+2013-04-23,"Running (jogging), 5 mph (12 min mile)",612,58,oxps
+2013-04-24,"Running (jogging), 5 mph (12 min mile)",232,22,oxps
+2013-05-07,Hospital,300,240,oxps
+2013-05-14,Hospital,300,240,oxps
+2013-05-16,Hospital,300,240,oxps
+2013-05-21,Hospital,300,240,oxps
+2013-05-28,Hospital,300,240,oxps
+2013-05-28,"Bicycling, 10-12 mph, light (cycling, biking, bike riding)",469,60,oxps
+2013-05-31,Hospital,300,240,oxps
+2013-06-03,Hospital,450,480,oxps
+2013-06-04,Hospital,450,480,oxps
+2013-06-06,Hospital,450,480,oxps
+2013-06-10,Hospital,450,480,oxps
+2013-06-11,Hospital,450,480,oxps
+2013-06-14,"Walking, 2.5 mph, leisurely pace",336,60,oxps
+2013-06-17,Hospital,450,480,oxps
+2013-06-18,Hospital,450,480,oxps
+2013-06-21,Hospital,450,480,oxps
+2013-07-01,Hospital,450,480,oxps
+2013-07-02,Hospital,450,480,oxps
+2013-07-08,Hospital,450,480,oxps
+2013-07-09,Hospital,450,480,oxps
+2013-07-12,Hospital,300,240,oxps
+2013-07-15,Hospital,450,480,oxps
+2013-07-16,Hospital,450,480,oxps
+2013-07-22,Hospital,450,480,oxps
+2013-07-23,Hospital,450,480,oxps
+2013-07-29,Hospital,450,480,oxps
+2013-07-30,Hospital,450,480,oxps
+2013-08-02,Hospital,450,480,oxps
+2013-08-06,Hospital,450,480,oxps
+2013-08-07,Hospital,450,480,oxps
+2013-08-10,"Walking, 3.0 mph, mod. pace, walking dog",256,60,oxps
+2013-08-13,Hospital,300,240,oxps
+2013-08-16,Hospital,450,480,oxps
+2013-08-20,Hospital,300,240,oxps
+2013-08-23,Hospital,300,240,oxps
+2013-08-27,Hospital,450,480,oxps
+2013-09-03,Hospital,300,240,oxps
+2013-09-13,Hospital,300,240,oxps
+2013-09-17,Hospital,300,240,oxps
+2013-09-19,Hospital,300,240,oxps
+2013-09-23,Hospital,300,240,oxps
+2013-10-01,Hospital,300,240,oxps
+2013-10-07,Hospital,300,240,oxps
+2013-10-08,Hospital,300,240,oxps
+2013-10-15,Hospital,300,240,oxps
+2013-10-22,Hospital,300,240,oxps
+2013-10-29,Hospital,300,240,oxps
+2013-11-05,Hospital,300,240,oxps
+2013-11-12,Hospital,300,240,oxps
+2013-11-19,Hospital,300,240,oxps
+2013-11-21,Hospital,300,240,oxps
+2013-11-22,Hospital,300,240,oxps
+2013-11-26,Hospital,600,480,oxps
+2013-12-03,Hospital,300,240,oxps
+2013-12-10,Hospital,300,240,oxps
+2013-12-12,Hospital,300,240,oxps
+2013-12-13,Hospital,300,240,oxps
+2013-12-31,Hospital,300,240,oxps
+2014-01-07,Hospital,300,240,oxps
+2014-01-08,Hospital,300,240,oxps
+2014-01-14,Hospital,300,240,oxps
+2014-01-17,Hospital,300,240,oxps
+2014-01-21,Hospital,300,240,oxps
+2014-01-22,Hospital,300,240,oxps
+2014-01-23,Hospital,300,240,oxps
+2014-01-28,Hospital,300,240,oxps
+2014-01-29,Hospital,300,240,oxps
+2014-02-04,Hospital,300,240,oxps
+2014-02-07,Hospital,300,240,oxps
+2014-02-10,Hospital,300,240,oxps
+2014-02-11,Hospital,300,240,oxps
+2014-02-18,Hospital,300,240,oxps
+2014-02-25,Hospital,300,240,oxps
+2014-02-28,Hospital,300,240,oxps
+2014-03-04,Hospital,300,240,oxps
+2014-03-08,"Walking, 3.0 mph, mod. pace",401,74,oxps
+2014-03-11,Hospital,300,240,oxps
+2014-03-18,Hospital,300,240,oxps
+2014-04-01,Hospital,300,240,oxps
+2014-04-08,Hospital,300,240,oxps
+2014-04-15,Hospital,300,240,oxps
+2014-04-22,Hospital,300,240,oxps
+2014-04-23,"Running (jogging), 5 mph (12 min mile)",225,22,oxps
+2014-04-25,"Running (jogging), 5 mph (12 min mile)",225,22,oxps
+2014-04-26,"Walking, 2.5 mph, leisurely pace",486,127,oxps
+2014-04-28,"Running (jogging), 5 mph (12 min mile)",204,20,oxps
+2014-04-29,Hospital,300,240,oxps
+2014-04-30,"Running (jogging), 5 mph (12 min mile)",204,20,oxps
+2014-05-02,Hospital,150,176,oxps
+2014-05-02,"Running (jogging), 5 mph (12 min mile)",225,22,oxps
+2014-05-05,"Running (jogging), 5 mph (12 min mile)",225,22,oxps
+2014-05-08,"Running (jogging), 5 mph (12 min mile)",225,22,oxps
+2014-05-12,"Running (jogging), 5 mph (12 min mile)",225,22,oxps
+2014-05-13,Hospital,300,240,oxps
+2014-05-15,Hospital,300,240,oxps
+2014-05-16,"Running (jogging), 5 mph (12 min mile)",224,22,oxps
+2014-05-18,"Running (jogging), 5 mph (12 min mile)",224,22,oxps
+2014-05-19,"Running (jogging), 5 mph (12 min mile)",224,22,oxps
+2014-05-20,Hospital,300,240,oxps
+2014-05-22,"Running (jogging), 5 mph (12 min mile)",224,22,oxps
+2014-05-23,"Running (jogging), 5 mph (12 min mile)",224,22,oxps
+2014-05-24,"Running (jogging), 5 mph (12 min mile)",224,22,oxps
+2014-05-27,Hospital,300,240,oxps
+2014-05-27,"Running (jogging), 5 mph (12 min mile)",224,22,oxps
+2014-05-29,"Running (jogging), 5 mph (12 min mile)",224,22,oxps
+2014-05-30,Hospital,300,240,oxps
+2014-06-01,"Running (jogging), 5 mph (12 min mile)",225,22,oxps
+2014-06-02,Hospital,205,240,oxps
+2014-06-03,Hospital,300,240,oxps
+2014-06-03,"Running (jogging), 5 mph (12 min mile)",224,22,oxps
+2014-06-05,Hospital,300,240,oxps
+2014-06-07,"Moving furniture, household",230,30,oxps
+2014-06-08,"Running (jogging), 5 mph (12 min mile)",224,22,oxps
+2014-06-10,Hospital,300,240,oxps
+2014-06-10,"Running (jogging), 5 mph (12 min mile)",224,22,oxps
+2014-06-12,Hospital,300,240,oxps
+2014-06-13,"Running (jogging), 5 mph (12 min mile)",224,22,oxps
+2014-06-15,"Running (jogging), 6 mph (10 min mile)",255,20,oxps
+2014-06-16,Hospital,300,240,oxps
+2014-06-16,"Running (jogging), 6 mph (10 min mile)",217,17,oxps
+2014-06-17,Hospital,300,240,oxps
+2014-06-18,"Running (jogging), 6 mph (10 min mile)",217,17,oxps
+2014-06-19,Hospital,300,240,oxps
+2014-06-21,"Running (jogging), 5 mph (12 min mile)",255,25,oxps
+2014-06-22,"Walking, 3.5 mph, brisk pace",145,30,oxps
+2014-06-23,"Running (jogging), 5 mph (12 min mile)",204,20,oxps
+2014-06-24,Hospital,300,240,oxps
+2014-06-24,"Strength training (weight lifting, weight training)",77,20,oxps
+2014-06-26,Hospital,300,240,oxps
+2014-06-29,"Running (jogging), 5 mph (12 min mile)",225,22,oxps
+2014-06-30,Hospital,300,240,oxps
+2014-06-30,"Walking, 2.5 mph, leisurely pace",459,120,oxps
+2014-07-01,Hospital,450,500,oxps
+2014-07-03,"Walking, 2.5 mph, leisurely pace",230,60,oxps
+2014-07-08,Hospital,300,240,oxps
+2014-07-13,"Bicycling, <10 mph, leisure (cycling, biking, bike riding)",1,1,oxps
+2014-07-15,"Bicycling, <10 mph, leisure (cycling, biking, bike riding)",207,40,oxps
+2014-07-16,"Bicycling, <10 mph, leisure (cycling, biking, bike riding)",225,39,oxps
+2014-07-18,"Bicycling, >20 mph, racing (cycling, biking, bike riding)",5,1,oxps
+2014-07-22,Hospital,300,240,oxps
+2014-07-28,Hospital,300,240,oxps
+2014-07-29,Hospital,300,240,oxps
+2014-08-01,Hospital,300,240,oxps
+2014-08-05,Hospital,300,240,oxps
+2014-08-19,Hospital,300,240,oxps
+2014-08-21,Hospital,450,500,oxps
+2014-08-26,Hospital,300,240,oxps
+2014-09-02,Hospital,300,240,oxps
+2014-09-09,Hospital,300,240,oxps
+2014-09-16,Hospital,300,240,oxps
+2014-09-23,Hospital,300,240,oxps
+2014-09-30,Hospital,300,240,oxps
+2014-10-07,Hospital,300,240,oxps
+2014-10-14,Hospital,300,240,oxps
+2014-10-21,Hospital,300,240,oxps
+2014-10-28,Hospital,300,240,oxps
+2014-10-29,Hospital,300,240,oxps
+2014-11-03,Hospital,300,240,oxps
+2014-11-04,Hospital,300,240,oxps
+2014-11-11,Hospital,300,240,oxps
+2014-11-18,Hospital,300,240,oxps
+2014-11-23,"Walking, 3.0 mph, mod. pace",190,45,oxps
+2014-11-24,"Running (jogging), 5 mph (12 min mile)",245,24,oxps
+2014-11-25,Hospital,300,240,oxps
+2014-11-26,"Running (jogging), 5 mph (12 min mile)",336,33,oxps
+2014-11-29,"Running (jogging), 5 mph (12 min mile)",255,25,oxps
+2014-12-02,Hospital,300,240,oxps
+2014-12-03,"Running (jogging), 5 mph (12 min mile)",327,32,oxps
+2014-12-05,"Running (jogging), 5 mph (12 min mile)",306,30,oxps
+2014-12-07,"Running (jogging), 5 mph (12 min mile)",357,35,oxps
+2014-12-09,"Running (jogging), 5 mph (12 min mile)",347,34,oxps
+2014-12-09,Hospital,300,240,oxps
+2014-12-12,"Running (jogging), 5 mph (12 min mile)",347,34,oxps
+2014-12-15,Hospital,300,240,oxps
+2014-12-15,"Running (jogging), 5 mph (12 min mile)",368,36,oxps
+2014-12-16,Hospital,300,240,oxps
+2014-12-17,"Running (jogging), 5 mph (12 min mile)",368,36,oxps
+2014-12-26,Hospital,300,240,oxps
+2015-01-06,Hospital,300,240,oxps
+2015-01-12,Elliptical Trainer,229,20,oxps
+2015-01-13,Hospital,300,240,oxps
+2015-01-15,"Running (jogging), 5 mph (12 min mile)",368,36,oxps
+2015-01-20,Hospital,300,240,oxps
+2015-01-21,Hospital,300,240,oxps
+2015-01-21,"Running (jogging), 5 mph (12 min mile)",368,36,oxps
+2015-01-27,Hospital,300,240,oxps
+2015-01-29,"Running (jogging), 5 mph (12 min mile)",368,36,oxps
+2015-02-03,Hospital,300,240,oxps
+2015-02-04,Hospital,300,240,oxps
+2015-02-04,"Running (jogging), 5 mph (12 min mile)",347,34,oxps
+2015-02-08,"Running (jogging), 5 mph (12 min mile)",306,30,oxps
+2015-02-10,Hospital,300,240,oxps
+2015-02-17,Hospital,300,240,oxps
+2015-02-24,Hospital,300,240,oxps
+2015-02-24,"Moving furniture, household",487,60,oxps
+2015-02-25,"Moving furniture, household",487,60,oxps
+2015-02-26,"Moving furniture, household",487,60,oxps
+2015-03-03,Hospital,300,240,oxps
+2015-03-10,Hospital,300,240,oxps
+2015-03-17,Hospital,300,240,oxps
+2015-03-18,Hospital,300,240,oxps
+2015-03-24,Hospital,300,240,oxps
+2015-03-31,Hospital,300,240,oxps
+2015-04-07,Hospital,300,240,oxps
+2015-04-09,"Walking, 3.0 mph, mod. pace",268,60,oxps
+2015-04-13,"Running (jogging), 5 mph (12 min mile)",184,17,oxps
+2015-04-14,Hospital,300,240,oxps
+2015-04-21,Hospital,300,240,oxps
+2015-04-27,"Running (jogging), 5 mph (12 min mile)",325,30,oxps
+2015-04-28,Hospital,300,240,oxps
+2015-05-01,"Running (jogging), 5 mph (12 min mile)",325,30,oxps
+2015-05-04,"Running (jogging), 5 mph (12 min mile)",595,55,oxps
+2015-05-05,Hospital,300,240,oxps
+2015-05-06,"Running (jogging), 5 mph (12 min mile)",271,25,oxps
+2015-05-12,Hospital,300,240,oxps
+2015-05-19,Hospital,300,240,oxps
+2015-05-26,Hospital,300,240,oxps
+2015-07-03,"Running (jogging), 6 mph (10 min mile)",444,32,oxps
+2015-07-13,"Running (jogging), 5 mph (12 min mile)",375,34,oxps
+2015-07-15,"Running (jogging), 5.2 mph (11.5 min mile)",372,30,oxps
+2015-07-23,"Running (jogging), 6 mph (10 min mile)",414,30,oxps
+2015-07-27,"Running (jogging), 6 mph (10 min mile)",414,30,oxps
+2015-09-02,"Running (jogging), 5 mph (12 min mile)",378,34,oxps
+2015-09-05,"Running (jogging), 6 mph (10 min mile)",387,28,oxps
+2015-09-23,"Running (jogging), 6 mph (10 min mile)",414,30,oxps
+2015-09-24,"Running (jogging), 6 mph (10 min mile)",414,30,oxps
+2015-09-25,Printable Nutrition Report for Lucent EXERCISES,14,16,oxps
+2015-09-25,"Running (jogging), 6 mph (10 min mile)",414,30,oxps
+2015-12-29,Hospital,250,240,oxps
+2016-01-05,Hospital,250,240,oxps
+2016-01-12,Hospital,250,240,oxps
+2016-01-19,Hospital,250,240,oxps
+2016-01-19,Hospital,250,240,oxps
+2016-01-26,Hospital,250,240,oxps
+2016-02-02,Hospital,250,240,oxps
+2016-02-04,"Walking, 3.0 mph, mod. pace",186,40,oxps
+2016-02-04,"Walking, 3.0 mph, mod. pace",186,40,oxps
+2016-02-06,"Walking, 3.0 mph, mod. pace",140,30,oxps
+2016-02-09,Hospital,250,240,oxps
+2016-02-12,"Walking, 2.5 mph, leisurely pace",201,48,oxps
+2016-02-16,Hospital,250,240,oxps
+2016-02-23,Hospital,250,240,oxps
+2016-02-27,"Running (jogging), 5 mph (12 min mile)",131,12,oxps
+2016-02-27,"Walking, 3.0 mph, mod. pace",203,45,oxps
+2016-02-29,"Walking, 3.0 mph, mod. pace",248,55,oxps
+2016-02-29,"Running (jogging), 5 mph (12 min mile)",175,16,oxps
+2016-03-01,Hospital,250,240,oxps
+2016-03-05,"Walking, 3.0 mph, mod. pace",103,23,oxps
+2016-03-05,"Running (jogging), 5 mph (12 min mile)",217,20,oxps
+2016-03-06,"Walking, 3.0 mph, mod. pace",179,40,oxps
+2016-03-07,"Walking, 3.0 mph, mod. pace",72,16,oxps
+2016-03-07,"Running (jogging), 5 mph (12 min mile)",261,24,oxps
+2016-03-08,Hospital,250,240,oxps
+2016-03-10,"Walking, 2.5 mph, leisurely pace",183,45,oxps
+2016-03-11,"Running (jogging), 5 mph (12 min mile)",304,28,oxps
+2016-03-12,"Walking, 2.5 mph, leisurely pace",191,47,oxps
+2016-03-13,"Walking, 2.5 mph, leisurely pace",150,37,oxps
+2016-03-16,"Running (jogging), 5 mph (12 min mile)",302,28,oxps
+2016-03-16,"Walking, 2.5 mph, leisurely pace",122,30,oxps
+2016-03-18,"Walking, 2.5 mph, leisurely pace",228,57,oxps
+2016-03-19,"Walking, 2.5 mph, leisurely pace",160,40,oxps
+2016-03-20,"Walking, 2.5 mph, leisurely pace",120,30,oxps
+2016-03-21,"Walking, 2.5 mph, leisurely pace",120,30,oxps
+2016-03-22,Hospital,250,240,oxps
+2016-03-25,"Running (jogging), 5 mph (12 min mile)",302,28,oxps
+2016-03-27,"Walking, 2.5 mph, leisurely pace",240,60,oxps
+2016-03-29,Hospital,250,240,oxps
+2016-03-30,"Walking, 2.5 mph, leisurely pace",160,40,oxps
+2016-04-01,Hospital,213,240,oxps
+2016-04-02,Hospital,250,240,oxps
+2016-04-04,"Walking, 2.5 mph, leisurely pace",163,41,oxps
+2016-04-05,Hospital,213,240,oxps
+2016-04-06,"Walking, 2.5 mph, leisurely pace",179,45,oxps
+2016-04-12,Printable Nutrition Report for Lucent EXERCISES,8,18,oxps
+2016-04-12,"Walking, 2.5 mph, leisurely pace",160,40,oxps
+2016-04-13,"Walking, 2.5 mph, leisurely pace",206,52,oxps
+2016-04-16,"Walking, 2.5 mph, leisurely pace",258,65,oxps
+2016-04-18,Printable Nutrition Report for Lucent EXERCISES,12,18,oxps
+2016-04-18,"Walking, 2.5 mph, leisurely pace",159,40,oxps
+2016-04-19,Hospital,213,240,oxps
+2016-04-21,"Bicycling, <10 mph, leisure (cycling, biking, bike riding)",476,90,oxps
+2016-04-22,"Walking, 2.5 mph, leisurely pace",186,47,oxps
+2016-04-27,"Bicycling, <10 mph, leisure (cycling, biking, bike riding)",635,120,oxps
+2016-05-13,"Walking, 2.5 mph, leisurely pace",238,60,oxps
+2016-05-16,"Running (jogging), 6 mph (10 min mile)",232,17,oxps
+2016-05-17,Hospital,213,240,oxps
+2016-05-18,"Running (jogging), 6 mph (10 min mile)",286,21,oxps
+2016-05-21,"Walking, 2.5 mph, leisurely pace",255,63,oxps
+2016-05-23,"Running (jogging), 6 mph (10 min mile)",324,24,oxps
+2016-05-24,Printable Nutrition Report for Lucent EXERCISES,13,17,oxps
+2016-05-24,Hospital,213,240,oxps
+2016-05-25,"Running (jogging), 6 mph (10 min mile)",363,27,oxps
+2016-05-26,"Walking, 2.5 mph, leisurely pace",202,50,oxps
+2016-05-27,"Walking, 2.5 mph, leisurely pace",339,84,oxps
+2016-05-28,"Hiking, cross country",524,65,oxps
+2016-05-31,Hospital,213,240,oxps
+2016-06-03,"Walking, 2.5 mph, leisurely pace",241,60,oxps
+2016-06-04,"Hiking, cross country",524,65,oxps
+2016-06-05,"Walking, 2.5 mph, leisurely pace",217,54,oxps
+2016-06-11,Printable Nutrition Report for Lucent EXERCISES,7,17,oxps
+2016-06-11,"Walking, 3.0 mph, mod. pace",154,35,oxps
+2016-06-14,Hospital,213,240,oxps
+2016-06-17,"Walking, 2.5 mph, leisurely pace",156,39,oxps
+2016-06-17,"Running (jogging), 6 mph (10 min mile)",281,21,oxps
+2016-06-18,"Walking, 2.5 mph, leisurely pace",181,45,oxps
+2016-06-20,"Running (jogging), 6 mph (10 min mile)",335,25,oxps
+2016-06-21,Hospital,213,240,oxps
+2016-06-28,"Walking, 3.0 mph, mod. pace",177,40,oxps
+2016-06-28,Hospital,213,240,oxps
+2016-06-29,"Running (jogging), 6 mph (10 min mile)",388,29,oxps
+2016-06-30,"Walking, 2.5 mph, leisurely pace",161,40,oxps
+2016-07-01,"Running (jogging), 6 mph (10 min mile)",401,30,oxps
+2016-07-01,"Walking, 2.5 mph, leisurely pace",120,30,oxps
+2016-07-05,Hospital,213,240,oxps
+2016-07-06,"Running (jogging), 6 mph (10 min mile)",429,32,oxps
+2016-07-10,"Walking, 2.5 mph, leisurely pace",221,55,oxps
+2016-07-11,Hospital,213,240,oxps
+2016-07-12,Hospital,213,240,oxps
+2016-07-16,"Bicycling, <10 mph, leisure (cycling, biking, bike riding)",429,80,oxps
+2016-07-17,"Walking, 2.5 mph, leisurely pace",482,120,oxps
+2016-07-18,"Bicycling, <10 mph, leisure (cycling, biking, bike riding)",322,60,oxps
+2016-07-18,"Bicycling, <10 mph, leisure (cycling, biking, bike riding)",322,60,oxps
+2016-07-19,"Bicycling, <10 mph, leisure (cycling, biking, bike riding)",482,90,oxps
+2016-07-26,Hospital,213,240,oxps
+2016-07-27,"Walking, 2.5 mph, leisurely pace",141,35,oxps
+2016-08-02,Hospital,213,240,oxps
+2016-08-03,"Walking, 2.5 mph, leisurely pace",122,30,oxps
+2016-08-04,"Walking, 2.0 mph, slow pace",169,50,oxps
+2016-08-05,"Walking, 2.0 mph, slow pace",169,50,oxps
+2016-08-09,Hospital,213,240,oxps
+2016-08-10,"Walking, 2.5 mph, leisurely pace",204,50,oxps
+2016-08-11,"Walking, 2.5 mph, leisurely pace",260,64,oxps
+2016-08-16,Hospital,213,240,oxps
+2016-08-21,"Walking, 2.0 mph, slow pace",125,37,oxps
+2016-08-30,Hospital,213,240,oxps
+2016-08-31,"Walking, 2.5 mph, leisurely pace",248,61,oxps
+2016-08-31,"Walking, 2.0 mph, slow pace",170,50,oxps
+2016-09-02,"Walking, 2.0 mph, slow pace",188,55,oxps
+2016-09-03,"Walking, 3.0 mph, mod. pace",216,48,oxps
+2016-09-04,"Walking, 2.5 mph, leisurely pace",257,63,oxps
+2016-09-06,Hospital,213,240,oxps
+2016-09-07,"Walking, 2.0 mph, slow pace",170,50,oxps
+2016-09-07,"Walking, 2.5 mph, leisurely pace",245,60,oxps
+2016-09-09,"Walking, 2.5 mph, leisurely pace",284,70,oxps
+2016-09-10,"Walking, 2.0 mph, slow pace",169,50,oxps
+2016-09-11,"Walking, 2.5 mph, leisurely pace",137,34,oxps
+2016-09-12,"Walking, 2.5 mph, leisurely pace",137,34,oxps
+2016-09-12,"Walking, 2.5 mph, leisurely pace",218,54,oxps
+2016-09-13,Hospital,213,240,oxps
+2016-09-13,"Walking, 2.5 mph, leisurely pace",133,33,oxps
+2016-09-14,"Circuit training, general",215,20,oxps
+2016-09-14,"Walking, 2.5 mph, leisurely pace",161,40,oxps
+2016-09-15,"Walking, 2.5 mph, leisurely pace",190,47,oxps
+2016-09-17,"Walking, 3.0 mph, mod. pace",62,14,oxps
+2016-09-17,"Walking, 2.5 mph, leisurely pace",161,40,oxps
+2016-09-19,"Circuit training, general",215,20,oxps
+2016-09-21,"Circuit training, general",215,20,oxps
+2016-09-26,"Circuit training, general",215,20,oxps
+2016-09-30,"Walking, 2.5 mph, leisurely pace",80,20,oxps
+2016-10-02,"Walking, 2.5 mph, leisurely pace",113,28,oxps
+2016-10-03,"Circuit training, general",215,20,oxps
+2016-10-04,Hospital,213,240,oxps
+2016-10-05,"Circuit training, general",215,20,oxps
+2016-10-10,"Circuit training, general",215,20,oxps
+2016-10-11,Hospital,213,240,oxps
+2016-10-12,"Circuit training, general",215,20,oxps
+2016-10-15,"Walking, 2.5 mph, leisurely pace",187,47,oxps
+2016-10-16,"Walking, 2.5 mph, leisurely pace",240,60,oxps
+2016-10-17,"Circuit training, general",215,20,oxps
+2016-10-18,Hospital,213,240,oxps
+2016-10-19,"Circuit training, general",215,20,oxps
+2016-10-25,Hospital,213,240,oxps
+2016-10-25,"Walking, 2.5 mph, leisurely pace",280,70,oxps
+2016-10-26,"Circuit training, general",215,20,oxps
+2016-10-31,"Circuit training, general",215,20,oxps
+2016-11-01,Hospital,213,240,oxps
+2016-11-02,"Circuit training, general",215,20,oxps
+2016-11-07,"Circuit training, general",215,20,oxps
+2016-11-08,Hospital,213,240,oxps
+2016-11-09,"Circuit training, general",215,20,oxps
+2016-11-14,"Circuit training, general",215,20,oxps
+2016-11-15,Hospital,213,240,oxps
+2016-11-16,"Circuit training, general",215,20,oxps
+2016-11-21,"Circuit training, general",215,20,oxps
+2016-11-22,Hospital,213,240,oxps
+2016-11-23,"Circuit training, general",215,20,oxps
+2016-11-28,"Circuit training, general",215,20,oxps
+2016-11-29,Hospital,213,240,oxps
+2016-12-01,"Circuit training, general",215,20,oxps
+2016-12-05,"Circuit training, general",215,20,oxps
+2016-12-06,Hospital,213,240,oxps
+2016-12-07,"Circuit training, general",215,20,oxps
+2016-12-12,"Circuit training, general",215,20,oxps
+2016-12-13,Hospital,213,240,oxps
+2016-12-14,"Circuit training, general",215,20,oxps
+2016-12-19,"Circuit training, general",215,20,oxps
+2016-12-20,Hospital,213,240,oxps
+2016-12-21,"Circuit training, general",215,20,oxps
+2016-12-22,"Walking, 2.5 mph, leisurely pace",178,43,oxps
+2016-12-27,Hospital,213,240,oxps
+2016-12-28,"Circuit training, general",215,20,oxps
+2016-12-29,"Circuit training, general",215,20,oxps
+2017-01-01,"Walking, 2.5 mph, leisurely pace",133,32,oxps
+2017-01-03,Hospital,213,240,oxps
+2017-01-05,"Circuit training, general",215,20,oxps
+2017-01-09,"Circuit training, general",215,20,oxps
+2017-01-10,Hospital,213,240,oxps
+2017-01-11,"Circuit training, general",215,20,oxps
+2017-01-12,"Walking, 2.5 mph, leisurely pace",124,30,oxps
+2017-01-13,"Walking, 2.5 mph, leisurely pace",498,120,oxps
+2017-01-14,"Walking, 2.5 mph, leisurely pace",498,120,oxps
+2017-01-15,"Walking, 2.5 mph, leisurely pace",249,60,oxps
+2017-01-16,"Circuit training, general",215,20,oxps
+2017-01-17,Hospital,213,240,oxps
+2017-01-18,"Circuit training, general",215,20,oxps
+2017-01-19,"Walking, 3.5 mph, brisk pace",183,35,oxps
+2017-01-21,"Walking, 2.5 mph, leisurely pace",186,45,oxps
+2017-01-22,"Walking, 3.5 mph, brisk pace",173,33,oxps
+2017-01-23,"Circuit training, general",215,20,oxps
+2017-01-24,Hospital,213,240,oxps
+2017-01-26,"Circuit training, general",215,20,oxps
+2017-01-30,"Circuit training, general",215,20,oxps
+2017-01-31,Hospital,213,240,oxps
+2017-02-02,"Circuit training, general",215,20,oxps
+2017-02-06,"Circuit training, general",215,20,oxps
+2017-02-07,Hospital,213,240,oxps
+2017-02-09,"Circuit training, general",215,20,oxps
+2017-02-12,"Walking, 3.5 mph, brisk pace",216,41,oxps
+2017-02-14,Hospital,213,240,oxps
+2017-02-15,"Circuit training, general",215,20,oxps
+2017-02-20,"Walking, 2.5 mph, leisurely pace",187,45,oxps
+2017-02-21,Hospital,213,240,oxps
+2017-02-27,"Circuit training, general",215,20,oxps
+2017-02-28,Hospital,213,240,oxps
+2017-03-09,"Walking, 3.0 mph, mod. pace",242,53,oxps
+2017-03-13,"Circuit training, general",215,20,oxps
+2017-03-14,Hospital,213,240,oxps
+2017-03-15,"Circuit training, general",215,20,oxps
+2017-03-18,"Walking, 3.0 mph, mod. pace",205,45,oxps
+2017-03-20,"Circuit training, general",215,20,oxps
+2017-03-21,Hospital,213,240,oxps
+2017-03-22,"Circuit training, general",215,20,oxps
+2017-03-27,"Circuit training, general",215,20,oxps
+2017-03-29,"Circuit training, general",215,20,oxps
+2017-04-01,"Walking, 3.5 mph, brisk pace",221,40,oxps
+2017-04-02,"Walking, 3.5 mph, brisk pace",331,60,oxps
+2017-04-03,"Circuit training, general",215,20,oxps
+2017-04-04,Hospital,213,240,oxps
+2017-04-05,"Circuit training, general",215,20,oxps
+2017-04-11,Hospital,213,240,oxps
+2017-04-11,"Walking, 2.5 mph, leisurely pace",195,45,oxps
+2017-04-12,"Circuit training, general",215,20,oxps
+2017-04-14,"Walking, 2.5 mph, leisurely pace",380,88,oxps
+2017-04-19,"Circuit training, general",215,20,oxps
+2017-04-20,"Walking, 3.0 mph, mod. pace",190,40,oxps
+2017-04-24,"Circuit training, general",215,20,oxps
+2017-04-24,"Walking, 3.0 mph, mod. pace",147,31,oxps
+2017-04-25,Hospital,213,240,oxps
+2017-04-26,"Circuit training, general",215,20,oxps
+2017-04-27,"Walking, 3.0 mph, mod. pace",218,46,oxps
+2017-04-28,"Walking, 3.0 mph, mod. pace",152,32,oxps
+2017-05-01,"Circuit training, general",215,20,oxps
+2017-05-02,Hospital,213,240,oxps
+2017-05-03,"Circuit training, general",215,20,oxps
+2017-05-08,"Circuit training, general",215,20,oxps
+2017-05-10,"Circuit training, general",215,20,oxps
+2017-05-21,"Bicycling, <10 mph, leisure (cycling, biking, bike riding)","1,037",180,oxps
+2017-05-30,Hospital,213,240,oxps
+2017-05-31,"Circuit training, general",215,20,oxps
+2017-06-01,"Circuit training, general",215,20,oxps
+2017-06-02,Hospital,213,240,oxps
+2017-06-05,"Circuit training, general",215,20,oxps
+2017-06-06,Hospital,213,240,oxps
+2017-06-07,"Circuit training, general",215,20,oxps
+2017-06-09,Hospital,213,240,oxps
+2017-06-12,"Circuit training, general",215,20,oxps
+2017-06-13,Hospital,213,240,oxps
+2017-06-14,"Circuit training, general",215,20,oxps
+2017-06-19,"Circuit training, general",215,20,oxps
+2017-06-20,Hospital,213,240,oxps
+2017-06-26,"Circuit training, general",215,20,oxps
+2017-06-27,Hospital,213,240,oxps
+2017-06-28,"Circuit training, general",215,20,oxps
+2017-07-10,"Circuit training, general",215,20,oxps
+2017-07-11,Hospital,213,240,oxps
+2017-07-12,"Circuit training, general",215,20,oxps
+2017-07-17,"Circuit training, general",215,20,oxps
+2017-07-19,"Circuit training, general",215,20,oxps
+2017-07-24,"Circuit training, general",215,20,oxps
+2017-07-25,Hospital,213,240,oxps
+2017-07-26,"Circuit training, general",215,20,oxps
+2017-07-31,"Circuit training, general",215,20,oxps
+2017-08-02,"Circuit training, general",215,20,oxps
+2017-08-08,Hospital,213,240,oxps
+2017-08-09,"Circuit training, general",215,20,oxps
+2017-08-10,"Circuit training, general",215,20,oxps
+2017-08-14,"Circuit training, general",215,20,oxps
+2017-08-16,"Circuit training, general",215,20,oxps
+2017-08-23,"Circuit training, general",215,20,oxps
+2017-08-28,"Circuit training, general",215,20,oxps
+2017-08-28,"Running (jogging), 5 mph (12 min mile)",231,20,oxps
+2017-08-29,Hospital,213,240,oxps
+2017-08-30,"Circuit training, general",215,20,oxps
+2017-09-04,"Running (jogging), 6 mph (10 min mile)",288,20,oxps
+2017-09-05,Hospital,213,240,oxps
+2017-09-06,"Circuit training, general",215,20,oxps
+2017-09-13,"Circuit training, general",215,20,oxps
+2017-09-14,"Circuit training, general",215,20,oxps
+2017-09-14,"Walking, 3.0 mph, mod. pace",207,40,oxps
+2017-09-17,"Walking, 2.5 mph, leisurely pace",169,36,oxps
+2017-09-18,"Circuit training, general",215,20,oxps
+2017-09-23,"Hiking, cross country",524,65,oxps
+2017-09-27,"Circuit training, general",215,20,oxps
+2017-10-02,"Circuit training, general",215,20,oxps
+2017-10-03,"Walking, 3.0 mph, mod. pace",207,40,oxps
+2017-10-04,"Circuit training, general",215,20,oxps
+2017-10-09,"Circuit training, general",215,20,oxps
+2017-10-11,"Circuit training, general",215,20,oxps
+2017-10-16,"Circuit training, general",215,20,oxps
+2017-10-18,"Circuit training, general",215,20,oxps
+2017-10-25,"Circuit training, general",215,20,oxps
+2017-10-30,"Circuit training, general",215,20,oxps
+2017-11-06,"Circuit training, general",215,20,oxps
+2017-11-08,"Circuit training, general",215,20,oxps
+2017-11-15,"Circuit training, general",215,20,oxps
+2017-11-22,"Circuit training, general",215,20,oxps
+2017-12-04,"Circuit training, general",215,20,oxps
+2017-12-06,"Circuit training, general",215,20,oxps
+2017-12-13,"Circuit training, general",215,20,oxps
+2017-12-18,"Circuit training, general",215,20,oxps
+2017-12-20,"Circuit training, general",215,20,oxps
+2018-01-03,"Circuit training, general",215,20,oxps
+2018-01-08,"Circuit training, general",215,20,oxps
+2018-01-10,"Circuit training, general",215,20,oxps
+2018-01-13,"Circuit training, general",215,20,oxps
+2018-01-15,"Circuit training, general",215,20,oxps
+2018-01-19,"Circuit training, general",215,20,oxps
+2018-01-22,"Circuit training, general",215,20,oxps
+2018-01-24,"Circuit training, general",215,20,oxps
+2018-01-27,"Circuit training, general",215,20,oxps
+2018-01-29,"Circuit training, general",215,20,oxps
+2018-02-02,"Circuit training, general",167,14,oxps
+2018-02-05,"Circuit training, general",167,14,oxps
+2018-02-07,"Circuit training, general",167,14,oxps
+2018-02-09,"Circuit training, general",167,14,oxps
+2018-02-12,"Circuit training, general",167,14,oxps
+2018-02-14,"Circuit training, general",167,14,oxps
+2018-02-16,"Circuit training, general",167,14,oxps
+2018-02-19,"Circuit training, general",167,14,oxps
+2018-02-21,"Circuit training, general",167,14,oxps
+2018-02-23,"Circuit training, general",167,14,oxps
+2018-02-26,"Circuit training, general",167,14,oxps
+2018-02-28,"Circuit training, general",167,14,oxps
+2018-03-02,"Circuit training, general",167,14,mhtml
+2018-03-05,"Circuit training, general",167,14,mhtml
+2018-03-07,"Circuit training, general",167,14,mhtml
+2018-03-09,"Circuit training, general",167,14,mhtml
+2018-03-12,"Circuit training, general",167,14,mhtml
+2018-03-15,"Circuit training, general",167,14,mhtml
+2018-03-19,"Circuit training, general",167,14,mhtml
+2018-03-21,"Circuit training, general",167,14,mhtml
+2018-03-23,"Circuit training, general",167,14,mhtml
+2018-03-26,"Circuit training, general",167,14,mhtml
+2018-03-28,"Circuit training, general",167,14,mhtml
+2018-03-30,"Circuit training, general",167,14,mhtml
+2018-04-02,"Circuit training, general",167,14,oxps
+2018-04-04,"Circuit training, general",167,14,oxps
+2018-04-06,"Circuit training, general",167,14,oxps
+2018-04-09,"Circuit training, general",167,14,oxps
+2018-04-27,"Circuit training, general",167,14,oxps
+2018-04-30,"Circuit training, general",167,14,oxps
+2018-05-02,"Circuit training, general",167,14,mhtml
+2018-05-07,"Circuit training, general",167,14,mhtml
+2018-05-09,"Circuit training, general",167,14,mhtml
+2018-05-11,"Circuit training, general",167,14,mhtml
+2018-05-14,"Circuit training, general",167,14,mhtml
+2018-05-21,"Circuit training, general",167,14,mhtml
+2018-05-30,"Circuit training, general",167,14,mhtml
+2018-06-13,"Circuit training, general",167,14,mhtml
+2018-06-18,"Circuit training, general",167,14,mhtml
+2018-06-25,"Circuit training, general",167,14,mhtml
+2019-02-13,"Circuit training, general",167,14,mhtml
+2019-02-15,"Circuit training, general",167,14,mhtml
+2019-02-18,"Circuit training, general",167,14,mhtml
+2019-02-20,"Circuit training, general",167,14,mhtml
+2019-02-22,"Circuit training, general",167,14,mhtml
+2019-02-25,"Circuit training, general",167,14,mhtml
+2019-02-27,"Circuit training, general",167,14,mhtml
+2019-03-01,"Circuit training, general",167,14,html
+2019-03-04,"Circuit training, general",167,14,html
+2019-03-06,"Circuit training, general",167,14,html
+2019-03-08,"Circuit training, general",167,14,html
+2019-03-11,"Circuit training, general",167,14,html
+2019-03-13,"Circuit training, general",167,14,html
+2019-03-18,"Circuit training, general",167,14,html
+2019-03-20,"Circuit training, general",178,14,html
+2019-03-22,"Circuit training, general",167,14,html
+2019-03-25,"Circuit training, general",167,14,html
+2019-03-27,"Circuit training, general",178,14,html
+2019-03-29,"Circuit training, general",165,13,html
+2019-04-01,"Circuit training, general",165,13,mhtml
+2019-04-03,"Circuit training, general",165,13,mhtml
+2019-04-05,"Circuit training, general",165,13,mhtml
+2019-04-08,"Circuit training, general",165,13,mhtml
+2019-04-10,"Circuit training, general",165,13,mhtml
+2019-04-12,"Circuit training, general",165,13,mhtml
+2019-04-17,"Circuit training, general",165,13,mhtml
+2019-04-20,"Circuit training, general",165,13,mhtml
+2019-04-22,"Circuit training, general",165,13,mhtml
+2019-04-25,"Circuit training, general",165,13,mhtml
+2019-04-29,"Circuit training, general",165,13,mhtml
+2019-05-01,"Circuit training, general",165,13,mhtml
+2019-05-03,"Circuit training, general",165,13,mhtml
+2019-05-06,"Circuit training, general",165,13,mhtml
+2019-05-07,"Walking, 3.0 mph, mod. pace",157,30,mhtml
+2019-05-08,"Circuit training, general",165,13,mhtml
+2019-05-10,"Circuit training, general",165,13,mhtml
+2019-05-13,"Circuit training, general",165,13,mhtml
+2019-05-17,"Circuit training, general",165,13,mhtml
+2019-05-20,"Circuit training, general",165,13,mhtml
+2019-05-24,"Circuit training, general",165,13,mhtml
+2019-05-29,"Circuit training, general",165,13,mhtml
+2019-07-08,"Circuit training, general",165,13,html
+2019-07-10,"Circuit training, general",165,13,html
+2019-07-15,"Circuit training, general",165,13,html
+2019-07-22,"Circuit training, general",165,13,html
+2019-07-24,"Circuit training, general",165,13,html
+2019-07-26,"Circuit training, general",165,13,html
+2019-07-29,"Circuit training, general",165,13,html
+2019-08-02,"Circuit training, general",165,13,mhtml
+2019-08-05,"Circuit training, general",165,13,mhtml
+2019-08-07,"Circuit training, general",165,13,mhtml
+2019-08-12,"Circuit training, general",165,13,mhtml
+2019-08-14,"Circuit training, general",165,13,mhtml
+2019-08-16,"Circuit training, general",165,13,mhtml
+2019-08-19,"Circuit training, general",165,13,mhtml
+2019-09-06,"Circuit training, general",165,13,html
+2019-09-09,"Circuit training, general",165,13,html
+2019-09-11,"Circuit training, general",165,13,html
+2019-09-13,"Circuit training, general",165,13,html
+2019-09-16,"Circuit training, general",165,13,html
+2019-09-18,"Circuit training, general",165,13,html
+2019-09-23,"Circuit training, general",165,13,html
+2019-09-25,"Circuit training, general",165,13,html
+2019-09-27,"Circuit training, general",165,13,html
+2019-10-04,"Circuit training, general",165,13,mhtml
+2019-10-14,"Circuit training, general",165,13,mhtml
+2019-10-25,"Circuit training, general",169,13,mhtml
+2019-10-30,"Circuit training, general",169,13,mhtml
+2019-11-04,"Circuit training, general",169,13,mhtml
+2019-11-11,"Circuit training, general",169,13,mhtml
+2019-11-13,"Circuit training, general",168,13,mhtml
+2019-11-15,"Circuit training, general",168,13,mhtml
+2019-11-18,"Circuit training, general",168,13,mhtml
+2019-11-20,"Circuit training, general",168,13,mhtml
+2020-01-06,"Circuit training, general",168,13,mhtml
+2020-01-08,"Circuit training, general",167,13,mhtml
+2020-04-04,"Walking, 3.0 mph, mod. pace",150,70,mhtml
+2020-04-05,"Walking, 3.0 mph, mod. pace",150,70,mhtml
+2020-04-06,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-04-07,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-04-08,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-04-09,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-04-10,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-04-13,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-04-14,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-04-15,"Walking, 3.0 mph, mod. pace",100,45,mhtml
+2020-04-16,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-04-17,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-04-19,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-04-20,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-04-21,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-04-22,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-04-22,"Walking, 3.0 mph, mod. pace",75,30,mhtml
+2020-04-23,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-04-27,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-04-28,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-05-01,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-05-02,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-05-04,"Walking, 3.0 mph, mod. pace",75,30,mhtml
+2020-05-05,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-05-07,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-05-09,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-05-10,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-06-02,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-06-03,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-06-04,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-06-09,"Walking, 3.0 mph, mod. pace",125,50,mhtml
+2020-06-10,"Walking, 3.0 mph, mod. pace",75,30,mhtml
+2020-06-11,"Walking, 3.0 mph, mod. pace",75,30,mhtml
+2020-06-14,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-06-16,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-06-18,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-06-20,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-06-22,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-06-23,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-06-25,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-08-16,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-08-19,"Walking, 3.0 mph, mod. pace",75,30,mhtml
+2020-08-21,"Walking, 3.0 mph, mod. pace",75,30,mhtml
+2020-08-22,"Walking, 3.0 mph, mod. pace",75,30,mhtml
+2020-08-29,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-08-31,"Walking, 3.0 mph, mod. pace",75,30,mhtml
+2020-09-07,"Walking, 3.0 mph, mod. pace",75,30,mhtml
+2020-09-09,"Walking, 3.0 mph, mod. pace",100,45,mhtml
+2020-09-14,"Walking, 3.0 mph, mod. pace",75,30,mhtml
+2020-09-16,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-09-21,"Walking, 3.0 mph, mod. pace",75,30,mhtml
+2020-09-22,"Walking, 3.0 mph, mod. pace",75,30,mhtml
+2020-09-23,"Walking, 3.0 mph, mod. pace",75,30,mhtml
+2020-09-25,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-09-26,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-09-27,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-09-28,"Walking, 3.0 mph, mod. pace",75,30,mhtml
+2020-10-03,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-10-06,"Walking, 3.0 mph, mod. pace",75,30,mhtml
+2020-10-12,"Walking, 3.0 mph, mod. pace",75,30,mhtml
+2020-10-13,"Walking, 3.0 mph, mod. pace",75,30,mhtml
+2020-10-14,"Walking, 3.0 mph, mod. pace",75,30,mhtml
+2020-10-17,"Walking, 3.0 mph, mod. pace",75,30,mhtml
+2020-10-29,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-10-31,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-11-01,"Walking, 3.0 mph, mod. pace",75,30,mhtml
+2020-11-07,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-11-08,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-11-09,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-11-10,"Walking, 3.0 mph, mod. pace",75,30,mhtml
+2020-11-11,"Walking, 3.0 mph, mod. pace",75,30,mhtml
+2020-11-12,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-11-13,"Walking, 3.0 mph, mod. pace",75,30,mhtml
+2020-11-14,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-11-15,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-11-16,"Walking, 3.0 mph, mod. pace",75,30,mhtml
+2020-11-17,"Walking, 3.0 mph, mod. pace",150,60,mhtml
+2020-11-18,"Walking, 3.0 mph, mod. pace",75,30,mhtml
+2020-11-21,"Walking, 3.0 mph, mod. pace",75,30,mhtml
+2020-11-22,"Walking, 3.0 mph, mod. pace",75,30,mhtml
+2021-07-01,"Circuit training, general",150,30,mhtml
+2021-07-02,"Circuit training, general",150,30,mhtml
+2021-07-04,"Circuit training, general",150,30,mhtml
+2021-07-06,"Circuit training, general",150,20,mhtml
+2021-07-08,"Circuit training, general",150,20,mhtml
+2021-07-10,"Circuit training, general",150,20,mhtml
+2021-07-15,"Circuit training, general",150,20,mhtml
+2021-07-19,"Circuit training, general",150,20,mhtml
+2021-07-21,"Circuit training, general",150,20,mhtml
+2021-07-22,"Circuit training, general",150,20,mhtml
+2021-07-23,"Circuit training, general",150,20,mhtml
+2021-07-26,"Circuit training, general",150,20,mhtml
+2021-07-30,"Circuit training, general",150,20,mhtml
+2021-08-01,"Circuit training, general",150,20,mhtml
+2021-08-03,"Circuit training, general",150,20,mhtml
+2021-08-09,"Circuit training, general",150,20,mhtml
+2021-08-10,"Circuit training, general",150,20,mhtml
+2021-08-11,"Circuit training, general",150,20,mhtml
+2021-08-16,"Circuit training, general",215,20,mhtml
+2021-08-16,"Circuit training, general",150,20,mhtml
+2021-08-23,"Circuit training, general",150,20,mhtml
+2021-08-31,"Circuit training, general",150,20,mhtml
+2021-09-06,"Circuit training, general",100,10,mhtml
+2021-09-09,"Circuit training, general",150,20,mhtml
+2021-09-12,"Circuit training, general",150,20,mhtml
+2021-09-14,"Circuit training, general",150,20,mhtml
+2021-09-19,"Circuit training, general",150,20,mhtml
+2021-09-21,"Circuit training, general",150,20,mhtml
+2021-09-26,"Circuit training, general",150,20,mhtml
+2022-01-01,"Circuit training, general",131,10,mhtml
+2022-01-02,"Circuit training, general",131,10,mhtml
+2022-01-05,"Circuit training, general",130,10,mhtml
+2022-01-07,"Circuit training, general",130,10,mhtml
+2022-01-10,"Circuit training, general",130,10,mhtml
+2022-01-12,"Circuit training, general",130,10,mhtml
+2022-01-14,"Circuit training, general",130,10,mhtml
+2022-01-17,"Circuit training, general",130,10,mhtml
+2022-01-19,"Circuit training, general",130,10,mhtml
+2022-01-21,"Circuit training, general",130,10,mhtml
+2022-01-24,"Circuit training, general",130,10,mhtml
+2022-01-26,"Circuit training, general",130,10,mhtml
+2022-01-29,"Circuit training, general",130,10,mhtml
+2022-01-31,"Circuit training, general",130,10,mhtml

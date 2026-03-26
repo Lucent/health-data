@@ -1,4 +1,4 @@
 subset,n_pairs,mean_match_distance,mean_falling_minus_rising_run_minus_pre_ratio,mean_falling_minus_rising_post_minus_pre_ratio,mean_falling_minus_rising_post_minus_run_ratio
-all_pairs,43,0.4071,-0.0327,-0.0442,-0.0116
-distance_le_0.75,37,0.3151,-0.0327,-0.045,-0.0123
-distance_le_0.50,34,0.2899,-0.0324,-0.0462,-0.0137
+all_pairs,43,0.4473,-0.0349,-0.0483,-0.0134
+distance_le_0.75,37,0.3506,-0.0351,-0.0496,-0.0145
+distance_le_0.50,31,0.3036,-0.0337,-0.0523,-0.0186

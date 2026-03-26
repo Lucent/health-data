@@ -19,7 +19,13 @@ import pandas as pd
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-from C_binge_analysis import roc_auc_score_np, fit_logistic_regression, predict_logistic_regression, standardize_train_test
+import importlib
+_ba = importlib.import_module("C_binge_analysis")
+roc_auc_score_np = _ba.roc_auc_score_np
+fit_logistic_regression = _ba.fit_logistic_regression
+predict_logistic_regression = _ba.predict_logistic_regression
+standardize_train_test = _ba.standardize_train_test
+evaluate_predictor = _ba.evaluate_predictor
 
 TREND_WINDOW_DAYS = 90
 TREND_THRESHOLD_LBS = 3.0
@@ -111,7 +117,7 @@ def auc_summary(daily):
 
     rows = []
     for label, cols in models:
-        result = ba.evaluate_predictor(valid, cols, label)
+        result = evaluate_predictor(valid, cols, label)
         if result is None:
             continue
         rows.append(

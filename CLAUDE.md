@@ -20,15 +20,20 @@ Read these files in order:
 All extractors are idempotent. Re-run to regenerate CSVs from raw data.
 ```
 # Data extraction (order doesn't matter)
-python intake/merge.py              → intake/intake_foods.csv + intake/intake_daily.csv
-python intake/verify.py             — full integrity check (run after every merge)
+python intake/merge.py              → intake/intake_foods.csv + intake/intake_daily.csv + steps-sleep/mfp_exercises.csv
+python intake/verify_checksums.py   — checksums, continuity, duplicates (run after every merge)
 python weight/extract.py            → weight/weight.csv
-python steps-sleep/extract.py       → steps-sleep/steps.csv + steps-sleep/sleep.csv
+python steps-sleep/extract.py       → steps-sleep/steps_samsung.csv + steps-sleep/sleep.csv + steps-sleep/exercises_samsung.csv
 python composition/extract.py       → composition/composition.csv
 python RMR/extract.py               → RMR/rmr.csv
 python drugs/extract.py             → drugs/medicine.csv + drugs/tirzepatide.csv
-python intake/sanity_check.py       — Atwater factor validation
+python intake/atwater_check.py      — Atwater factor validation (per-item and per-day)
 python intake/compare_extractors.py — cross-validates OXPS vs HTML extractors
+
+# Merge pipeline (runs after extraction; each merges source-specific CSVs into canonical files)
+python steps-sleep/merge_steps.py      → steps-sleep/steps.csv (Samsung + MFP/calendar hospital+walk+run backfill)
+python steps-sleep/merge_exercises.py  → steps-sleep/exercises.csv (Samsung + pre-Samsung MFP runs)
+python workout/merge.py                → workout/strength.csv (PDFs + Chloe xlsx + MFP circuit training)
 
 # Analysis pipeline (order matters)
 python analysis/P0_tune_glycogen.py    — parameter tuning (run once to derive P1 constants)
@@ -68,8 +73,26 @@ python analysis/C_binge_analysis.py          — binge prediction AUC comparison
 ### weight/weight.csv
 `date, weight_lbs, time` — first reading of day (fasted, post-sleep)
 
+### steps-sleep/mfp_exercises.csv
+`date, name, calories, minutes, source` — all MFP exercise entries (extracted alongside food by intake/merge.py). Consumed by merge_steps.py, merge_exercises.py, and workout/merge.py.
+
+### steps-sleep/steps_samsung.csv
+`date, steps, distance, speed` — Samsung Health deduplicated phone+watch (starts 2014-04-24)
+
+### steps-sleep/steps_calendar.csv
+`date, steps` — hospital shifts from calendar not in MFP (16 dates, 5500 steps each)
+
 ### steps-sleep/steps.csv
-`date, steps, distance, speed` — deduplicated phone+watch
+`date, steps, distance, speed` — canonical merged steps (Samsung + MFP/calendar backfill). Use this for analysis.
+
+### steps-sleep/exercises_samsung.csv
+`date, start_time, end_time, duration_min, exercise_type, exercise_label, title, source_type, count, distance, calorie, time_offset, pkg_name, datauuid`
+
+### steps-sleep/exercises.csv
+`date, type, duration_min, distance, calorie, source` — canonical merged cardio exercises (Samsung + pre-Samsung MFP runs). Types: walking, running, bike, hiking, indoor_bike, pilates, yoga, other.
+
+### workout/strength.csv
+`date, duration_min, source` — canonical strength training dates. All 30 min. Sources: pdf (ActivTrax), chloe (personal trainer), mfp (circuit training).
 
 ### steps-sleep/sleep.csv
 `date, sleep_start, sleep_end, sleep_hours, time_offset` — assigned to wake-up date

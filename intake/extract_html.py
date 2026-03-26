@@ -6,14 +6,14 @@ Handles three layout eras:
   - New MUI layout (2022-10 through 2026+): <p> date tags, <th scope="row"> cells
   - MHTML files: quoted-printable decoded, then parsed same as HTML
 
-Output: CSV to stdout with columns:
-  date, meal, food, calories, carbs_g, fat_g, protein_g, cholest_mg, sodium_mg, sugars_g, fiber_g
+Output: food CSV then '---EXERCISES---' sentinel then exercise CSV, both to stdout.
+  Food:     date, meal, food, calories, carbs_g, fat_g, protein_g, cholest_mg, sodium_mg, sugars_g, fiber_g
+  Exercise: date, name, calories, minutes
 """
 
 import csv
 import html as html_mod
 import io
-import os
 import quopri
 import re
 import sys
@@ -23,6 +23,8 @@ NUTRIENT_COLS = ["calories", "carbs_g", "fat_g", "protein_g",
                  "cholest_mg", "sodium_mg", "sugars_g", "fiber_g"]
 
 MEALS = {"Breakfast", "Lunch", "Dinner", "Snacks", "Supper"}
+
+EXERCISE_CATEGORIES = {"Cardiovascular", "Strength"}
 
 MONTH_MAP = {
     "January": "01", "February": "02", "March": "03", "April": "04",
@@ -354,8 +356,76 @@ def extract_new_layout(html):
     return rows
 
 
+def extract_exercises_old_layout(html):
+    """Parse exercise data from old MyFitnessPal layout (2011-2022-09).
+
+    Structure:
+      <h2 class="main-title-2" id="date">January 1, 2012</h2>
+      ... food table ...
+      <table id="excercise">                (note: MFP misspelling)
+        <thead><tr><td>Exercises</td><td>Calories</td><td>Minutes</td>...</tr></thead>
+        <tbody>
+          <tr class="title"><td colspan="6">Cardiovascular</td></tr>
+          <tr><td>Hospital</td><td>300</td><td>240</td>...</tr>
+        </tbody>
+        <tfoot><tr><td>TOTALS:</td>...</tr></tfoot>
+      </table>
+    """
+    rows = []
+    current_date = None
+
+    # Split by date headers
+    date_splits = re.split(r'<h2[^>]*id="date"[^>]*>', html)
+
+    for chunk in date_splits[1:]:
+        date_end = chunk.find("</h2>")
+        if date_end == -1:
+            continue
+        date_str = chunk[:date_end].strip()
+        date_str = html_mod.unescape(re.sub(r"<[^>]+>", "", date_str)).strip()
+        current_date = parse_date(date_str)
+        if not current_date:
+            continue
+
+        # Find exercise table(s) — note MFP misspelling "excercise"
+        for ex_match in re.finditer(
+            r'<table[^>]*id="excercise"[^>]*>(.*?)</table>', chunk, re.DOTALL
+        ):
+            table_html = ex_match.group(1)
+            tr_chunks = re.split(r"<tr[^>]*>", table_html)
+            for tr in tr_chunks:
+                tr = tr.split("</tr>")[0] if "</tr>" in tr else tr
+                cells = re.findall(r"<t[dh][^>]*>(.*?)</t[dh]>", tr, re.DOTALL)
+                cells = [html_mod.unescape(re.sub(r"<[^>]+>", "", c)).strip()
+                         for c in cells]
+                cells = [c for c in cells if c not in ("", "&nbsp;", "\xa0")]
+
+                if not cells:
+                    continue
+                # Skip header row, category headers, TOTALS
+                if cells[0] in ("Exercises", "EXERCISES"):
+                    continue
+                if cells[0] in EXERCISE_CATEGORIES:
+                    continue
+                if cells[0] in ("TOTAL:", "TOTALS:"):
+                    continue
+                # Exercise row: name, calories, minutes [, sets, reps, weight]
+                if len(cells) >= 3:
+                    rows.append({
+                        "date": current_date,
+                        "name": cells[0],
+                        "calories": cells[1],
+                        "minutes": cells[2],
+                    })
+
+    return rows
+
+
 def extract_file(filepath):
-    """Extract food data from an HTML or MHTML file."""
+    """Extract food and exercise data from an HTML or MHTML file.
+
+    Returns (food_rows, exercise_rows).
+    """
     filepath = Path(filepath)
 
     if filepath.suffix.lower() == ".mhtml":
@@ -366,18 +436,21 @@ def extract_file(filepath):
 
     layout = detect_layout(html)
     if layout == "old":
-        return extract_old_layout(html)
+        return extract_old_layout(html), extract_exercises_old_layout(html)
     else:
-        return extract_new_layout(html)
+        return extract_new_layout(html), []
+
+
+EXERCISE_COLS = ["date", "name", "calories", "minutes"]
 
 
 def main():
     if len(sys.argv) < 2:
         print("Usage: extract_html.py <file_or_dir> [file_or_dir ...]", file=sys.stderr)
-        print("  Extracts food diary data from HTML/MHTML files to CSV on stdout.", file=sys.stderr)
         sys.exit(1)
 
-    all_rows = []
+    all_food_rows = []
+    all_exercise_rows = []
     paths = []
     for arg in sys.argv[1:]:
         p = Path(arg)
@@ -393,14 +466,22 @@ def main():
 
     for filepath in paths:
         try:
-            rows = extract_file(filepath)
-            all_rows.extend(rows)
+            food_rows, exercise_rows = extract_file(filepath)
+            all_food_rows.extend(food_rows)
+            all_exercise_rows.extend(exercise_rows)
         except Exception as e:
             print(f"ERROR processing {filepath}: {e}", file=sys.stderr)
 
     writer = csv.DictWriter(sys.stdout, fieldnames=["date", "meal", "food"] + NUTRIENT_COLS)
     writer.writeheader()
-    for row in all_rows:
+    for row in all_food_rows:
+        writer.writerow(row)
+
+    print("---EXERCISES---")
+
+    writer = csv.DictWriter(sys.stdout, fieldnames=EXERCISE_COLS)
+    writer.writeheader()
+    for row in all_exercise_rows:
         writer.writerow(row)
 
 

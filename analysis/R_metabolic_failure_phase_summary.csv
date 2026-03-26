@@ -1,7 +1,7 @@
 phase,high_steps,n_runs,mean_steps,mean_calories,mean_run_minus_pre_ratio,mean_post_minus_pre_ratio,mean_post_minus_run_ratio
-falling,False,33,3406.0,1578.3,-0.0112,-0.0224,-0.0112
-falling,True,10,6111.1,1614.1,-0.0252,-0.0598,-0.0346
-rising,False,23,2650.5,1637.5,0.0204,0.0305,0.0101
-rising,True,14,5686.4,1613.7,0.0095,0.0122,0.0027
-stable,False,39,3024.7,1569.2,-0.0001,-0.0035,-0.0035
-stable,True,11,6018.7,1621.2,-0.0099,-0.0176,-0.0077
+falling,False,28,3854.2,1575.9,-0.0112,-0.0233,-0.0121
+falling,True,15,5647.6,1606.7,-0.0218,-0.0483,-0.0265
+rising,False,23,2650.5,1637.5,0.0205,0.0304,0.01
+rising,True,14,5686.4,1613.7,0.0082,0.0102,0.002
+stable,False,32,3079.8,1562.6,-0.0002,-0.0057,-0.0055
+stable,True,18,5378.4,1612.7,-0.0071,-0.0112,-0.004

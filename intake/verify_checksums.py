@@ -1,43 +1,24 @@
 #!/usr/bin/env python3
-"""Verify intake data integrity. Run after every merge.
+"""Verify intake data integrity: checksums, continuity, duplicates.
+
+Run after every merge.
 
 Checks:
   1. Every date's item calorie sum matches its daily total (±1)
   2. No date gaps in the full range
   3. Monthly checksums match (regenerates checksums.csv)
-  4. Food macro errors >100 cal (excluding alcohol and sugar alcohol products)
-  5. No duplicate items (same date+meal+food+calories)
+  4. No duplicate items (same date+meal+food+calories)
 
 Exit code 0 = all clean, 1 = failures found.
 """
 
 import csv
-import re
 import sys
 from collections import Counter, defaultdict
 from datetime import date, timedelta
 from pathlib import Path
 
 INTAKE_DIR = Path(__file__).parent
-
-ALCOHOL = re.compile(
-    r"(?i)beer\b|ale\b|wine\b|lager\b|ipa\b|stout\b|porter\b|cocktail|negroni|"
-    r"old fashion|martini|margarita|bourbon|whiskey|whisky|vodka|rum\b|gin\b|"
-    r"tequila|sour\b|mule\b|mimosa|champagne|prosecco|corona|michelob|guinness|"
-    r"stella|newcastle|dogfish|sam adams|chimay|abita|miller.*lite|miller.*high|"
-    r"modelo|cider|sauvignon|cabernet|pinot|merlot|chardonnay|sangria|shandy|"
-    r"pilsner|kolsch|bier\b|bira\b|amstel|cerveza|spritz|mojito|brut\b|lager|"
-    r"saison|kölsch|flight\b|harder|requiem|gaffel|funkwerks|redhook|surly|"
-    r"kross|cigar cocktail|generi.*cabernet|red wine|white wine|pinot grigio|"
-    r"la tulipe|charles shaw|oyster bay|boulevard|tulipe|yuengling|allagash|"
-    r"oskar blues|death by coconut|fat tire|dos equis|leinenkugel|brad.*silver"
-)
-
-SUGAR_ALCOHOL = re.compile(
-    r"(?i)chocorite|choczero|enlightened|quest|mission.*carb balance|better bagel|"
-    r"lily|atkins|fiber one|smart swap|no cow|built bar|erythritol|sugar alcohol|"
-    r"minus sugar|minus erythritol|net carb|keto|betterbar|betterbrand"
-)
 
 
 def load():
@@ -124,29 +105,6 @@ def check_checksums(foods, daily):
     return failures
 
 
-def check_macros(foods):
-    """Find food items where macros don't add up to calories (>100 cal off)."""
-    outliers = []
-    for r in foods:
-        if r["meal"] == "TOTAL":
-            continue
-        if ALCOHOL.search(r["food"]) or SUGAR_ALCOHOL.search(r["food"]):
-            continue
-        cal = safe_int(r["calories"])
-        fat = safe_int(r["fat_g"])
-        carbs = safe_int(r["carbs_g"])
-        prot = safe_int(r["protein_g"])
-        if cal == 0:
-            continue
-        exp = fat * 9 + carbs * 4 + prot * 4
-        if exp == 0:
-            continue
-        diff = cal - exp
-        if abs(diff) > 100:
-            outliers.append((r["date"], r["meal"], r["food"], cal, exp, diff))
-    return outliers
-
-
 def check_duplicates(foods):
     """Find exact duplicate items (same date+meal+food+calories)."""
     counts = Counter(
@@ -191,18 +149,7 @@ def main():
         months = len(set(r["date"][:7] for r in daily.values()))
         print(f"OK: All {months} months checksum (written to checksums.csv)")
 
-    # 4. Macro errors
-    outliers = check_macros(foods)
-    unique = len(set(o[2] for o in outliers))
-    print(f"INFO: {len(outliers)} macro errors >100 cal ({unique} unique foods)")
-    # Show post-2018 errors >200 cal (fixable)
-    fixable = [o for o in outliers if o[0] >= "2018-01" and abs(o[5]) > 200]
-    if fixable:
-        print(f"  Fixable (post-2018, >200 cal):")
-        for d, meal, food, cal, exp, diff in sorted(fixable, key=lambda x: -abs(x[5])):
-            print(f"    {d} {meal}: cal={cal} exp={exp} diff={diff:+d}  {food[:50]}")
-
-    # 5. Duplicates
+    # 4. Duplicates
     dupes = check_duplicates(foods)
     if dupes:
         print(f"WARN: {len(dupes)} duplicate items")

@@ -22,7 +22,7 @@ INTAKE_DIR = Path(__file__).parent
 
 
 def run_extractor(script, filepath):
-    """Run an extractor script and return parsed rows."""
+    """Run an extractor script and return parsed food rows."""
     result = subprocess.run(
         [sys.executable, str(script), str(filepath)],
         capture_output=True, text=True
@@ -31,7 +31,9 @@ def run_extractor(script, filepath):
         print(f"  ERROR: {script.name} on {filepath}: {result.stderr}", file=sys.stderr)
         return []
 
-    reader = csv.DictReader(io.StringIO(result.stdout))
+    # Extractors output food CSV then '---EXERCISES---' sentinel then exercise CSV
+    food_part = result.stdout.split("---EXERCISES---\n", 1)[0]
+    reader = csv.DictReader(io.StringIO(food_part))
     return list(reader)
 
 

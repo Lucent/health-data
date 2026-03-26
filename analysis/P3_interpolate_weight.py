@@ -38,7 +38,11 @@ CAL_PER_LB = 3500
 LONG_GAP_THRESHOLD = 60
 MIN_TDEE_WINDOW = 7  # minimum days for TDEE derivation
 
-CALORIMETRY = {"2011": 2415, "2012": 1956, "2016": 1700}
+def _load_calorimetry():
+    _rmr = pd.read_csv(Path(__file__).resolve().parent.parent / "RMR" / "rmr.csv")
+    return {row["date"]: int(row["rmr_kcal"]) for _, row in _rmr.iterrows()}
+
+CALORIMETRY = _load_calorimetry()
 
 # Composition-aware RMR (loaded at runtime from daily_composition.csv)
 _COMP_RMR = None  # dict: date_idx -> expected_rmr
@@ -283,13 +287,12 @@ def validate(daily, windows):
     print(f"  Outside 1400-3000: {len(outliers)} ({len(outliers)/len(valid_tdee)*100:.1f}%)")
 
     # Calorimetry
-    print(f"\nCalorimetry anchors:")
-    for year, rmr in CALORIMETRY.items():
-        mask = daily["date"].dt.year == int(year)
-        year_tdee = daily.loc[mask, "tdee"].dropna()
-        if len(year_tdee) > 0:
-            med = year_tdee.median()
-            print(f"  {year}: RMR={rmr}  TDEE={med:.0f}  ratio={med/rmr:.2f}")
+    print(f"\nCalorimetry anchors ({len(CALORIMETRY)} measurements):")
+    for date_str, rmr in CALORIMETRY.items():
+        match = daily[daily["date"] == date_str]
+        if len(match) and match.iloc[0]["tdee"] == match.iloc[0]["tdee"]:
+            tdee = match.iloc[0]["tdee"]
+            print(f"  {date_str}: RMR={rmr}  TDEE={tdee:.0f}  ratio={tdee/rmr:.2f}")
 
     # Window stats
     short = [w for w in windows if w["n_days"] <= LONG_GAP_THRESHOLD]
@@ -347,11 +350,11 @@ def plot_diagnostic(daily):
     ax.plot(daily["date"], intake_30d, color="tab:green", lw=0.8, alpha=0.5,
             label="30-day intake")
 
-    for year, rmr in CALORIMETRY.items():
-        ax.plot(pd.Timestamp(f"{year}-01-01"), rmr, "D", color="tab:orange",
+    for date_str, rmr in CALORIMETRY.items():
+        ax.plot(pd.Timestamp(date_str), rmr, "D", color="tab:orange",
                 ms=8, zorder=5)
-        ax.annotate(f"RMR {year}: {rmr}", xy=(pd.Timestamp(f"{year}-03-01"), rmr),
-                    fontsize=7, color="tab:orange")
+        ax.annotate(f"{rmr}", xy=(pd.Timestamp(date_str), rmr),
+                    fontsize=5, color="tab:orange")
 
     ax.set_ylabel("Calories/day")
     ax.set_ylim(1000, 3500)

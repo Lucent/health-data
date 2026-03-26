@@ -94,9 +94,9 @@ Combined with FTO rs1421085 CC driving fat cells to white (storage) instead of b
 
 ### Genetic summary
 
-The phenotype described — strong hunger, central obesity with slim limbs, cold intolerance proportional to caloric deficit, body temperature below 97°F during restriction — maps precisely onto the genotype. FTO homozygous risk shifts fat cells from thermogenic to storage. UCP2 variants from mother reduce mitochondrial heat generation. MC4R risk from father amplifies hunger. FADS high activity means any dietary omega-6 is efficiently converted to inflammatory arachidonic acid. ADRB2 variants impair fat breakdown. GLP-1 receptor is normal, explaining the successful tirzepatide response. Neither parent is obese despite both carrying FTO heterozygously — the subject is the unlucky combination of both parents' risk alleles at every locus.
+FTO homozygous risk shifts fat cells from thermogenic to storage. UCP2 variants from mother reduce mitochondrial heat generation. MC4R risk from father amplifies hunger. FADS1 high activity converts dietary omega-6 to inflammatory arachidonic acid. ADRB2 variants impair fat breakdown. GLP-1 receptor is normal, explaining the tirzepatide response. Neither parent is obese despite both carrying FTO heterozygously — the subject drew both risk alleles at every FTO locus.
 
-**Combined prevalence estimate.** Individual risk genotype frequencies in Europeans: FTO haplotype ~16%, MC4R carrier ~36%, FADS1 homozygous ~32%, ADRB2 double homozygous ~13%, UCP2 carrier ~44%. Assuming independence across loci (different chromosomes), the probability of carrying all five: 0.16 × 0.36 × 0.32 × 0.13 × 0.44 ≈ **0.11%** — roughly 1 in 900 Europeans. The normal-function genotypes at GLP1R, BDNF, LEPR, and CLOCK (all common, 58-80%) do not offset the risk profile; they simply mean no additional penalty from those pathways.
+The individual risk genotype frequencies are each common in Europeans (13-44%), but the combination across independent loci is unusual. The EUR prevalence estimates in the tables above are approximate (from published allele frequencies, not individual gnomAD queries) and the independence assumption is only valid across chromosomes.
 
 ### Genetically indicated interventions
 

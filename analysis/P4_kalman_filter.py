@@ -31,11 +31,11 @@ R_DEFAULT = 0.97       # observation noise variance (lbs²)
 Q_FAT_DEFAULT = 0.0025 # fat mass process noise (lbs²/day)
 Q_TDEE_DEFAULT = 25    # TDEE process noise (cal²/day)
 
-CALORIMETRY = {
-    "2011-04-30": 2415,
-    "2012-05-03": 1956,
-    "2016-01-30": 1700,
-}
+def _load_calorimetry():
+    _rmr = pd.read_csv(Path(__file__).resolve().parent.parent / "RMR" / "rmr.csv")
+    return {row["date"]: int(row["rmr_kcal"]) for _, row in _rmr.iterrows()}
+
+CALORIMETRY = _load_calorimetry()
 
 
 def load_data():

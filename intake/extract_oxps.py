@@ -4,8 +4,9 @@
 OXPS files are ZIP archives containing XML fixed-page documents.
 Food data lives in <Glyphs UnicodeString="..."> attributes in page order.
 
-Output: CSV to stdout with columns:
-  date, meal, food, calories, carbs_g, fat_g, protein_g, cholest_mg, sodium_mg, sugars_g, fiber_g
+Output:
+  Food CSV to stdout:  date, meal, food, calories, carbs_g, fat_g, protein_g, cholest_mg, sodium_mg, sugars_g, fiber_g
+  Exercise CSV to file (EXERCISE_FILE env var): date, name, calories, minutes
 """
 
 import csv
@@ -23,7 +24,10 @@ MEALS = {"Breakfast", "Lunch", "Dinner", "Snacks", "Supper"}
 
 HEADER_WORDS = {"FOODS", "Foods", "Calories", "Carbs", "Fat", "Protein",
                 "Cholest", "Sodium", "Sugars", "Sugar", "Fiber",
-                "EXERCISES", "Exercises", "Minutes", "Sets"}
+                "Minutes", "Sets"}
+
+EXERCISE_HEADERS = {"EXERCISES", "Exercises"}
+EXERCISE_CATEGORIES = {"Cardiovascular", "Strength"}
 
 SKIP_PREFIXES = ("Printable Diary for", "Food Diary", "Food Notes",
                  "Exercise Diary", "Exercise notes", "From:", "To:",
@@ -216,14 +220,17 @@ def extract_rows_from_page(zf, page_path):
 
 
 def extract_oxps(filepath):
-    """Extract all food entries from an OXPS file.
+    """Extract all food and exercise entries from an OXPS file.
 
     Uses Y-coordinate grouping to reconstruct table rows from the XPS layout,
     eliminating page-boundary issues entirely.
 
-    Returns list of dicts with keys: date, meal, food, + nutrient columns.
+    Returns (food_results, exercise_results):
+      food_results:     list of dicts with date, meal, food, + nutrient columns
+      exercise_results: list of dicts with date, name, calories, minutes
     """
-    results = []
+    food_results = []
+    exercise_results = []
 
     with zipfile.ZipFile(filepath, "r") as zf:
         pages = sorted(
@@ -239,6 +246,7 @@ def extract_oxps(filepath):
     # Classify each row and build food entries.
     current_date = None
     current_meal = None
+    in_exercise_zone = False  # True after EXERCISES header, until next date
     dates_with_total = set()
     pending_name_parts = []  # multi-line food name accumulator
     orphaned_nutrients = None  # nutrients whose food name is on next row(s)
@@ -263,8 +271,17 @@ def extract_oxps(filepath):
                 date_candidate = s
                 break
         if date_candidate:
+            # Flush pending food data before switching dates
+            if orphaned_nutrients is not None and pending_name_parts and not in_exercise_zone:
+                food_name = " ".join(pending_name_parts)
+                if food_name and current_meal:
+                    entry = {"date": current_date, "meal": current_meal, "food": food_name}
+                    for j, col in enumerate(NUTRIENT_COLS):
+                        entry[col] = parse_nutrient(orphaned_nutrients[j])
+                    food_results.append(entry)
             current_date = parse_date(date_candidate)
             current_meal = None
+            in_exercise_zone = False
             pending_name_parts = []
             orphaned_nutrients = None
             continue
@@ -279,9 +296,62 @@ def extract_oxps(filepath):
         if any(s.startswith("\ue001") or s == "change report" for s in all_strings_flat):
             continue
 
-        # Column header row
+        # Column header row (food headers)
         if first_text in HEADER_WORDS:
             continue
+
+        # Exercise header — enter exercise zone
+        if first_text in EXERCISE_HEADERS:
+            # Flush any pending food data
+            if orphaned_nutrients is not None and pending_name_parts:
+                food_name = " ".join(pending_name_parts)
+                if food_name and current_meal:
+                    entry = {"date": current_date, "meal": current_meal, "food": food_name}
+                    for j, col in enumerate(NUTRIENT_COLS):
+                        entry[col] = parse_nutrient(orphaned_nutrients[j])
+                    food_results.append(entry)
+                orphaned_nutrients = None
+            pending_name_parts = []
+            in_exercise_zone = True
+            continue
+
+        # --- EXERCISE ZONE ---
+        if in_exercise_zone:
+            # Exercise column headers (Calories, Minutes, Sets, Reps, Weight)
+            if first_text in ("Calories", "Minutes", "Sets", "Reps", "Weight"):
+                continue
+
+            # Exercise TOTALS — end of exercise section
+            if any(t in ("TOTAL:", "TOTALS:") for t in texts):
+                continue
+
+            # Exercise category header (Cardiovascular, Strength)
+            if first_text in EXERCISE_CATEGORIES and not nutrients:
+                continue
+
+            # Filter footer junk from nutrients
+            valid_nutrients = []
+            for s in nutrients:
+                if not NUTRIENT_RE.match(s):
+                    continue
+                stripped = s.replace(",", "").replace("g", "").replace("m", "")
+                if stripped.isdigit() and len(stripped) == 4 and "," not in s and not s.endswith("g"):
+                    continue
+                if "/" in s:
+                    continue
+                valid_nutrients.append(s)
+
+            # Exercise entry: name + at least 2 values (calories, minutes)
+            if texts and len(valid_nutrients) >= 2:
+                exercise_results.append({
+                    "date": current_date,
+                    "name": " ".join(texts),
+                    "calories": valid_nutrients[0],
+                    "minutes": valid_nutrients[1],
+                })
+            continue
+
+        # --- FOOD ZONE (unchanged logic below) ---
 
         # TOTAL row — check any text, not just first (TOTAL can merge with footer URL)
         if any(t in ("TOTAL:", "TOTALS:") for t in texts):
@@ -292,7 +362,7 @@ def extract_oxps(filepath):
                     entry = {"date": current_date, "meal": current_meal, "food": food_name}
                     for j, col in enumerate(NUTRIENT_COLS):
                         entry[col] = parse_nutrient(orphaned_nutrients[j])
-                    results.append(entry)
+                    food_results.append(entry)
                 orphaned_nutrients = None
             pending_name_parts = []
             # Filter footer junk from nutrients. When TOTAL merges with the
@@ -316,12 +386,8 @@ def extract_oxps(filepath):
                 entry = {"date": current_date, "meal": "TOTAL", "food": "TOTAL"}
                 for j, col in enumerate(NUTRIENT_COLS):
                     entry[col] = parse_nutrient(valid_nutrients[j])
-                results.append(entry)
+                food_results.append(entry)
                 dates_with_total.add(current_date)
-            continue
-
-        # Exercise header
-        if first_text in ("EXERCISES", "Exercises"):
             continue
 
         # Filter footer junk from texts (URLs that merge with food names)
@@ -348,7 +414,7 @@ def extract_oxps(filepath):
                     entry = {"date": current_date, "meal": current_meal, "food": food_name}
                     for j, col in enumerate(NUTRIENT_COLS):
                         entry[col] = parse_nutrient(orphaned_nutrients[j])
-                    results.append(entry)
+                    food_results.append(entry)
                 orphaned_nutrients = None
                 pending_name_parts = []
             current_meal = first_text
@@ -364,7 +430,7 @@ def extract_oxps(filepath):
                     entry = {"date": current_date, "meal": current_meal, "food": food_name}
                     for j, col in enumerate(NUTRIENT_COLS):
                         entry[col] = parse_nutrient(orphaned_nutrients[j])
-                    results.append(entry)
+                    food_results.append(entry)
                 orphaned_nutrients = None
                 pending_name_parts = []
 
@@ -380,7 +446,7 @@ def extract_oxps(filepath):
                 entry = {"date": current_date, "meal": current_meal, "food": food_name}
                 for j, col in enumerate(NUTRIENT_COLS):
                     entry[col] = parse_nutrient(valid_nutrients[j])
-                results.append(entry)
+                food_results.append(entry)
 
         # --- Row has ONLY nutrient columns: orphaned nutrients ---
         # The food name is split: some parts came before (in pending_name_parts),
@@ -393,7 +459,7 @@ def extract_oxps(filepath):
                     entry = {"date": current_date, "meal": current_meal, "food": food_name}
                     for j, col in enumerate(NUTRIENT_COLS):
                         entry[col] = parse_nutrient(orphaned_nutrients[j])
-                    results.append(entry)
+                    food_results.append(entry)
                 pending_name_parts = []
             # Stash these nutrients — keep pending_name_parts as the name
             # collected so far, and continue accumulating text rows.
@@ -403,20 +469,24 @@ def extract_oxps(filepath):
         elif texts and not nutrients:
             pending_name_parts.extend(texts)
 
-        # --- Partial nutrients (exercise data, etc.) — skip ---
+        # --- Partial nutrients (not exercise anymore — unknown) — skip ---
         else:
             pending_name_parts = []
 
-    return results
+    return food_results, exercise_results
+
+
+EXERCISE_COLS = ["date", "name", "calories", "minutes"]
 
 
 def main():
     if len(sys.argv) < 2:
         print("Usage: extract_oxps.py <file_or_dir> [file_or_dir ...]", file=sys.stderr)
-        print("  Extracts food diary data from OXPS files to CSV on stdout.", file=sys.stderr)
+        print("  Extracts food + exercise data from OXPS files to CSV on stdout.", file=sys.stderr)
         sys.exit(1)
 
-    all_rows = []
+    all_food_rows = []
+    all_exercise_rows = []
     paths = []
     for arg in sys.argv[1:]:
         p = Path(arg)
@@ -427,14 +497,22 @@ def main():
 
     for filepath in sorted(paths):
         try:
-            rows = extract_oxps(filepath)
-            all_rows.extend(rows)
+            food_rows, exercise_rows = extract_oxps(filepath)
+            all_food_rows.extend(food_rows)
+            all_exercise_rows.extend(exercise_rows)
         except Exception as e:
             print(f"ERROR processing {filepath}: {e}", file=sys.stderr)
 
     writer = csv.DictWriter(sys.stdout, fieldnames=["date", "meal", "food"] + NUTRIENT_COLS)
     writer.writeheader()
-    for row in all_rows:
+    for row in all_food_rows:
+        writer.writerow(row)
+
+    print("---EXERCISES---")
+
+    writer = csv.DictWriter(sys.stdout, fieldnames=EXERCISE_COLS)
+    writer.writeheader()
+    for row in all_exercise_rows:
         writer.writerow(row)
 
 

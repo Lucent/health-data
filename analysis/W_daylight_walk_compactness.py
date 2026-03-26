@@ -33,9 +33,10 @@ MATCHES_PATH = ROOT / "analysis" / "W_daylight_walk_compactness_matches.csv"
 SUMMARY_PATH = ROOT / "analysis" / "W_daylight_walk_compactness_summary.csv"
 
 
-WINDOW_START_HOUR = 12
-WINDOW_END_HOUR = 19
-RECENT_YEAR = 2026
+# Walk window parameters (shared with V_exercise_walk_analysis.py)
+HOUR_START = 12   # noon
+HOUR_END = 19     # 7pm
+MIN_YEAR = 2026   # minute-level pedometer data only available for recent slice
 
 
 def load_minute_steps() -> pd.DataFrame:
@@ -56,10 +57,10 @@ def load_minute_steps() -> pd.DataFrame:
                 if not start:
                     continue
                 dt = datetime.strptime(start[:19], "%Y-%m-%d %H:%M:%S")
-                if dt.year != RECENT_YEAR:
+                if dt.year != MIN_YEAR:
                     continue
                 hour = dt.hour + dt.minute / 60
-                if not (WINDOW_START_HOUR <= hour < WINDOW_END_HOUR):
+                if not (HOUR_START <= hour < HOUR_END):
                     continue
                 count = float(row.get("com.samsung.health.step_count.count") or 0)
                 if count <= 0:
@@ -92,15 +93,15 @@ def load_minute_steps() -> pd.DataFrame:
 
 
 def classify_walk_days() -> pd.DataFrame:
-    exercises = pd.read_csv(ROOT / "steps-sleep" / "exercises.csv", parse_dates=["start_time", "end_time"])
+    exercises = pd.read_csv(ROOT / "steps-sleep" / "exercises_samsung.csv", parse_dates=["start_time", "end_time"])
     walk = exercises[
         (exercises["exercise_type"].astype(str) == "1001")
-        & (exercises["start_time"].dt.year == RECENT_YEAR)
+        & (exercises["start_time"].dt.year == MIN_YEAR)
     ].copy()
     walk["duration_min"] = pd.to_numeric(walk["duration_min"], errors="coerce")
     walk["date"] = walk["start_time"].dt.strftime("%Y-%m-%d")
     walk["hour"] = walk["start_time"].dt.hour + walk["start_time"].dt.minute / 60
-    walk = walk[(walk["hour"] >= WINDOW_START_HOUR) & (walk["hour"] < WINDOW_END_HOUR)]
+    walk = walk[(walk["hour"] >= HOUR_START) & (walk["hour"] < HOUR_END)]
 
     rows = []
     for date, group in walk.sort_values(["date", "start_time"]).groupby("date"):

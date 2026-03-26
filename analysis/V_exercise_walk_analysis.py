@@ -19,7 +19,7 @@ import pandas as pd
 
 
 ROOT = Path(__file__).resolve().parent.parent
-EXERCISES_PATH = ROOT / "steps-sleep" / "exercises.csv"
+EXERCISES_PATH = ROOT / "steps-sleep" / "exercises_samsung.csv"
 STEPS_PATH = ROOT / "steps-sleep" / "steps.csv"
 INTAKE_PATH = ROOT / "intake" / "intake_daily.csv"
 KALMAN_PATH = ROOT / "analysis" / "P4_kalman_daily.csv"
@@ -30,6 +30,15 @@ WALK_DAYS_PATH = ROOT / "analysis" / "V_daylight_walk_regime_days.csv"
 WALK_SUMMARY_PATH = ROOT / "analysis" / "V_daylight_walk_regime_summary.csv"
 WALK_CONTRAST_PATH = ROOT / "analysis" / "V_daylight_walk_regime_contrast.csv"
 
+
+# Walk regime detection parameters
+MIN_YEAR = 2020
+HOUR_START = 12       # noon
+HOUR_END = 19         # 7pm
+MIN_SESSION_MIN = 20  # minimum per-leg duration
+MAX_SESSION_MIN = 45
+PAIRED_BREAK_MIN = (5, 40)   # break between legs
+SINGLE_MIN_DURATION = 20
 
 TYPE_LABELS = {
     1001: ("walking", "high"),
@@ -97,10 +106,9 @@ def classify_daylight_walk_regimes(exercises: pd.DataFrame) -> pd.DataFrame:
     walk["hour"] = walk["start_time"].dt.hour
 
     base = (
-        (walk["year"] >= 2020)
-        & (walk["month"].isin([3, 4, 5, 6, 7, 8]))
-        & (walk["hour"] >= 13)
-        & (walk["hour"] < 17)
+        (walk["year"] >= MIN_YEAR)
+        & (walk["hour"] >= HOUR_START)
+        & (walk["hour"] < HOUR_END)
     )
     candidates = walk[base].sort_values(["date", "start_time"]).copy()
 
@@ -113,11 +121,11 @@ def classify_daylight_walk_regimes(exercises: pd.DataFrame) -> pd.DataFrame:
         for i in range(len(group) - 1):
             break_min = (group.loc[i + 1, "start_time"] - group.loc[i, "end_time"]).total_seconds() / 60
             if (
-                group.loc[i, "duration_min"] >= 20
-                and group.loc[i, "duration_min"] <= 45
-                and group.loc[i + 1, "duration_min"] >= 20
-                and group.loc[i + 1, "duration_min"] <= 45
-                and 5 <= break_min <= 40
+                group.loc[i, "duration_min"] >= MIN_SESSION_MIN
+                and group.loc[i, "duration_min"] <= MAX_SESSION_MIN
+                and group.loc[i + 1, "duration_min"] >= MIN_SESSION_MIN
+                and group.loc[i + 1, "duration_min"] <= MAX_SESSION_MIN
+                and PAIRED_BREAK_MIN[0] <= break_min <= PAIRED_BREAK_MIN[1]
             ):
                 regime = "paired_daylight_walk"
                 chosen = {
@@ -154,7 +162,7 @@ def classify_daylight_walk_regimes(exercises: pd.DataFrame) -> pd.DataFrame:
                     break
 
         if regime is None:
-            singles = group[(group["duration_min"] >= 20) & (group["duration_min"] <= 45)]
+            singles = group[(group["duration_min"] >= SINGLE_MIN_DURATION) & (group["duration_min"] <= MAX_SESSION_MIN)]
             if not singles.empty:
                 first = singles.iloc[0]
                 regime = "single_daylight_walk"

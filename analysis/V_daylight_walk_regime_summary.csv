@@ -1,0 +1,4 @@
+walk_regime,days,mean_regime_duration_min,median_regime_duration_min,mean_regime_distance_m,median_regime_distance_m,mean_regime_steps,median_regime_steps,mean_total_day_steps,median_total_day_steps
+borderline_paired_daylight_walk,54,50.7,51.2,3525.38,3672.43,4301.5,4513.0,8393.8,7476.0
+paired_daylight_walk,149,67.49,68.72,5179.78,5332.92,6435.76,6735.0,8543.49,8024.0
+single_daylight_walk,153,31.77,33.99,2298.48,2513.31,2884.26,3254.0,6376.44,5958.0
