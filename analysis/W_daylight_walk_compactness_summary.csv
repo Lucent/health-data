@@ -1,4 +1,0 @@
-group,days,mean_window_steps,mean_active_minutes,mean_span_minutes,mean_steps_per_span_min,mean_top60_share
-single_daylight_walk,5,723.2,12.4,136.2,4.7054,0.8247
-paired_daylight_walk,0,,,,,
-single_walk_minus_smeared_match,4,106.5,-8.25,-11.75,0.016,0.0026

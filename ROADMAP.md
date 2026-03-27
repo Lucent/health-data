@@ -23,7 +23,27 @@
 
 ## Untested hypotheses
 
-### Ready now
+### Ready now (narrative-driven)
+
+These follow directly from the restructured FINDINGS.md narrative — each sits at a seam between two established findings.
+
+**Expenditure arm timescale.** AG gives the appetite arm a 50-day half-life. K shows the expenditure arm exists. Sweep EMA half-lives for TDEE residual (Kalman TDEE minus composition-predicted RMR) against fat mass distance, as AG did for binge rate. If the expenditure arm has a longer half-life, that explains why K's hysteresis appears persistent. Connects AG↔K.
+
+**Archetype × set point interaction.** J shows high-step and low-protein cuts fail. AG shows SP distance drives binges. Regress post-run outcome on both archetype and SP distance at run end. If archetype effects vanish after controlling for SP distance, they're proxies. If both survive, they're independent failure modes. Connects J↔AG.
+
+**Protein leverage × SP distance.** N shows within-day protein leverage (r=-0.34). AG shows SP distance drives appetite. Bin days by SP distance and compute protein leverage slope within each bin. If the set point overrides protein satiety at large deficits, the slope flattens. Connects N↔AG.
+
+**Walk sessions around the 2013 inflection.** AC says the trigger was behavioral. AD says walks raise RMR. Did walk frequency change around the inflection? MFP exercise entries predate Samsung (Apr 2014). If walks dropped, the RMR collapse (TDEE/RMR 0.977) could partly be walk-frequency, not just set point defense. Connects AC↔AD.
+
+**Tirzepatide and the expenditure defense direction.** F shows 206 cal metabolic clawback. K says falling phases have elevated TDEE. But tirz is falling — shouldn't TDEE be elevated? Compare Kalman TDEE/RMR during tirz-era falling vs pre-tirz falling at matched FM. If tirz falling shows lower TDEE/RMR, the drug suppresses the expenditure arm. Connects F↔K.
+
+**Set point movement during restriction runs.** AH#4 shows runs ending above SP stick, below SP rebound. At 50-day HL, a 7-day run moves SP ~0.45 lbs. Do some archetypes move the SP faster? Connects AH↔J.
+
+**Discontinuation forecast.** AG gives current SP (~63 lbs FM), sigmoid curve, two candidate rates (50d off-drug, 165d on-drug). Simulate discontinuation binge trajectories under both. Becomes testable if/when drug stops. Connects AG→future.
+
+**Weekend fasting × set point.** B showed 7 weekend fasts where deficit vanished through expenditure. What was SP distance during those weeks (Oct-Nov 2019)? If FM was above SP, expenditure defense should have been minimal — implying acute expenditure defense (B) operates on a faster timescale than the SP. Connects B↔AG.
+
+### Ready now (standalone)
 
 **Set point shift conditions.** When does the set point move? Find periods of sustained overeating (>2800 cal/day for >5 consecutive days) and test whether the subsequent weight floor permanently increases. Is the ratchet one-way?
 
