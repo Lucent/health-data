@@ -71,6 +71,10 @@ python analysis/N_dietary_predictors.py      — protein leverage, meal timing, 
 python analysis/Y_set_point_intake_tests.py  — 5 negative intake-side set point tests
 python analysis/C_binge_analysis.py          — binge prediction AUC comparison
 python analysis/AD_tdee_formula_sweep.py     — TDEE formula sweep (null: no formula beats Fitmate noise)
+python analysis/AE_sleep_null.py             — sleep vs energy balance (null: r ≈ 0 for everything)
+python analysis/AF_intake_variance.py        — intake variance mildly protective, not fattening
+python analysis/AG_binge_set_point.py        — binge frequency reveals set point distance (r=-0.64)
+python analysis/AH_set_point_properties.py   — inverted ratchet, dual defense, restriction prediction
 ```
 
 ## CSV column reference

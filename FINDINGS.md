@@ -59,6 +59,8 @@ Matched fat-mass bands (pre-tirzepatide, retrospective Kalman states):
 
 Regression: TDEE = 1892 + 4.28×FM + 202×falling - 19×rising.
 
+Robustness: 1,482 FM-matched pairs (within 2 lbs), mean difference +179 cal (falling - rising). Pair lag-1 autocorrelation 0.83, effective n = 142. Bootstrap 95% CI: [+104, +267]. p < 10^-22. This is the most statistically robust finding in the dataset.
+
 Command: `python analysis/K_tdee_hysteresis.py`
 Artifact: `analysis/K_tdee_hysteresis_phase_summary.csv`, `analysis/K_tdee_hysteresis_band_summary.csv`, `analysis/K_tdee_hysteresis_regression.csv`
 
@@ -355,3 +357,103 @@ Walk sessions beat walk minutes (CV RMSE 135) and total steps (CV RMSE 179) at t
 **Interpretation.** Deliberate sustained walks (typically 20+ min continuous, enough for Samsung Health to log as an exercise session) raise resting metabolic rate in a way that total step count — which includes all incidental movement — does not. The mechanism is consistent with NEAT upregulation: intentional exercise sessions may activate a metabolic afterburn that persists at rest, while shuffling around the house does not. The effect size (+14 cal/session, ~420 cal/day at 30 vs 3 sessions/month) is large but consistent across subgroups. The remaining confound is that with 23 measurements clustered by month, we cannot fully exclude an unmeasured seasonal factor that drives both walking and RMR.
 
 Command: `python analysis/AD_tdee_formula_sweep.py`
+
+## AE. Sleep and energy balance (null)
+
+Does sleep duration predict next-day intake, steps, weight change, or TDEE?
+
+2,057 Samsung Health sleep measurements (2016-2026). Sleep → next-day calories: r = -0.01. Sleep → next-day steps: r = -0.02. Trailing 7-day sleep vs TDEE: r = +0.22 (confounded with era and fat mass). No trailing window of sleep hours predicts any energy balance variable.
+
+Extreme short sleep (<5h, n=57): -80 cal and +757 steps next day — opposite the direction the sleep-obesity literature predicts. These are likely unusual days (travel, appointments), not chronic poor sleep.
+
+The subject sleeps 3am-11am consistently (median 7.8h, std 1.5h). Weekend effect: +0.9h on Sat/Sun. Autocorrelation lag-1: r = 0.21. The schedule is too consistent to detect effects — there is not enough variation to separate signal from noise. Most sleep-obesity research uses self-reported cross-sectional data with far more variation.
+
+Command: `python analysis/AE_sleep_null.py`
+
+## AF. Intake variance is mildly protective, not fattening
+
+At the same caloric surplus, does higher day-to-day calorie variance cause more fat gain ("metabolic damage from yo-yo dieting") or less?
+
+Controlling for surplus (mean intake - TDEE), trailing 14-day calorie standard deviation predicts slightly *less* fat gain: partial r = -0.20, coefficient -0.0011 lbs/day per cal of std (bootstrap 95% CI: -0.0013 to -0.0010, significant). At 30 days: partial r = -0.10, also significant.
+
+At matched calorie levels (30-day tertiles): low-calorie + low-variance periods lose 1.3 lbs/month; low-calorie + high-variance periods lose only 0.5 lbs/month. But high-calorie + high-variance periods gain 0.5 lbs/month vs 0.7 for low-variance. The protective effect is strongest at the high end — variable eating while in surplus is less fattening than consistent surplus.
+
+The mechanism is likely finding B: high-variance periods include fasting days that transiently raise TDEE through expenditure defense. The variance itself is not protective — it proxies for intermittent acute deficits. Diet epochs confirm: weekend fasting (CV = 0.68) lost weight despite moderate mean; COVID lockdown (CV = 0.18, very consistent eating) gained despite similar mean.
+
+The effect is small — adding variance to a surplus-only model reduces RMSE from 1.019 to 0.998 (2%). But the sign is the opposite of "yo-yo dieting is metabolically damaging." In this dataset, consistent overeating is more fattening than variable overeating at the same mean.
+
+Command: `python analysis/AF_intake_variance.py`
+
+## AG. Binge frequency reveals a hidden, moving fat mass set point
+
+Binge rate (days > TDEE + 1000 cal) can be used to reverse-engineer the body's defended weight. The set point that best predicts binge frequency is an exponential moving average of **fat mass** with a **50-day half-life** (~7 weeks). Distance below this set point predicts 90-day binge rate at r = -0.62, and at partial r = -0.66 after controlling for absolute fat mass.
+
+**It's a lipostat, not a gravitostat.** Fat mass predicts binge rate better than total weight (r = -0.62 vs -0.54) or scale weight (r = -0.53) at every half-life tested. The body tracks its own fat stores, not total body mass.
+
+**It moves, not fixed.** A moving EMA (r = -0.62) crushes any fixed set point (best fixed: r = +0.25 at FM = 30 lbs, barely above zero). The defended weight adapts to sustained changes. After ~150 days (3 half-lives, 5 months) at a new weight, the set point has 87% adapted.
+
+**Half-life: 50 days.** The plateau from 35-65 days is broad (r = -0.611 to -0.618), so the half-life is not precisely identified, but the timescale is clear: weeks, not months or years. This explains why the first few months of regain have the most binges (2014-2015: 10-12%) while by 2018-2021 (FM stable at 60-71 lbs) binges had calmed to 3-6%.
+
+**Sigmoid response curve.** Binge rate by distance below the reconstructed set point:
+
+| Distance from SP | Binge rate |
+|---|---|
+| 5-7.5 lbs below | 14.8% |
+| 2.5-5 lbs below | 11.4% |
+| 0-2.5 lbs below | 6.0% |
+| 0-2.5 lbs above | 3.3% |
+| 2.5-5 lbs above | 2.8% |
+| 5-10 lbs above | 1.3% |
+| 10+ lbs above | 0.8% |
+
+Baseline ~3% at/above set point, rising to ~15% at 5+ lbs below. The gradient is continuous — every pound below the set point adds roughly 0.5% to the binge rate. No hard threshold.
+
+**Reconstructed set point trajectory:**
+
+| Year | FM | Set Point | Distance | Binge % | State |
+|---|---|---|---|---|---|
+| 2011 | 73 | 79 | +10 | 0.8% | Losing (SP chasing down) |
+| 2012 | 36 | 42 | +5 | 4.6% | Losing |
+| 2013 | 21 | 23 | +3 | 4.4% | Near bottom |
+| 2014 | 24 | 22 | -2 | 9.6% | FM overshot SP → binges |
+| 2015 | 38 | 35 | -3 | 11.8% | Peak binges, gaining |
+| 2016 | 37 | 38 | +1 | 10.1% | SP catching up |
+| 2017 | 53 | 50 | -3 | 8.8% | Still gaining |
+| 2018 | 61 | 60 | -1 | 3.8% | Converging |
+| 2019-21 | 63-71 | 62-70 | -1 | 3-7% | At set point |
+| 2022-24 | 71-82 | 71-82 | 0 | 2-7% | At set point |
+| 2025 | 70 | 74 | +3 | 0.0% | Tirzepatide: below SP, zero binges |
+
+The 2025 data point is the cleanest test: FM = 70 (same as 2020) but 0% binges because 70 is *above* the trailing set point of 74 (tirzepatide drove FM down from 84). In 2020, FM 66 was *at* the set point and binge rate was 3.8%. Same absolute weight, opposite relationship to the set point, completely different binge behavior.
+
+This is the intake-side complement to the expenditure defense in findings B and K. The set point has two arms: it pushes TDEE up when below (expenditure defense), and it pushes intake up through binge frequency (appetite defense). FM velocity correlates with binge rate at r = +0.62, confirming the mechanism: binges are how the weight comes back.
+
+**Tirzepatide interaction.** The drug suppresses binges independently of the set point: at matched SP distance (0 to +2.5 lbs above SP), off-tirz binge rate is 3.9%, on-tirz is 0.5% (partial r = -0.23 controlling for SP distance). Each unit of effective drug level reduces binge rate by 0.4%, equivalent to being ~2.5 lbs further above the set point. A drug level of 10 offsets ~5 lbs of set point deficit.
+
+The drug slows set point adaptation. Off tirz, the optimal SP half-life is 50 days. On tirz it is 165 days — the set point chases FM down more slowly because the drug is overriding the appetite signal that normally drives convergence. During 17 months on tirz, FM dropped 84 → 62 while the set point dropped only 83 → 63, maintaining a persistent 2-4 lb gap. Without the drug, this gap would produce 4-6% binge rate. With it, 0%.
+
+The injection cycle is visible in daily calories: 1640-1740 cal on days 0-1 post-injection, rising to 2140-2220 cal by days 3-5. A ~500 cal/day sawtooth within each weekly cycle.
+
+The implication for discontinuation: if the drug's appetite suppression is removed, the set point will be wherever it has adapted to (currently ~63 lbs FM). If the 165-day on-drug half-life reflects genuine slower adaptation (not just suppressed appetite masking the signal), the set point may not have fully adapted and binge risk could spike. If the half-life difference is entirely due to suppressed binges (the mechanism the set point normally uses to drive convergence), then the set point has been adapting at the normal 50-day rate and discontinuation risk is lower.
+
+Command: `python analysis/AG_binge_set_point.py`
+
+## AH. Set point mechanics: ratchet, dual defense, and restriction prediction
+
+Six tests characterizing the hidden fat mass set point identified in finding AG.
+
+**1. Inverted ratchet (suggestive, not confirmed).** An asymmetric model (HL_down=20d, HL_up=100d) improves in-sample r from -0.62 to -0.71, suggesting the set point adapts faster going down than up. However, 90-day block bootstrap shows the improvement is not robust: asymmetric wins only 53% of resamples, Δ|r| 95% CI [-0.054, +0.054] includes zero. Leave-one-year-out CV: wins 9/16 years. With ~59 independent 90-day windows, the data cannot reliably distinguish one extra parameter. The direction is interesting — if real, it means the body quickly accepts lower weight but is slow to raise its defended weight during regain, the opposite of the feared "ratchet" — but this needs more data to confirm.
+
+**2. Dual defense: appetite + expenditure (appetite confirmed, expenditure suggestive).** TDEE residual (actual minus composition-predicted) correlates with SP distance at partial r = +0.38 (controlling for FM). However, the Kalman TDEE has residual lag-1 autocorrelation of 0.9995, giving effective n = 4 by Bartlett correction — the TDEE defense arm is not statistically robust at this resolution (p = 0.69 at n_eff=4, p = 0.002 at n_windows=60). Finding K separately confirms TDEE hysteresis (+179 cal falling vs rising, p < 10^-22) through FM-matched pairs, but the direct link between SP distance and TDEE defense is not formally demonstrated. The appetite arm (binge rate, p < 0.04 at n_eff=11) is the only statistically confirmed arm of the set point defense.
+
+**3. Frequency not magnitude.** Once a binge fires, its size is constant: ~1421 cal surplus regardless of SP distance (r = -0.04). But non-binge days show continuous upward pressure: r = -0.35 between SP distance and daily surplus. At 5+ lbs below SP, even non-binge days average +113 cal surplus. At 5+ lbs above: -533 cal deficit. The set point doesn't modulate binge intensity — it tilts the background drift on every day, plus the probability of a discrete binge event.
+
+**4. Restriction run prediction.** 237 restriction runs (3+ days, calories < TDEE - 200). Runs ending with FM above the set point continue losing: -1.23 lbs over the next 30 days. Runs ending below the set point rebound: +0.35 lbs over 30 days. SP distance at end of run vs 30-day rebound: r = -0.48. The set point model predicts which calorie cuts will stick.
+
+**5. Exercise independence.** Walking raises RMR (finding AD) but does not change set point dynamics. High-walk and low-walk periods both show optimal SP half-life of 40 days. The two mechanisms are independent: exercise changes metabolic rate, the set point changes appetite. Neither modulates the other.
+
+**6. Floor effect.** The set point reached a minimum of 18.6 lbs FM (Nov 2013), near essential body fat. Adaptation rate at SP 20-30 lbs (1.1 lbs/month absolute) was comparable to higher levels but the *net* rate was near zero — the set point stalled. In the 6 months after the floor: FM rose 19→23, binge rate 8.3%. The floor is where the 2014 inflection began (finding AC).
+
+**Robustness of the core set point model (finding AG).** The 90-day smoothed binge rate has residual lag-1 autocorrelation of 0.996, giving an effective n of only 11 by the Bartlett formula. Even at n=11: r = -0.62, p = 0.036. Using raw daily binge events (0/1) instead of the smoothed rate: r = -0.12, residual ACF = 0.19, effective n = 3639, p < 10^-13. The set point effect is real under any reasonable correction. Block bootstrap (90-day blocks, 5000 resamples) 95% CI for r_sym: excludes zero. The core finding survives; the asymmetric refinement does not yet.
+
+Command: `python analysis/AH_set_point_properties.py`
