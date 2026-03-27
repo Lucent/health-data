@@ -180,6 +180,33 @@ Six tests characterizing the hidden fat mass set point identified in finding AG.
 
 Command: `python analysis/AH_set_point_properties.py`
 
+## AI. Expenditure arm timescale
+
+AG shows the appetite arm adapts with a 50-day half-life. Does the expenditure arm have a measurable adaptation timescale, and is it different?
+
+Sweep EMA half-lives for fat mass, correlate (EMA - FM) with TDEE residual (Kalman TDEE minus composition-predicted RMR), controlling for absolute FM.
+
+**The expenditure arm is faster, not slower.** Optimal half-life: 10 days (partial r = +0.52). The correlation is monotonically stronger at shorter half-lives down to ~9 days, then plateaus. For comparison, appetite peaks at 50 days (r = -0.60). At HL=50: appetite r = -0.60, expenditure partial r = +0.41.
+
+| HL (days) | r (appetite) | r (expenditure, partial) |
+|---|---|---|
+| 10 | — | +0.52 |
+| 30 | -0.59 | +0.47 |
+| 50 | -0.60 | +0.41 |
+| 100 | -0.56 | +0.33 |
+| 200 | -0.48 | +0.29 |
+
+TDEE residual by SP distance bin (HL=10d): 2.5-5 lbs below SP, TDEE-RMR = +49 cal. 0-2.5 above: +198 cal. 2.5-5 above: +502 cal. The gradient is steep — every lb above the set point adds ~100 cal/day to the TDEE residual.
+
+**Not tautological.** Short-HL correlations risk measuring Kalman filter mechanics (TDEE inferred from recent weight change). Lagging SP distance by 7-60 days: partial r drops from 0.52 (lag 0) to 0.47 (lag 7) to 0.30 (lag 30) to 0.19 (lag 60). The signal decays but does not collapse — a purely mechanical artifact would vanish by lag 7-14. SP distance 30 days ago still predicts today's TDEE residual, which is physiological.
+
+**Statistical robustness.** Lag-1 ACF of residual product: 0.993. Bartlett effective n = 17. At n_eff=17: p = 0.03. At n_blocks(90d) = 54: p < 0.001.
+
+**Interpretation.** The expenditure arm fires fast (HL ≤10 days) and dissipates quickly. The appetite arm (HL ~50 days) is slower to engage but persists longer. This explains the 2013 inflection (AC): expenditure defense had already adapted (TDEE/RMR recovered from 0.98 to 1.03) while appetite defense was still active (binge rate 0%→20%). The two arms operate on different timescales — expenditure is a sprint, appetite is a marathon.
+
+Command: `python analysis/AI_expenditure_arm_timescale.py`
+Artifact: `analysis/AI_expenditure_arm_sweep.csv`
+
 # Intake characterization
 
 The set point in AG drives appetite through binge frequency. But what shapes day-to-day intake beyond the set point? Several dietary hypotheses predict intake modulation that should be visible in this dataset.
@@ -321,6 +348,41 @@ The drug breaks escalation and persistence, not just mean level.
 Command: `python analysis/G_tirzepatide_dynamics.py`
 Artifact: `analysis/G_tirzepatide_transition_summary.csv`, `analysis/G_tirzepatide_rebound_summary.csv`
 
+## AJ. Tirzepatide suppresses the expenditure defense
+
+Finding K shows falling phases have elevated TDEE (+0.075 on TDEE/RMR ratio). Finding F shows 206 cal metabolic clawback on tirzepatide. But tirzepatide is a falling phase — shouldn't TDEE be *elevated*, not suppressed? Does the drug override the expenditure defense?
+
+**Yes.** At matched fat mass (FM 61-71 lbs), tirz falling shows TDEE/RMR = 1.098 vs pre-tirz falling = 1.182 (Δ = -0.084). The drug eliminates most of the falling-phase TDEE bonus.
+
+Regression (all days, TDEE/RMR ~ FM + falling + rising + on_tirz + falling×tirz):
+- Pre-tirz falling effect: +0.075
+- Tirz falling total effect: +0.012
+- The falling×tirz interaction is -0.047, wiping out 63% of the falling bonus.
+
+Within falling days only, controlling for FM: tirz coefficient = -0.095.
+
+**The drug loses on both sides of the energy balance.** F shows -450 cal/day intake reduction. But the expenditure defense that normally accompanies weight loss (+75 on the ratio, roughly +150 cal/day) is suppressed to +12. The net deficit is smaller than the intake reduction alone would predict: -450 intake + 150 expenditure defense lost = net ~-300, consistent with the observed -250 cal/day net deficit and -1.64 lbs/month fat loss (vs -3.06 pre-tirz).
+
+**Direct calorimetry confirms.** Pre-tirz falling calorimetry (n=8): measured RMR 90 cal above composition-predicted (elevated, K's defense). On-tirz calorimetry (n=2): measured RMR 193 cal below predicted (suppressed). The sign flip is visible in direct measurement.
+
+**Mechanism.** The drug does not merely reduce appetite while leaving expenditure defense intact. It suppresses both arms: appetite (G: breaks binge escalation) and expenditure (this finding: eliminates the falling-phase TDEE bonus). This is consistent with GLP-1 agonists acting on hypothalamic energy homeostasis rather than purely on satiety circuits. The body's normal response to weight loss — burning more to defend the set point — is pharmacologically blunted.
+
+Command: `python analysis/AJ_tirz_expenditure_defense.py`
+
+## AL. Walking partially rescues the suppressed expenditure defense
+
+AJ shows tirzepatide eliminates 63% of the falling-phase TDEE bonus (~125 cal/day lost). AD shows walk sessions raise RMR independently of composition. AH#5 says exercise and the set point are independent mechanisms. If all three are correct, walking should be additive — partially offsetting the pharmacologically suppressed defense.
+
+**Walking predicts TDEE within the tirz era.** Walks (30d) vs TDEE/RMR: r=+0.21, controlling for FM and drug level (n=529 tirz days). During tirz falling phases (n=357), above-median walks (≥3 sessions/30d, n=211) show TDEE/RMR 1.130 vs below-median (n=146) at 1.082 — a +95 cal/day difference at the same fat mass (70.5 vs 70.8 lbs).
+
+**The drug barely dampens the walk effect.** Regression (TDEE/RMR ~ FM + on_tirz + walks_30d + walks×tirz): walk coefficient pre-tirz = +0.00177 per session, on tirz = +0.00133 (interaction -0.00044, small). The drug preserves ~75% of the walk effect. At mean RMR: +3.5 cal/day per walk-session pre-tirz, +2.6 cal/day on tirz.
+
+**Partial rescue, not full recovery.** The lost defense is 125 cal/day. At a realistic 15 walks/month: 15 × 2.6 = 39 cal/day recovered (~31% of the loss). Full recovery would require ~47 sessions/month (11/week) — unrealistic. But within the achievable range, walking is the largest single behavioral lever for expenditure during GLP-1 treatment.
+
+**Pre-tirz comparison.** Walk effect on Kalman TDEE is actually *weaker* pre-tirz after controlling for FM (partial r=0.04 vs 0.19 on tirz). This is because pre-tirz, the endogenous expenditure defense dominates — walks are a rounding error on top of the body's own response. On the drug, the endogenous defense is suppressed, making walks the primary remaining lever.
+
+Command: `python analysis/AL_walk_rescue_expenditure.py`
+
 # Nulls and minor effects
 
 ## X. Temperature
@@ -345,6 +407,19 @@ Extreme short sleep (<5h, n=57): -80 cal and +757 steps next day — opposite th
 The subject sleeps 3am-11am consistently (median 7.8h, std 1.5h). Weekend effect: +0.9h on Sat/Sun. Autocorrelation lag-1: r = 0.21. The schedule is too consistent to detect effects — there is not enough variation to separate signal from noise. Most sleep-obesity research uses self-reported cross-sectional data with far more variation.
 
 Command: `python analysis/AE_sleep_null.py`
+
+## AK. Sunlight exposure vs sleep duration
+
+AE found sleep duration predicts nothing (r≈0 for all targets). But sleep barely varies (std 1.3h, CV 0.164). Possible sunlight exposure — hours awake between sunrise and sunset, computed from wake time + solar position at the subject's location — varies more (std 1.8h, CV 0.196) and is only weakly correlated with sleep (r=-0.13). Is sunlight a better predictor, and does it explain AD's walk-session → RMR effect?
+
+**Sunlight beats sleep for daily energy balance, but both are weak.** Sunlight → same-day TDEE: r=+0.14 (sleep: +0.05). Sunlight → same-day steps: r=+0.14 (sleep: -0.02). After controlling for FM: sunlight→TDEE r=+0.11, sleep→TDEE r=-0.02. At trailing 30 days vs TDEE/RMR: sunlight r=+0.14, sleep r=+0.03 (controlling for FM). No sunlight window predicts intake (r=0.03-0.04 after FM control). Sunlight is a marginally better predictor than sleep, but neither explains meaningful variance in daily energy balance.
+
+**AD's walk-session finding is not a sunlight confound.** Among 22 calorimetry measurements: walk sessions (30d) vs measured RMR: r=+0.73. Sunlight (30d) vs RMR: r=+0.53. Controlling for sunlight, walks retain r=+0.66. Controlling for walks, sunlight drops to r=+0.36. In LOO-CV: walks alone RMSE=116, sunlight alone RMSE=144, walks+sunlight RMSE=121. Adding sunlight to walks adds nothing — walks are the signal, sunlight is along for the ride.
+
+**Sleep shows a surprising raw correlation with RMR** (r=-0.71: less sleep = higher RMR), but this mediates the walk effect — active periods have both more walks and less sleep. After controlling for walks + sunlight + composition: sleep partial r=+0.21. The full model (walks + sunlight + sleep + expected_rmr) achieves CV RMSE=115, only marginally better than walks alone (116).
+
+Command: `python analysis/AK_sunlight_exposure.py`
+Artifact: `steps-sleep/sunlight.csv`
 
 # Diet experiments
 

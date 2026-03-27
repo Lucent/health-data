@@ -22,6 +22,14 @@ I am [mostly](https://ptable.com) [retired](https://flightaware.com), 43, no pre
 
 Every finding with numbers is reproduced by a standalone script in [FINDINGS.md](FINDINGS.md). The [gravitostat](https://doi.org/10.1073/pnas.1800033115), omega-6:3 ratios, circadian misalignment, and other untested theories are also documented there.
 
+## Setup
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
 ## Data
 
 | File | Rows | Description |

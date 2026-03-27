@@ -36,6 +36,7 @@ python intake/compare_extractors.py — cross-validates OXPS vs HTML extractors
 # Merge pipeline (runs after extraction; each merges source-specific CSVs into canonical files)
 python steps-sleep/merge_steps.py      → steps-sleep/steps.csv (Samsung + MFP/calendar hospital+walk+run backfill)
 python steps-sleep/merge_exercises.py  → steps-sleep/exercises.csv (Samsung + pre-Samsung MFP runs)
+python steps-sleep/sunlight.py         → steps-sleep/sunlight.csv (possible sunlight hours from sleep/wake + solar position)
 python workout/merge.py                → workout/strength.csv (PDFs + Chloe xlsx + MFP circuit training)
 
 # Analysis pipeline (order matters, no circular dependencies)
@@ -75,6 +76,10 @@ python analysis/AE_sleep_null.py             — sleep vs energy balance (null: 
 python analysis/AF_intake_variance.py        — intake variance mildly protective, not fattening
 python analysis/AG_binge_set_point.py        — binge frequency reveals set point distance (r=-0.64)
 python analysis/AH_set_point_properties.py   — inverted ratchet, dual defense, restriction prediction
+python analysis/AI_expenditure_arm_timescale.py — expenditure arm adapts faster (HL≤10d) than appetite (50d)
+python analysis/AJ_tirz_expenditure_defense.py  — tirzepatide suppresses the falling-phase TDEE bonus
+python analysis/AK_sunlight_exposure.py          — sunlight exposure vs sleep; AD's walk effect survives sunlight control
+python analysis/AL_walk_rescue_expenditure.py    — walking partially rescues tirz-suppressed expenditure defense (+95 cal/day)
 ```
 
 ## CSV column reference

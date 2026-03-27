@@ -1,0 +1,7 @@
+dbfread
+matplotlib
+numpy
+openpyxl
+pandas
+rgeocoder
+scipy
