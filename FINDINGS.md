@@ -46,7 +46,7 @@ The year-by-year table shows TDEE compressing from 2661 to 2044 as fat mass fell
 
 ## K. TDEE hysteresis
 
-At the same fat mass, does TDEE differ depending on whether weight was reached from above (falling) or below (rising)?
+At the same fat mass, does TDEE differ depending on whether weight was reached from above (falling) or below (rising)? [Leibel et al. (1995)](https://doi.org/10.1056/NEJM199503093321001) demonstrated this in a metabolic ward (n=18, ±10% body weight). This dataset replicates the finding free-living with 1,482 FM-matched pairs.
 
 Matched fat-mass bands (pre-tirzepatide, retrospective Kalman states):
 - FM 25-45 lbs: rising 2095 vs falling 2207 (+112)
@@ -99,17 +99,17 @@ Artifact: `analysis/J_restriction_runs.csv`, `analysis/J_restriction_archetype_s
 
 # Set point
 
-The expenditure defense in K and B raises a deeper question: is there a single mechanism — a defended fat mass — driving both the expenditure compression and the appetite pressure that ultimately overwhelms it?
+The expenditure defense in K and B raises a deeper question: is there a single mechanism — a defended fat mass — driving both the expenditure compression and the appetite pressure that ultimately overwhelms it? [Speakman (2011)](https://doi.org/10.1242/dmm.008698) proposes dual intervention points with a "zone of indifference" between them. The data below finds no such zone — the defense is graded and continuous.
 
 ## AG. Binge frequency reveals a hidden, moving fat mass set point
 
 Binge rate (days > TDEE + 1000 cal) can be used to reverse-engineer the body's defended weight. The set point that best predicts binge frequency is an exponential moving average of **fat mass** with a **50-day half-life** (~7 weeks). Distance below this set point predicts 90-day binge rate at r = -0.62, and at partial r = -0.66 after controlling for absolute fat mass.
 
-**It's a lipostat, not a gravitostat.** Fat mass predicts binge rate better than total weight (r = -0.62 vs -0.54) or scale weight (r = -0.53) at every half-life tested. The body tracks its own fat stores, not total body mass.
+**It's a lipostat, not a gravitostat.** Fat mass predicts binge rate better than total weight (r = -0.62 vs -0.54) or scale weight (r = -0.53) at every half-life tested. The body tracks its own fat stores, not total body mass. Consistent with [Kennedy (1953)](https://doi.org/10.1098/rspb.1953.0009) and the leptin system. Contradicts the [gravitostat hypothesis](https://doi.org/10.1016/j.eclinm.2020.100338) — finding N found no gravitostat signal (r=+0.05, wrong direction).
 
 **It moves, not fixed.** A moving EMA (r = -0.62) crushes any fixed set point (best fixed: r = +0.25 at FM = 30 lbs, barely above zero). The defended weight adapts to sustained changes. After ~150 days (3 half-lives, 5 months) at a new weight, the set point has 87% adapted.
 
-**Half-life: 50 days.** The plateau from 35-65 days is broad (r = -0.611 to -0.618), so the half-life is not precisely identified, but the timescale is clear: weeks, not months or years. This explains why the first few months of regain have the most binges (2014-2015: 10-12%) while by 2018-2021 (FM stable at 60-71 lbs) binges had calmed to 3-6%.
+**Half-life: 50 days.** The plateau from 35-65 days is broad (r = -0.611 to -0.618), so the half-life is not precisely identified, but the timescale is clear: weeks, not months or years. The literature has no comparable estimate — clinical sources cite vague "1-6 years" with no measurement. [Lowe et al. (2007)](https://doi.org/10.1002/eat.20405) showed weight suppression (current minus highest-ever weight) predicts binge frequency in bulimia, but used a fixed proxy rather than a model-derived moving set point. This explains why the first few months of regain have the most binges (2014-2015: 10-12%) while by 2018-2021 (FM stable at 60-71 lbs) binges had calmed to 3-6%.
 
 **Sigmoid response curve.** Binge rate by distance below the reconstructed set point:
 
@@ -202,7 +202,7 @@ TDEE residual by SP distance bin (HL=10d): 2.5-5 lbs below SP, TDEE-RMR = +49 ca
 
 **Statistical robustness.** Lag-1 ACF of residual product: 0.993. Bartlett effective n = 17. At n_eff=17: p = 0.03. At n_blocks(90d) = 54: p < 0.001.
 
-**Interpretation.** The expenditure arm fires fast (HL ≤10 days) and dissipates quickly. The appetite arm (HL ~50 days) is slower to engage but persists longer. This explains the 2013 inflection (AC): expenditure defense had already adapted (TDEE/RMR recovered from 0.98 to 1.03) while appetite defense was still active (binge rate 0%→20%). The two arms operate on different timescales — expenditure is a sprint, appetite is a marathon.
+**Interpretation.** The expenditure arm fires fast (HL ≤10 days) and dissipates quickly. The appetite arm (HL ~50 days) is slower to engage but persists longer. This explains the 2013 inflection (AC): expenditure defense had already adapted (TDEE/RMR recovered from 0.98 to 1.03) while appetite defense was still active (binge rate 0%→20%). The two arms operate on different timescales — expenditure is a sprint, appetite is a marathon. This reframes the ["persistent metabolic adaptation" in Biggest Loser contestants](https://doi.org/10.1002/oby.21538) (RMR suppressed 500 cal/day after 6 years): if the expenditure arm adapts in ≤10 days, the persistent suppression is not a stuck set point — it's the subjects remaining chronically below a set point that itself moved but they kept chasing down.
 
 Command: `python analysis/AI_expenditure_arm_timescale.py`
 Artifact: `analysis/AI_expenditure_arm_sweep.csv`
@@ -218,7 +218,7 @@ The [food noise essay](https://lucent.substack.com/p/craving-food-noise) disting
 - Restriction duration → rebound: r=-0.065. No compounding effect.
 - Intake variance below set point: std=615, CV=0.278 vs at set point std=528, CV=0.244. Tirzepatide reduces CV from 0.24-0.28 to 0.19-0.20 (25-30% reduction).
 
-The distance-to-intake gradient (-30 cal/day per kg below set point) is 3× weaker than the essay's claimed 100 cal/kg, consistent with the set point acting through discrete binge events (AG) rather than continuous pressure.
+The distance-to-intake gradient (-30 cal/day per kg below set point) is 3× weaker than the [100 cal/kg claim](https://doi.org/10.1002/oby.21653), consistent with the set point acting through discrete binge events (AG) rather than continuous pressure.
 
 Command: `python analysis/D_food_noise_variance.py`
 
@@ -248,7 +248,7 @@ At matched calorie levels (30-day tertiles): low-calorie + low-variance periods 
 
 The mechanism is likely finding B: high-variance periods include fasting days that transiently raise TDEE through expenditure defense. The variance itself is not protective — it proxies for intermittent acute deficits. Diet epochs confirm: weekend fasting (CV = 0.68) lost weight despite moderate mean; COVID lockdown (CV = 0.18, very consistent eating) gained despite similar mean.
 
-The effect is small — adding variance to a surplus-only model reduces RMSE from 1.019 to 0.998 (2%). But the sign is the opposite of "yo-yo dieting is metabolically damaging." In this dataset, consistent overeating is more fattening than variable overeating at the same mean.
+The effect is small — adding variance to a surplus-only model reduces RMSE from 1.019 to 0.998 (2%). But the sign is the opposite of "yo-yo dieting is metabolically damaging." In this dataset, consistent overeating is more fattening than variable overeating at the same mean. (Cf. the [Biggest Loser reanalysis](https://doi.org/10.1002/oby.23308) which found 500 cal/day metabolic adaptation from rapid cycling — but that study's subjects were in continuous severe deficit, not the intermittent variance measured here.)
 
 Command: `python analysis/AF_intake_variance.py`
 
@@ -287,7 +287,7 @@ Walk sessions beat walk minutes (CV RMSE 135) and total steps (CV RMSE 179) at t
 
 **Not tirzepatide, not body composition.** Only 2 of 23 measurements are on the drug. Adding tirz_level to the model doesn't change the walk session coefficient (CV RMSE 117 vs 116). Walk sessions are uncorrelated with fat mass (r = -0.02) and negatively correlated with expected_rmr (r = -0.28) — the effect is not mediated by composition changes.
 
-**Interpretation.** Deliberate sustained walks (typically 20+ min continuous, enough for Samsung Health to log as an exercise session) raise resting metabolic rate in a way that total step count — which includes all incidental movement — does not. The mechanism is consistent with NEAT upregulation: intentional exercise sessions may activate a metabolic afterburn that persists at rest, while shuffling around the house does not. The effect size (+14 cal/session, ~420 cal/day at 30 vs 3 sessions/month) is large but consistent across subgroups. The remaining confound is that with 23 measurements clustered by month, we cannot fully exclude an unmeasured seasonal factor that drives both walking and RMR.
+**Interpretation.** Deliberate sustained walks (typically 20+ min continuous, enough for Samsung Health to log as an exercise session) raise resting metabolic rate in a way that total step count — which includes all incidental movement — does not. This contradicts Pontzer's [constrained total energy expenditure model](https://doi.org/10.1016/j.cub.2015.12.046), which predicts TEE plateaus at higher activity levels. The effect here is on *resting* metabolic rate measured by calorimetry, not TEE redistribution. The mechanism is consistent with [NEAT upregulation](https://doi.org/10.1126/science.283.5399.212): intentional exercise sessions may activate a metabolic afterburn that persists at rest, while shuffling around the house does not. The effect size (+14 cal/session, ~420 cal/day at 30 vs 3 sessions/month) is large but consistent across subgroups. The remaining confound is that with 23 measurements clustered by month, we cannot fully exclude an unmeasured seasonal factor that drives both walking and RMR.
 
 Command: `python analysis/AD_tdee_formula_sweep.py`, `python analysis/V_exercise_walk_analysis.py`
 Artifact: `analysis/V_exercise_type_summary.csv`, `analysis/V_daylight_walk_regime_days.csv`, `analysis/V_daylight_walk_regime_summary.csv`, `analysis/V_daylight_walk_regime_contrast.csv`, `analysis/V_daylight_walk_pair_days.csv`, `analysis/V_daylight_walk_pair_summary.csv`, `analysis/V_daylight_walk_pair_contrast.csv`
@@ -325,7 +325,7 @@ Blood level → daily intake (partial, controlling time): r=-0.50. Weekly sawtoo
 
 Tachyphylaxis: effectiveness decays with 32-week half-life. After 20 weeks on the same dose, 65% effective.
 
-Overall reduction: 456 cal/day (18.6%) from pre-tirzepatide year. Weight loss is 93% fat: FM 83→60 lbs, lean 141→143 lbs.
+Overall reduction: 456 cal/day (18.6%) from pre-tirzepatide year. Weight loss is 93% fat: FM 83→60 lbs, lean 141→143 lbs. The [15mg trial](https://doi.org/10.2337/db23-128-OR) reported -900 cal/day; this dataset's -456 at 12.5mg with tachyphylaxis is consistent. [Post-discontinuation data](https://doi.org/10.1002/oby.24331) and [Epic health records](https://epicresearch-prd.azurewebsites.net/articles/many-patients-maintain-weight-loss-a-year-after-stopping-semaglutide-and-liraglutide) suggest better real-world maintenance than trials predict — consistent with AG's set point adaptation during treatment.
 
 Direct calorimetry (25 measurements, 3 during tirzepatide era): RMR dropped from 1930 to 1750 over one year. Composition-aware model predicts 1956; actual 1750. 206 cal/day metabolic adaptation beyond tissue loss. The body IS conserving on the drug.
 
@@ -410,7 +410,7 @@ Command: `python analysis/AE_sleep_null.py`
 
 ## AK. Sunlight exposure vs sleep duration
 
-AE found sleep duration predicts nothing (r≈0 for all targets). But sleep barely varies (std 1.3h, CV 0.164). Possible sunlight exposure — hours awake between sunrise and sunset, computed from wake time + solar position at the subject's location — varies more (std 1.8h, CV 0.196) and is only weakly correlated with sleep (r=-0.13). Is sunlight a better predictor, and does it explain AD's walk-session → RMR effect?
+AE found sleep duration predicts nothing (r≈0 for all targets). But sleep barely varies (std 1.3h, CV 0.164). Possible sunlight exposure — hours awake between sunrise and sunset, computed from wake time + solar position at the subject's location — varies more (std 1.8h, CV 0.196) and is only weakly correlated with sleep (r=-0.13). [A 13-million-hour light sensor study](https://doi.org/10.1016/j.lanepe.2024.100943) found personal light exposure patterns predict type 2 diabetes incidence. Is sunlight a better predictor here, and does it explain AD's walk-session → RMR effect?
 
 **Sunlight beats sleep for daily energy balance, but both are weak.** Sunlight → same-day TDEE: r=+0.14 (sleep: +0.05). Sunlight → same-day steps: r=+0.14 (sleep: -0.02). After controlling for FM: sunlight→TDEE r=+0.11, sleep→TDEE r=-0.02. At trailing 30 days vs TDEE/RMR: sunlight r=+0.14, sleep r=+0.03 (controlling for FM). No sunlight window predicts intake (r=0.03-0.04 after FM control). Sunlight is a marginally better predictor than sleep, but neither explains meaningful variance in daily energy balance.
 
@@ -448,6 +448,6 @@ Bottom (2013 Jul-Sep): intake 1864, TDEE 2021, ratio 0.977, binge rate 1%. Regai
 
 TDEE recovered +38 cal from bottom to regain. Intake increased +495 cal. Intake outran TDEE recovery by 457 cal/day. The metabolic adaptation was easing — ratio went from 0.98 to 1.03. But binge frequency exploded: 0% (Jul-Aug 2013) → 13% (Oct) → 20-23% (Nov-Dec) → sustained 12-26% through all of 2014. By 2014-H2, binges were running at 20%.
 
-The trigger was behavioral, not metabolic. The body's expenditure defense was releasing. Food noise — the variance, the binge clustering — took hold at FM=17 and never let go for a decade. The set point model (AG) explains the mechanism: at FM=17, the set point had stalled near 18.6 lbs (AH test #6, floor effect). Any weight above the floor put FM below the set point, triggering the binge frequency gradient. The expenditure arm (K) was simultaneously releasing — TDEE/RMR rose from 0.98 to 1.03 — but this was too little, too late. The appetite arm had already taken over.
+The trigger was behavioral, not metabolic. The body's expenditure defense was releasing. Food noise — the variance, the binge clustering — took hold at FM=17 and never let go for a decade. This is one case study of the [1-in-210 statistic](https://doi.org/10.2105/AJPH.2015.302773): of men who pass BMI 30, only 0.5% reach normal weight within 9 years. The set point model (AG) explains the mechanism: at FM=17, the set point had stalled near 18.6 lbs (AH test #6, floor effect). Any weight above the floor put FM below the set point, triggering the binge frequency gradient. The expenditure arm (K) was simultaneously releasing — TDEE/RMR rose from 0.98 to 1.03 — but this was too little, too late. The appetite arm had already taken over.
 
 Command: `python analysis/AC_inflection_2013.py`
