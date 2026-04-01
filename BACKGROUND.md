@@ -11,6 +11,7 @@
 * COVID 2021-01-05. No illnesses since.
 * No other interesting health history, deformities, or abnormalities.
 * Overall body shape is slim arms and legs with central obesity, more "hanging off" than the visceral fat look of those barrel-shaped older guys.
+* Vegetarian since childhood/early teens. No meat for decades; dairy is the only regular animal product.
 * Biracial, half Jordanian (paternal haplogroup E-M78), half European (maternal haplogroup U3a1). Neither parent obese.
 * 23andMe and GenesForGood data available for subject and both parents. Imputation/Promethease report available. Raw genetic data is private; analysis below is the public-facing summary.
 
@@ -131,6 +132,9 @@ The individual risk genotype frequencies are each common in Europeans (13-44%), 
 * Daily 10mg cetirizine (Zyrtec) mornings through ~April 2025, then switched to 2.5mg levocetirizine (Xyzal) nightly (half a 5mg pill). Net: 5mg active enantiomer → 2.5mg, morning → night.
 * Nightly Rogaine 5% foam front temples
 * 500mg magnesium, 500mg taurine mornings 2022-01-01 to present
+* Creatine monohydrate history:
+  2018-10-29 to 2021-04-28: 2g/day
+  2025-05-09 to present: 5g/day
 * Invisalign multilayer aromatic thermoplastic polyurethane retainer use full time 2015 then nightly 2016 to present
 
 ## Locations lived

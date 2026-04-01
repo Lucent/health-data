@@ -40,9 +40,9 @@ Start→end of year, Kalman v2. Fat and lean in lbs. Lost 81 lbs fat and 18 lbs 
 Command: `python analysis/Z_tdee_by_year.py`
 Artifact: `analysis/P4_kalman_daily.csv`
 
-# Expenditure defense
+# Metabolic rate adjustment
 
-The year-by-year table shows TDEE compressing from 2661 to 2044 as fat mass fell, then barely recovering during a decade of regain. This raises the question: is the compression symmetric, or does direction matter?
+The year-by-year table shows TDEE falling from 2661 to 2044 as fat mass dropped from 106 to 25 lbs — partly from losing metabolically active tissue, partly from metabolic adaptation. TDEE barely recovered during a decade of regain. This raises the question: at the same body composition, does TDEE differ depending on direction?
 
 ## K. TDEE hysteresis
 
@@ -66,13 +66,9 @@ Robustness: 1,482 FM-matched pairs (within 2 lbs), mean difference +179 cal (fal
 Command: `python analysis/K_tdee_hysteresis.py`, `python analysis/I_deadzone_phase.py`, `python analysis/S_metabolic_failure_matched.py`, `python analysis/T_metabolic_failure_state_matched.py`
 Artifact: `analysis/K_tdee_hysteresis_phase_summary.csv`, `analysis/K_tdee_hysteresis_band_summary.csv`, `analysis/K_tdee_hysteresis_regression.csv`, `analysis/I_deadzone_phase_bin_summary.csv`, `analysis/I_deadzone_phase_regression.csv`, `analysis/S_metabolic_failure_matched_bands.csv`, `analysis/S_metabolic_failure_matched_regression.csv`, `analysis/T_metabolic_failure_state_match_summary.csv`, `analysis/T_metabolic_failure_state_match_pairs.csv`, `analysis/T_metabolic_failure_state_match_regression.csv`
 
-## B. Weekend fasting as expenditure defense microcosm
+## B. Weekend fasting as metabolic adjustment microcosm
 
-If TDEE is direction-dependent, acute deficits should vanish through expenditure compression rather than compensatory eating. A natural experiment tests this.
-
-Do acute caloric deficits produce lasting fat loss, or does the body recover through reduced expenditure?
-
-Seven consecutive Sat-Sun 36-hour fasts (Oct-Nov 2019). Mean deficit per fast: 3,300 cal. Kalman FM change Fri→Mon: -0.76 lbs (80% of expected). Kalman FM change Fri→Fri+7: +0.08 lbs. Post-fast weekday intake: 2,369 cal (78 cal/day below pre-fast 2,447). Zero compensatory overeating. The deficit disappears through reduced expenditure within a week.
+Do acute caloric deficits produce lasting fat loss? Seven consecutive Sat-Sun 36-hour fasts (Oct-Nov 2019). Mean deficit per fast: 3,300 cal. Kalman FM change Fri→Mon: -0.76 lbs (80% of expected). Kalman FM change Fri→Fri+7: +0.08 lbs. Post-fast weekday intake: 2,369 cal (78 cal/day below pre-fast 2,447). Zero compensatory overeating — yet the deficit vanishes within a week. The Kalman TDEE drops on fasting days and stays low through the following week, absorbing the deficit through reduced metabolic rate rather than increased intake.
 
 Command: `python analysis/B_weekend_fasting.py`
 
@@ -99,19 +95,17 @@ Artifact: `analysis/J_restriction_runs.csv`, `analysis/J_restriction_archetype_s
 
 # Set point
 
-The expenditure defense in K and B raises a deeper question: is there a single mechanism — a defended fat mass — driving both the expenditure compression and the appetite pressure that ultimately overwhelms it? [Speakman (2011)](https://doi.org/10.1242/dmm.008698) proposes dual intervention points with a "zone of indifference" between them. The data below finds no such zone — the defense is graded and continuous.
+K and B show the body adjusts metabolic rate by direction. Is there a single defended fat mass driving both the metabolic and appetite responses? [Speakman (2011)](https://doi.org/10.1242/dmm.008698) proposes dual intervention points with a "zone of indifference." The data finds no such zone — the response is graded and continuous.
 
-## AG. Binge frequency reveals a hidden, moving fat mass set point
+## AG. A hidden, moving fat mass set point
 
-Binge rate (days > TDEE + 1000 cal) can be used to reverse-engineer the body's defended weight. The set point that best predicts binge frequency is an exponential moving average of **fat mass** with a **50-day half-life** (~7 weeks). Distance below this set point predicts 90-day binge rate at r = -0.62, and at partial r = -0.66 after controlling for absolute fat mass.
+Binge rate (days > TDEE + 1000 cal) reverse-engineers the body's defended weight. **The set point is an exponential moving average of fat mass with a ~50-day half-life.** Distance below it predicts 90-day binge rate at r = -0.60, partial r = -0.63 controlling for absolute FM.
 
-**It's a lipostat, not a gravitostat.** Fat mass predicts binge rate better than total weight (r = -0.62 vs -0.54) or scale weight (r = -0.53) at every half-life tested. The body tracks its own fat stores, not total body mass. Consistent with [Kennedy (1953)](https://doi.org/10.1098/rspb.1953.0009) and the leptin system. Contradicts the [gravitostat hypothesis](https://doi.org/10.1016/j.eclinm.2020.100338) — finding N found no gravitostat signal (r=+0.05, wrong direction).
+**It tracks fat mass, not weight** (r = -0.60 fat vs -0.53 total weight vs -0.52 scale at every HL). Consistent with [Kennedy (1953)](https://doi.org/10.1098/rspb.1953.0009) and the leptin system. Gravitostat: null (N: r=+0.05, wrong direction).
 
-**It moves, not fixed.** A moving EMA (r = -0.62) crushes any fixed set point (best fixed: r = +0.25 at FM = 30 lbs, barely above zero). The defended weight adapts to sustained changes. After ~150 days (3 half-lives, 5 months) at a new weight, the set point has 87% adapted.
+**It moves, not fixed** (r = -0.60 moving vs +0.20 best fixed). After ~150 days at a new weight, the set point has 87% adapted. The literature has no comparable estimate — clinical sources cite vague "1-6 years" with no measurement. [Lowe et al. (2007)](https://doi.org/10.1002/eat.20405) showed weight suppression predicts binge frequency in bulimia, but used a fixed proxy.
 
-**Half-life: 50 days.** The plateau from 35-65 days is broad (r = -0.611 to -0.618), so the half-life is not precisely identified, but the timescale is clear: weeks, not months or years. The literature has no comparable estimate — clinical sources cite vague "1-6 years" with no measurement. [Lowe et al. (2007)](https://doi.org/10.1002/eat.20405) showed weight suppression (current minus highest-ever weight) predicts binge frequency in bulimia, but used a fixed proxy rather than a model-derived moving set point. This explains why the first few months of regain have the most binges (2014-2015: 10-12%) while by 2018-2021 (FM stable at 60-71 lbs) binges had calmed to 3-6%.
-
-**Sigmoid response curve.** Binge rate by distance below the reconstructed set point:
+**Sigmoid binge response.** Baseline ~3% at/above set point, rising to ~15% at 5+ lbs below. Continuous gradient, no hard threshold.
 
 | Distance from SP | Binge rate |
 |---|---|
@@ -121,95 +115,212 @@ Binge rate (days > TDEE + 1000 cal) can be used to reverse-engineer the body's d
 | 0-2.5 lbs above | 3.3% |
 | 2.5-5 lbs above | 2.8% |
 | 5-10 lbs above | 1.3% |
-| 10+ lbs above | 0.8% |
 
-Baseline ~3% at/above set point, rising to ~15% at 5+ lbs below. The gradient is continuous — every pound below the set point adds roughly 0.5% to the binge rate. No hard threshold.
+**Tirzepatide overrides the set point's eating pressure.** At matched SP distance, off-tirz binge rate is 3.9%, on-tirz is 0.5% (partial r = -0.23 controlling for distance). The 2025 row of the trajectory table (FM 70, SP 74, 4 lbs below SP — should produce ~8-10% binges, actual 0%) demonstrates the drug's independent suppression. Injection cycle visible: 1640-1740 cal on days 0-1, rising to 2140-2220 by days 3-5 (~500 cal/day sawtooth).
 
-**Reconstructed set point trajectory:**
-
-| Year | FM | Set Point | Distance | Binge % | State |
-|---|---|---|---|---|---|
-| 2011 | 73 | 79 | +10 | 0.8% | Losing (SP chasing down) |
-| 2012 | 36 | 42 | +5 | 4.6% | Losing |
-| 2013 | 21 | 23 | +3 | 4.4% | Near bottom |
-| 2014 | 24 | 22 | -2 | 9.6% | FM overshot SP → binges |
-| 2015 | 38 | 35 | -3 | 11.8% | Peak binges, gaining |
-| 2016 | 37 | 38 | +1 | 10.1% | SP catching up |
-| 2017 | 53 | 50 | -3 | 8.8% | Still gaining |
-| 2018 | 61 | 60 | -1 | 3.8% | Converging |
-| 2019-21 | 63-71 | 62-70 | -1 | 3-7% | At set point |
-| 2022-24 | 71-82 | 71-82 | 0 | 2-7% | At set point |
-| 2025 | 70 | 74 | +3 | 0.0% | Tirzepatide: below SP, zero binges |
-
-The 2025 data point is the cleanest test: FM = 70 (same as 2020) but 0% binges because 70 is *above* the trailing set point of 74 (tirzepatide drove FM down from 84). In 2020, FM 66 was *at* the set point and binge rate was 3.8%. Same absolute weight, opposite relationship to the set point, completely different binge behavior.
-
-**Intake anti-compensation.** Earlier tests (Y, C, E) asked whether the set point defends through intake and found the answer was "yes, but not through homeostatic correction." Weekly intake variance is 64% *higher* than independent daily draws would predict (weekly std 2383 cal vs expected 1456 if independent; ratio 1.64; [preregistered](https://bsky.app/profile/lucent.substack.com) as the opposite) — binges cluster rather than compensate. Intake autocorrelation dies at 30 days (r=0.40→0.22→0.17→0.04 over 1→7→14→30 day lags). Weight gain predicts more eating (r=+0.26), not compensatory restriction. Binge rate peaks at FM 50 (17.1%), not at minimum weight (FM 20: 10.4%) — explained by the moving set point, since FM 50 was the peak distance below. Tirzepatide reduces overall binge rate 3.6× (12.2%→3.4%), confirming binges are pharmacologically mediated.
-
-In walk-forward binge prediction (572 binges across 4,807 pre-tirzepatide days, causal predictors only): distance from set point AUC=0.55, yesterday's calories AUC=0.73, yesterday's protein % AUC=0.59. Distance adds weak signal but yesterday's intake dominates. Pre-tirzepatide binge rates by trajectory phase — falling 8.9%, stable 12.2%, rising 15.1% — organize the background landscape but do not improve day-ahead prediction (AUC 0.721 vs 0.724 for yesterday's calories alone). FM velocity correlates with binge rate at r = +0.62, confirming the mechanism: binges are how the weight comes back.
-
-**Tirzepatide interaction.** The drug suppresses binges independently of the set point: at matched SP distance (0 to +2.5 lbs above SP), off-tirz binge rate is 3.9%, on-tirz is 0.5% (partial r = -0.23 controlling for SP distance). Each unit of effective drug level reduces binge rate by 0.4%, equivalent to being ~2.5 lbs further above the set point. A drug level of 10 offsets ~5 lbs of set point deficit.
-
-The drug slows set point adaptation. Off tirz, the optimal SP half-life is 50 days. On tirz it is 165 days — the set point chases FM down more slowly because the drug is overriding the appetite signal that normally drives convergence. During 17 months on tirz, FM dropped 84 → 62 while the set point dropped only 83 → 63, maintaining a persistent 2-4 lb gap. Without the drug, this gap would produce 4-6% binge rate. With it, 0%.
-
-The injection cycle is visible in daily calories: 1640-1740 cal on days 0-1 post-injection, rising to 2140-2220 cal by days 3-5. A ~500 cal/day sawtooth within each weekly cycle.
-
-The implication for discontinuation: if the drug's appetite suppression is removed, the set point will be wherever it has adapted to (currently ~63 lbs FM). If the 165-day on-drug half-life reflects genuine slower adaptation (not just suppressed appetite masking the signal), the set point may not have fully adapted and binge risk could spike. If the half-life difference is entirely due to suppressed binges (the mechanism the set point normally uses to drive convergence), then the set point has been adapting at the normal 50-day rate and discontinuation risk is lower.
+**On-drug set point adaptation: not frozen, but uncertain.** The 165-day on-drug HL from binge rate was an artifact of sparse data. With mean surplus (AP), the on-drug HL surface is flat: r = -0.92 at 40d, r = -0.91 at 120d. The SP adapts on-drug (HL 40-120d vs 40-55d pre-tirz), but the exact rate cannot be resolved.
 
 Command: `python analysis/AG_binge_set_point.py`, `python analysis/Y_set_point_intake_tests.py`, `python analysis/C_binge_analysis.py`, `python analysis/E_weekly_invariance.py`, `python analysis/H_phase_binge_landscape.py`
 Artifact: `analysis/H_phase_binge_summary.csv`, `analysis/H_phase_binge_distance_bins.csv`, `analysis/H_phase_binge_model_auc.csv`
 
-## AH. Set point mechanics: ratchet, dual defense, and restriction prediction
+## AH. Set point mechanics
 
-Six tests characterizing the hidden fat mass set point identified in finding AG.
+**Apparent ratchet: retracted.** An asymmetric model (HL_down=20d, HL_up=100d) improved binge-rate r from -0.60 to -0.69 on the full dataset. However, **this asymmetry does not replicate on 2014+ natural-dynamics data** (best asymmetric Δr = 0.0004 vs symmetric, AM). The asymmetry was driven by the 2011-2013 willpower period: the EMA mechanically chased a rapid externally-forced descent, creating the appearance of fast downward adaptation. On data where intake responds naturally to the set point, the set point is symmetric at ~45 days in both directions.
 
-**1. Inverted ratchet (suggestive, not confirmed).** An asymmetric model (HL_down=20d, HL_up=100d) improves in-sample r from -0.62 to -0.71, suggesting the set point adapts faster going down than up. However, 90-day block bootstrap shows the improvement is not robust: asymmetric wins only 53% of resamples, Δ|r| 95% CI [-0.054, +0.054] includes zero. Leave-one-year-out CV: wins 9/16 years. With ~59 independent 90-day windows, the data cannot reliably distinguish one extra parameter. The direction is interesting — if real, it means the body quickly accepts lower weight but is slow to raise its defended weight during regain, the opposite of the feared "ratchet" — but this needs more data to confirm.
+**Binge size is constant; the set point tilts the daily mean.** Binge surplus ~1427 cal regardless of SP distance (r = -0.02). Non-binge days: r = -0.32 between SP distance and surplus (+80 cal at 5+ below SP, -481 cal at 5+ above). The set point modulates background drift on every day, not just discrete events — confirmed at a deeper level by AP.
 
-**2. Dual defense: appetite + expenditure (appetite confirmed, expenditure suggestive).** TDEE residual (actual minus composition-predicted) correlates with SP distance at partial r = +0.38 (controlling for FM). However, the Kalman TDEE has residual lag-1 autocorrelation of 0.9995, giving effective n = 4 by Bartlett correction — the TDEE defense arm is not statistically robust at this resolution (p = 0.69 at n_eff=4, p = 0.002 at n_windows=60). Finding K separately confirms TDEE hysteresis (+179 cal falling vs rising, p < 10^-22) through FM-matched pairs, but the direct link between SP distance and TDEE defense is not formally demonstrated. The appetite arm (binge rate, p < 0.04 at n_eff=11) is the only statistically confirmed arm of the set point defense.
+**Restriction runs ending above SP stick; below SP, they rebound.** 237 runs (3+ days, cal < TDEE-200). Above SP at end: -1.2 lbs/30d. Below: +0.4 lbs/30d. SP distance vs rebound: r = -0.48.
 
-**Reconciling AG and K.** AG's 50-day half-life is appetite-specific — it was optimized to predict binge frequency and says nothing about expenditure adaptation timescales. K's hysteresis (+179 cal) measures expenditure during active weight change: a day is classified "falling" if FM dropped 3+ lbs in the prior 90 days. This captures the *transient* defense response while the set point lags behind FM, not a permanent memory at matched fat mass. The two findings describe the same underlying asymmetry from different measurement angles: during a falling phase, FM is below the set point, which elevates TDEE (K) and suppresses binges relative to stable phases at the same FM (AG). Neither contradicts the other — the appetite set point adapts in ~50 days, the expenditure defense fires during the lag period, and both quiet down once the set point catches up.
+**Exercise independence.** Walking raises RMR (AD) but does not change the SP half-life (40d for both high-walk and low-walk periods).
 
-**3. Frequency not magnitude.** Once a binge fires, its size is constant: ~1421 cal surplus regardless of SP distance (r = -0.04). But non-binge days show continuous upward pressure: r = -0.35 between SP distance and daily surplus. At 5+ lbs below SP, even non-binge days average +113 cal surplus. At 5+ lbs above: -533 cal deficit. The set point doesn't modulate binge intensity — it tilts the background drift on every day, plus the probability of a discrete binge event.
-
-**4. Restriction run prediction.** 237 restriction runs (3+ days, calories < TDEE - 200). Runs ending with FM above the set point continue losing: -1.23 lbs over the next 30 days. Runs ending below the set point rebound: +0.35 lbs over 30 days. SP distance at end of run vs 30-day rebound: r = -0.48. The set point model predicts which calorie cuts will stick.
-
-**5. Exercise independence.** Walking raises RMR (finding AD) but does not change set point dynamics. High-walk and low-walk periods both show optimal SP half-life of 40 days. The two mechanisms are independent: exercise changes metabolic rate, the set point changes appetite. Neither modulates the other.
-
-**6. Floor effect.** The set point reached a minimum of 18.6 lbs FM (Nov 2013), near essential body fat. Adaptation rate at SP 20-30 lbs (1.1 lbs/month absolute) was comparable to higher levels but the *net* rate was near zero — the set point stalled. In the 6 months after the floor: FM rose 19→23, binge rate 8.3%. The floor is where the 2014 inflection began (finding AC).
-
-**Robustness of the core set point model (finding AG).** The 90-day smoothed binge rate has residual lag-1 autocorrelation of 0.996, giving an effective n of only 11 by the Bartlett formula. Even at n=11: r = -0.62, p = 0.036. Using raw daily binge events (0/1) instead of the smoothed rate: r = -0.12, residual ACF = 0.19, effective n = 3639, p < 10^-13. The set point effect is real under any reasonable correction. Block bootstrap (90-day blocks, 5000 resamples) 95% CI for r_sym: excludes zero. The core finding survives; the asymmetric refinement does not yet.
+**Floor effect.** SP minimum: 18.6 lbs FM (Nov 2013), near essential body fat. Post-floor: FM 19→23 over 6 months, binge rate 8.3%. This is where the 2014 inflection began (AC).
 
 Command: `python analysis/AH_set_point_properties.py`
 
-## AI. Expenditure arm timescale
+## BK. A first control-stock model of willpower
 
-AG shows the appetite arm adapts with a 50-day half-life. Does the expenditure arm have a measurable adaptation timescale, and is it different?
+The `2011-2013` crash from ~260 lbs to ~180 lbs does not look like natural set-point-following intake. A first attempt to model this as a **depletable control stock** says the data do contain a latent "willpower" signal, but one smooth reservoir is not enough.
 
-Sweep EMA half-lives for fat mass, correlate (EMA - FM) with TDEE residual (Kalman TDEE minus composition-predicted RMR), controlling for absolute FM.
+Model:
+- `pressure_t = 55 * (SP_t - FM_t)`
+- observed surplus = baseline + pressure - control exertion
+- control comes from a latent stock that depletes when exerted and partially recovers over time
 
-**The expenditure arm is faster, not slower.** Optimal half-life: 10 days (partial r = +0.52). The correlation is monotonically stronger at shorter half-lives down to ~9 days, then plateaus. For comparison, appetite peaks at 50 days (r = -0.60). At HL=50: appetite r = -0.60, expenditure partial r = +0.41.
+**The 45-day SP timescale reappears again.** In the coarse search over SP half-life, baseline offset, control capacity, recovery, and depletion, the best run again used **SP HL = 45d**. This same ~45-50d timescale has now appeared in binge-rate set-point fits (AG), mean-surplus fits on 2014+ natural dynamics (AM/AP), intake-free FM variants, and this first latent-control attempt. The most defensible interpretation is that `~45d` is the timescale of the **expressed appetite-pressure layer** rather than necessarily the whole structural defended state.
 
-| HL (days) | r (appetite) | r (expenditure, partial) |
+Best coarse run:
+- SP HL = 45d
+- baseline = -400 cal/day
+- control capacity = 1200 cal/day-equivalent
+- recovery = 2%/day
+- depletion cost = 0.4 × exerted control
+- extra low-demand recovery = +20/day
+
+What it found by phase:
+- `2011-2012`: huge required control (`528 cal/day` mean) and large mean shortfall (`467 cal/day`) while FM fell `99→32 lbs`
+- `2013`: required control drops to `132 cal/day`, shortfall `70`, FM `32→20`
+- `2014-2015`: required control near zero (`23-28 cal/day`), stock mostly refilled, FM regains from `20→47`
+- `2016`: positive pressure returns, required control rises to `123 cal/day`, shortfall `89`
+
+**Interpretation:** the model does "spot" real latent control pressure in the history. It supports the idea that early restriction involved sustained suppression of a strong biological drive, and that regain bouts can be understood partly as periods where required control exceeds available stock.
+
+**But one stock is too simple.** Even the best coarse run still had `25.6%` "impossible" days where required control exceeded available stock by more than `100 cal/day`. So the `2011-2012` period is too extreme to be explained by one smooth depletable reservoir alone. A better next model would likely separate:
+- `diet intent / rule commitment`
+- `control fatigue / depletion`
+
+Command: `python analysis/BK_control_stock_model.py`
+Artifact: `analysis/BK_control_stock_daily.csv`
+
+## AI. The metabolic channel operates on a 9-day timescale
+
+The eating channel adapts with a 50-day half-life (AG). **The metabolic channel is faster: optimal HL = 9 days** (partial r = +0.39, p = 0.03 at n_eff=17). The correlation is monotonically stronger at shorter half-lives, then plateaus. K's hysteresis (+179 cal falling vs rising, p < 10^-22) confirms the same signal through FM-matched pairs.
+
+| HL (days) | r (eating) | r (metabolic, partial) |
 |---|---|---|
-| 10 | — | +0.52 |
-| 30 | -0.59 | +0.47 |
-| 50 | -0.60 | +0.41 |
-| 100 | -0.56 | +0.33 |
-| 200 | -0.48 | +0.29 |
+| 9 | — | +0.39 |
+| 30 | -0.59 | +0.32 |
+| 50 | -0.60 | +0.27 |
 
-TDEE residual by SP distance bin (HL=10d): 2.5-5 lbs below SP, TDEE-RMR = +49 cal. 0-2.5 above: +198 cal. 2.5-5 above: +502 cal. The gradient is steep — every lb above the set point adds ~100 cal/day to the TDEE residual.
+**Not a Kalman artifact.** Lagging SP distance by 7-60 days: partial r decays from 0.39 → 0.35 → 0.23 → 0.15. A purely mechanical artifact would vanish by lag 7-14; this persists to 30+ days.
 
-**Not tautological.** Short-HL correlations risk measuring Kalman filter mechanics (TDEE inferred from recent weight change). Lagging SP distance by 7-60 days: partial r drops from 0.52 (lag 0) to 0.47 (lag 7) to 0.30 (lag 30) to 0.19 (lag 60). The signal decays but does not collapse — a purely mechanical artifact would vanish by lag 7-14. SP distance 30 days ago still predicts today's TDEE residual, which is physiological.
-
-**Statistical robustness.** Lag-1 ACF of residual product: 0.993. Bartlett effective n = 17. At n_eff=17: p = 0.03. At n_blocks(90d) = 54: p < 0.001.
-
-**Interpretation.** The expenditure arm fires fast (HL ≤10 days) and dissipates quickly. The appetite arm (HL ~50 days) is slower to engage but persists longer. This explains the 2013 inflection (AC): expenditure defense had already adapted (TDEE/RMR recovered from 0.98 to 1.03) while appetite defense was still active (binge rate 0%→20%). The two arms operate on different timescales — expenditure is a sprint, appetite is a marathon. This reframes the ["persistent metabolic adaptation" in Biggest Loser contestants](https://doi.org/10.1002/oby.21538) (RMR suppressed 500 cal/day after 6 years): if the expenditure arm adapts in ≤10 days, the persistent suppression is not a stuck set point — it's the subjects remaining chronically below a set point that itself moved but they kept chasing down.
+**The two channels operate on different timescales** — metabolic rate is a sprint (~9 days), eating pressure is a marathon (~50 days). This explains the 2013 inflection (AC): the metabolic boost had faded while eating pressure was still fully engaged. It reframes ["persistent metabolic adaptation" in Biggest Loser contestants](https://doi.org/10.1002/oby.21538): if the metabolic channel adapts in ≤10 days, persistent RMR suppression after 6 years means the subjects remained chronically below a set point that itself had moved.
 
 Command: `python analysis/AI_expenditure_arm_timescale.py`
 Artifact: `analysis/AI_expenditure_arm_sweep.csv`
 
+## AM/AP. The set point controls mean daily energy balance (r = -0.92)
+
+**Methodological note: 2014+ data only.** All parameters in this section are derived from January 1, 2014 onward — the date when 90-day binge rate first exceeded 5%, indicating sustained set-point-driven eating pressure. FM had bottomed at 17 lbs (Oct 2013) and the first binge occurred the next day. The 2011-2013 period of aggressive willpower-driven restriction (1200 cal/day, FM 106→17 lbs) is excluded: intake was externally controlled and did not respond to the set point. Including 2011-2013 inflated the per-lb pressure from -27 to -45 cal/lb and created a spurious 3-5x asymmetric "ratchet" (the EMA mechanically chasing a rapid externally-forced descent). On 2014+ natural-dynamics data, the set point is symmetric and the pressure is weaker.
+
+AG discovered the set point using binge rate (r = -0.60). AP tested 24 functional forms and found **the true signal is 90-day mean surplus** (daily calories minus TDEE, averaged): **r = -0.92** on 2014+ data. This beats every binary threshold and every transform.
+
+**Identifiability caveat: half-life and outcome window partially trade off.** A 2D sweep over symmetric SP half-life and surplus lookback window produces a broad diagonal ridge rather than a sharp point optimum. Examples from the 2014+ pre-tirz data: HL=20d with 45d mean surplus gives `r=-0.939`; HL=40d with 75d gives `r=-0.929`; HL=45d with 90d gives `r=-0.926`; HL=75d with 120d gives `r=-0.912`. That means the mean-surplus fit alone does **not** uniquely identify a structural 45d half-life. What it identifies is a slow appetite-pressure timescale. The argument for `~45-50d` specifically comes from convergence with AG's binge-rate fit and the intake-free P3/P4 variants, not from the `r=-0.92` surplus regression in isolation.
+
+**The 45-day half-life survives an intake-free fat mass estimate.** The Kalman filter uses logged intake in its process model, raising a circularity concern. **P3 derives fat mass from weight interpolation alone — no intake data enters the FM estimate.** Using P3's intake-free FM on 2014+ data, the set point still predicts mean surplus at **HL = 50d (r = -0.73)**. The half-life is the same; only the correlation strength drops because P3's FM is noisier between weigh-ins. **The 45-50 day timescale is a property of fat mass dynamics, not a Kalman filter artifact.** It appears in intake-free weight interpolation, Kalman-filtered FM, binary binge rate, and continuous mean surplus — four independent measurement combinations converging on the same number. In other words: the mean-surplus surface has a ridge, but the ridge intersects the intake-free and binge-rate estimates in the same 45-50d band.
+
+The set point tilts the entire daily distribution. It controls **how often** you eat above maintenance (r = -0.91) and **how deeply** you restrict on deficit days (r = -0.82), but **not how large** individual overshoots are (conditional magnitude r = -0.40; adding magnitude to rate improves R² by 0.01).
+
+**Per-lb pressure: ~55 cal/day per lb below SP** (from binned data across all gap sizes, -10 to +20 lbs, remarkably constant). Five pounds below = ~275 cal/day of upward pressure. The regression-derived estimate of -27 cal/lb is diluted by autocorrelation; the binned estimate is more reliable.
+
+**Symmetric half-life: 45 days.** The plateau spans 40-50d. **Asymmetric models show zero improvement on 2014+ data** (best asymmetric Δr = 0.0004 vs symmetric). The 3-5x ratchet reported in AH was driven by the excluded 2011-2013 period. On natural-dynamics data, the set point adapts at the same rate in both directions.
+
+**Metabolic channel asymmetry (survives the exclusion).** The metabolic adjustment (AI: partial r = +0.39 overall) is **4.2x stronger when FM is above SP** (above-SP subset partial r = +0.52) than below (+0.12). The body actively helps fat loss by burning more when above the set point, but barely adjusts when below. This asymmetry is measured on 2014+ data using the metabolic channel's own HL (9d) and is not affected by the 2011-2013 exclusion.
+
+**Restriction run prediction: r = -0.48 (AH) to -0.72 (AM, stricter definition).** Robust across definitions. Runs ending above SP continue losing (-1.2 lbs/30d); below SP, they rebound (+0.3 lbs/30d).
+
+Command: `python analysis/AM_lipostat_sensitivity.py`, `python analysis/AP_overshoot_shape.py`, `python analysis/AN_ratchet_profile.py`
+
+## AQ. Tirzepatide set point coverage — what the drug buys and how it erodes
+
+Using the mean surplus metric (AP), we can decompose the drug's effect into set-point-dependent and set-point-independent components, and quantify coverage in lbs and cal/day for each arm.
+
+**The set point is not frozen on the drug, but the on-drug HL is uncertain.** AG estimated the on-drug SP half-life at 165 days using the 1000-cal binge threshold — but binge events are too rare on-drug to track SP adaptation reliably. With mean surplus, the optimal on-drug HL is 40 days (r = -0.92), but the surface is flat: r = -0.91 at HL=120d. The data cannot distinguish 40d from 120d on-drug. What is clear: the 165d estimate was an artifact of sparse binge data, and the SP is not frozen — it is adapting, with HL somewhere in the 40-120d range (vs 40-55d pre-tirz).
+
+**Appetite arm: the drug operates independently of SP distance.** Regression (90d mean surplus ~ SP distance + FM + effective level): SP distance = -77 cal/lb [CI excludes zero], effective level = +5.4 cal/unit [CI includes zero]. Adding a distance × drug interaction improves R² by < 0.001. The drug does not attenuate the per-lb pressure from the set point — it adds a **constant offset** of ~49 cal/day (Model A, on-tirz intercept). Drug equivalence: 1 unit of effective level offsets only 0.1 lbs of SP distance [CI: -0.0, 0.1]. At current levels (eff = 6.9): the drug suppresses 37 cal/day against a gap pressure of -102 cal/day from the 1.3 lb gap, leaving a net -65 cal/day (continued slow loss).
+
+**Metabolic channel: the drug suppresses the body's calorie-burning boost.** Regression (TDEE residual ~ SP distance + FM + effective level): SP distance = +19 cal/lb (body burns more when above SP, accelerating loss), effective level = -10.2 cal/unit (drug reduces this burning). Each unit of drug level suppresses 10 cal/day of the metabolic boost that normally helps fat loss. At eff = 7: -71 cal/day of lost calorie burning. The metabolic drug equivalence is larger: 1 unit = 0.5 lbs of SP offset. With the distance × drug interaction (R² +0.009): pre-tirz gets +18.4 cal/lb of metabolic boost; each unit of drug reduces this by 8.7 cal/lb. At eff = 7, the per-lb boost drops from +18 to -43 cal/lb — the drug *reverses* the metabolic cooperation into metabolic *resistance*.
+
+**Coverage table — drug effect on each channel at various drug levels:**
+
+| Eff level | Appetite (less eating) | Metabolic (less burning) | Combined |
+|---|---|---|---|
+| 2 | +11 cal/day | -20 cal/day | -9 cal/day |
+| 4 | +21 | -41 | -20 |
+| 6 | +32 | -61 | -29 |
+| 8 | +43 | -81 | -38 |
+| 10 | +54 | -102 | -48 |
+| 12 | +64 | -122 | -58 |
+
+The appetite column is the drug's direct effect on eating (positive = less restriction, helping avoid regain). The metabolic column is the drug suppressing the body's natural calorie-burning boost during weight loss (negative = less burning, slowing loss). The drug reduces appetite (pro-loss) while also reducing the metabolic rate increase that normally accelerates loss (anti-loss). The net is still pro-loss because the appetite effect on total energy balance is larger.
+
+**Tachyphylaxis erosion.** At 32-week half-life, both effects degrade: metabolic suppression from -102 cal/day (week 0) to -51 cal/day (week 32) to -25 cal/day (week 64); appetite reduction degrades proportionally. The SP adapts simultaneously (HL = 45d symmetric), shrinking the gap. At the current ~1 lb gap, the SP reaches FM within weeks regardless of drug level.
+
+**Injection cycle.** The weekly sawtooth is visible in daily surplus: injection day (day 0) -525 cal, rising to +51 cal by day 5. A 576 cal/day swing. Effective drug level drops from 9.6 (day 0) to 5.2 (day 5) through the sawtooth.
+
+Command: `python analysis/AQ_tirz_set_point_coverage.py`
+
+## AW. Reconciling set point and tachyphylaxis
+
+AQ decomposed the drug into set-point-dependent and independent components but couldn't separate tachyphylaxis from set point adaptation. AW resolves this by holding the set point parameters fixed at their pre-tirz values (HL=45d, -27 cal/lb, from AM 2014+ data) and fitting only the drug parameters (per-unit appetite effect and tachyphylaxis half-life) to the 529 on-drug days.
+
+**Reconciled formula:** `daily_intake = TDEE + (-27 × SP_gap) + (-25 × effective_level)` where effective_level = blood_level × exp(-0.069 × weeks_on_current_dose).
+
+**Drug appetite effect: -25 cal per unit effective level** (vs F's original -49). F's estimate was confounded — it attributed some of the set point's eating pressure reduction (as SP converged toward FM) to the drug. With the SP pressure held fixed, the drug's independent contribution is half as large.
+
+**Tachyphylaxis half-life: 10 weeks** (vs F's original 32 weeks). The drug loses half its effectiveness every 10 weeks, not 32. This is consistent with the trough-day intake trend at stable 12.5mg: +12 cal/week observed, +7.4 cal/week predicted by the model (62% explained). The remaining +4.5 cal/week residual trend may reflect behavioral drift or nonlinear tachyphylaxis.
+
+**The injection sawtooth is captured but understated.** The model predicts a ~75 cal amplitude between day 0 and day 5; the actual amplitude is ~580 cal. The per-unit effect may be nonlinear — stronger at peak blood levels (day 0-1) than the linear model assumes.
+
+**Sensitivity to SP half-life.** The drug parameters are stable across SP HLs of 30-80d: appetite effect ranges -24 to -26 cal/unit, tachyphylaxis HL 6-13 weeks. RMSE is flat at 376-386 cal/day (against daily intake noise of ~500 cal). The drug parameters are not sensitive to the exact SP HL.
+
+**Distinguishing tachyphylaxis from set point adaptation.** At stable 12.5mg dose (28 weeks), trough-day (day 4-6) intake rises at +12 cal/week — the tachyphylaxis signature. Set point adaptation alone would predict *falling* trough intake as the gap closes. The rising trend confirms **tachyphylaxis dominates set point adaptation during stable dosing**, with the SP pressure (-27 × ~2 lb gap = ~54 cal) too weak to offset the tachyphylaxis-driven erosion.
+
+## AX. Clean drug effect identification
+
+AW's reconciliation was structurally confounded: the set point was recomputed on the full series (including drug-era FM decline), absorbing drug effect into SP adaptation and producing artificially weak drug coefficients (-25 cal/unit, 10-week tachy HL). AX fixes this:
+
+**Set point frozen from pre-drug data.** The EMA is computed on pre-drug FM only, then propagated forward using the same HL=45d rule. During the drug era, the SP chases observed FM (retrospective decomposition) but was not fitted to drug-era data. At drug start: SP = 83.5, FM = 84.2, gap = -0.7 lbs (essentially at equilibrium). At end: SP = 62.5, FM = 59.9, gap = +2.6 lbs (FM below SP — the drug pushed past the defended weight).
+
+**Drug appetite effect: -74.5 cal per unit blood level.** Identified from within-week injection cycle variation (week fixed effects absorb SP pressure, tachyphylaxis, and all slow trends). This is 1.5x F's -49 and 3x AW's confounded -25. The naive cross-sectional estimate is -37, confirming that cross-week confounds dilute the signal by half.
+
+**Tachyphylaxis: 35-week half-life, cumulative exposure.** Cumulative weeks on drug (r = -0.57) fits much better than per-dose-reset (r = -0.22). The per-dose reset model is not portable — this subject's 20 weeks at 5mg creates deep tachyphylaxis that a 4-week trial escalation never develops. Cumulative exposure avoids this problem.
+
+**Metabolic arm: zero within-week.** TDEE residual does not respond to blood level variation within the injection cycle (+0.1 cal/unit, r = +0.04). The metabolic effect operates on longer timescales than the 7-day cycle can capture — consistent with AI's 9-day HL and K's 90-day phase classification.
+
+**Forward validation on this subject: RMSE = 364 cal/day, r = +0.41.** The model decomposes each on-drug day into TDEE + SP pressure (27 × gap) + drug effect (-74.5 × blood × tachyphylaxis). Residuals by injection day range from -215 (day 0, model undershoots suppression) to +201 (day 5, model undershoots rebound) — the actual sawtooth is ~100 cal wider than predicted on both ends.
+
+**Preliminary SURMOUNT comparison (AV).** Using AX's parameters in a forward simulator (not fully validated — uses retrospective SP, appetite-only energy balance):
+
+| Dose | Simulated | SURMOUNT-1 | Δ | SURMOUNT-2 (diabetic) |
+|---|---|---|---|---|
+| 5mg | -8.3% | -16.0% | +7.7% | — |
+| 10mg | -15.0% | -21.4% | +6.4% | -12.8% |
+| 15mg | -20.3% | -22.5% | +2.2% | -14.7% |
+
+The 15mg non-diabetic prediction is within 2.2 percentage points of the published result with zero trial-fitted parameters. The model overpredicts diabetic weight loss (simulated -21% vs published -15% at 15mg), consistent with the drug's appetite effect being partially diverted to glucose control in T2D — a known mechanism that the non-diabetic-derived -74.5 cal/unit does not account for. The 5mg arm undershoots because 35-week tachyphylaxis erodes the low dose too quickly relative to trial subjects who escalate past 5mg within 4 weeks.
+
+## AY/AZ. The set point only adapts when weight is stable (SmoothLatch model)
+
+The 45d EMA predicts ~97% SP adaptation over 36 weeks on drug, leaving minimal regain (+2.8% simulated vs +14% published SURMOUNT-4). No single EMA half-life, two-component mixture, rolling mean, floor constraint, or pressure function fits both this subject and trial regain data (AZ: exhaustive search, 268 configurations).
+
+**The SmoothLatch model resolves this.** The set point only adapts toward fat mass when FM has been stable — within ±3 lbs of a reference level for at least 14 consecutive days. When FM is changing rapidly, the SP freezes. When FM holds steady, the SP approaches it at rate 0.01/day. Pressure: 55 cal/lb (from binned data across all gap sizes, remarkably constant from -10 to +20 lbs).
+
+**The SmoothLatch and EMA are observationally equivalent on this subject.** Both fit at r ≈ -0.94 on 180-day surplus. An EMA at HL=80d on 180-day surplus gives r = -0.94; the SmoothLatch(tol=3, hold=14, rate=0.01) on 180-day surplus gives r = -0.94. On 2014+ pre-tirz data: SmoothLatch r = -0.90, EMA 45d r = -0.92. **The models cannot be distinguished from this subject's slow-gain natural dynamics alone** — FM changed at ~6 lbs/year, always within the latch tolerance, so the SP adapted continuously in both models.
+
+**They diverge on rapid-loss scenarios where only trial data can break the tie:**
+
+| Scenario | EMA (45-80d) | SmoothLatch | Published |
+|---|---|---|---|
+| **SURMOUNT-4** regain (52wk post-drug) | +2.8% | **+14.1%** | **+14.0%** |
+| **STEP-1** regain (52wk post-semaglutide) | ~+2% | **+9.3%** | **~+10%** |
+| This subject 2014+ (r, 180d surplus) | -0.94 | -0.94 | — |
+
+The SmoothLatch matches SURMOUNT-4 within 0.1 percentage points and STEP-1 within 1 percentage point. **The EMA undershoots regain by 5-10x.** Trial data decisively favors the SmoothLatch.
+
+**Why it works:** during drug-driven loss (~1.2 lbs/week), FM is never within ±3 lbs of any reference for 14 consecutive days. The SP freezes — it retains the pre-treatment defended weight. At discontinuation, the gap is ~24 lbs, generating +1320 cal/day initial surplus. During regain, FM eventually stabilizes enough for the SP to begin latching onto the higher weight, gradually closing the gap over months.
+
+**Testable prediction: regain depends on the speed of loss, not just the amount.** At the same total fat loss, faster loss produces more regain because the SP has less time to latch:
+
+| Loss rate | Weeks | Total loss | Gap at stop | Predicted regain |
+|---|---|---|---|---|
+| 0.5 lb/week | 100 | ~12% | 2 lbs | +0.7% |
+| 1.0 lb/week | 53 | ~13% | 5 lbs | +2.3% |
+| 1.5 lb/week | 35 | ~13% | 11 lbs | +4.7% |
+| 2.0 lb/week | 26 | ~13% | 17 lbs | +7.0% |
+
+This differentiates the SmoothLatch from any EMA: **the EMA predicts regain depends only on time, while the SmoothLatch predicts it depends on speed.** Consistent with clinical observations that surgical and very-low-calorie patients regain more than gradual losers.
+
+**Biological plausibility.** Leptin receptor adaptation, adipocyte number remodeling, and hypothalamic circuitry all require sustained exposure to a new adiposity level. Rapid FM changes may not trigger the cellular mechanisms that reset the defended weight. The 14-day stability requirement and 3-lb tolerance window are consistent with the timescale of leptin signaling equilibration.
+
+**This is the preferred model.** It costs nothing on subject fit (r = -0.94 on 180d surplus, tied with best EMA), correctly predicts two independent trial regain datasets, and generates a novel testable prediction. The EMA remains valid as a computationally simpler approximation for slow-changing weight scenarios.
+
+Command: `python analysis/AY_sp_from_regain.py`, `python analysis/AZ_sp_model_search.py`
+
+Command: `python analysis/AX_drug_model.py`, `python analysis/AV_surmount_simulation.py`
+
 # Intake characterization
 
-The set point in AG drives appetite through binge frequency. But what shapes day-to-day intake beyond the set point? Several dietary hypotheses predict intake modulation that should be visible in this dataset.
+The set point (AG/AM) controls mean daily surplus at r = -0.92. But what shapes day-to-day intake beyond the set point? Several dietary hypotheses predict intake modulation that should be visible in this dataset.
 
 ## D. Food noise as intake variance
 
@@ -218,7 +329,7 @@ The [food noise essay](https://lucent.substack.com/p/craving-food-noise) disting
 - Restriction duration → rebound: r=-0.065. No compounding effect.
 - Intake variance below set point: std=615, CV=0.278 vs at set point std=528, CV=0.244. Tirzepatide reduces CV from 0.24-0.28 to 0.19-0.20 (25-30% reduction).
 
-The distance-to-intake gradient (-30 cal/day per kg below set point) is 3× weaker than the [100 cal/kg claim](https://doi.org/10.1002/oby.21653), consistent with the set point acting through discrete binge events (AG) rather than continuous pressure.
+The distance-to-intake gradient (-30 cal/day per kg below set point) was measured here using a symmetric SP and 180-day rolling mean, which diluted the signal. Binned data across all gap sizes (AM) shows a consistent **55 cal/lb (121 cal/kg)** — close to the [100 cal/kg claim](https://doi.org/10.1002/oby.21653) and consistent with the food noise essay's estimate of ~100 cal/kg. The essay's gravitostat mechanism is wrong (N: null), but the magnitude of eating pressure it described is approximately correct.
 
 Command: `python analysis/D_food_noise_variance.py`
 
@@ -246,7 +357,7 @@ Controlling for surplus (mean intake - TDEE), trailing 14-day calorie standard d
 
 At matched calorie levels (30-day tertiles): low-calorie + low-variance periods lose 1.3 lbs/month; low-calorie + high-variance periods lose only 0.5 lbs/month. But high-calorie + high-variance periods gain 0.5 lbs/month vs 0.7 for low-variance. The protective effect is strongest at the high end — variable eating while in surplus is less fattening than consistent surplus.
 
-The mechanism is likely finding B: high-variance periods include fasting days that transiently raise TDEE through expenditure defense. The variance itself is not protective — it proxies for intermittent acute deficits. Diet epochs confirm: weekend fasting (CV = 0.68) lost weight despite moderate mean; COVID lockdown (CV = 0.18, very consistent eating) gained despite similar mean.
+The mechanism is likely finding B: high-variance periods include fasting days that transiently raise TDEE through metabolic adjustment. The variance itself is not protective — it proxies for intermittent acute deficits. Diet epochs confirm: weekend fasting (CV = 0.68) lost weight despite moderate mean; COVID lockdown (CV = 0.18, very consistent eating) gained despite similar mean.
 
 The effect is small — adding variance to a surplus-only model reduces RMSE from 1.019 to 0.998 (2%). But the sign is the opposite of "yo-yo dieting is metabolically damaging." In this dataset, consistent overeating is more fattening than variable overeating at the same mean. (Cf. the [Biggest Loser reanalysis](https://doi.org/10.1002/oby.23308) which found 500 cal/day metabolic adaptation from rapid cycling — but that study's subjects were in continuous severe deficit, not the intermittent variance measured here.)
 
@@ -269,7 +380,7 @@ Artifact: `analysis/AA_lean_mass_training.csv`
 
 # Steps and activity
 
-The set point controls appetite (AG) and the expenditure branch depends on trajectory direction (K). But finding AD shows a third lever — deliberate walking — that modulates RMR independently of both. This section characterizes how activity interacts with the energy balance system.
+The set point controls appetite (AG) and the metabolic rate adjustment depends on trajectory direction (K). But finding AD shows a third lever — deliberate walking — that modulates RMR independently of both. This section characterizes how activity interacts with the energy balance system.
 
 ## AD. Walk sessions predict RMR
 
@@ -313,30 +424,49 @@ Era-matched within 2014-2016 only, step-matched (90 pairs, mean 9650 steps): sam
 
 Command: `python analysis/AB_running_vs_walking.py`
 
+## BW. Walking fitness from exercise live-data heart rate
+
+The earlier hourly `tracker.heart_rate` fallback was the wrong source for per-workout heart-rate. Samsung stores the chart shown in the exercise UI in `jsons/com.samsung.shealth.exercise/*/*.com.samsung.health.exercise.live_data.json`, attached to exercise sessions in `com.samsung.shealth.exercise.*.csv`.
+
+Using the correct source gives 448 usable walking sessions with live heart-rate, pace, and distance from 2016-04-18 to 2026-03-10. The early 2016-2017 regime is on a different scale (walking HR median 153 in 2016, 134 in 2017) and should not be pooled with the later watch-era data.
+
+Restricting to the modern 2021+ era, the pace relation is:
+
+`walk HR = 81.48 + 5.89 * kph`
+
+Pace-adjusted yearly medians (2021+ fit residuals):
+- 2021: `+3.76 bpm`
+- 2022: `+1.09`
+- 2023: `-1.83`
+- 2024: `+0.75`
+- 2025: `-1.29`
+- 2026: `-1.17` (sparse)
+
+**Conclusion.** The corrected exercise-side HR data does **not** show a clear deterioration in walking efficiency after 2021. If anything, 2023-2025 are slightly better than 2021-2022 at similar walking pace. The earlier tracker-based worsening signal was an artifact of using the wrong table.
+
+Command: `python analysis/BW_exercise_live_hr_walks.py`
+Artifact: `analysis/BW_walk_live_hr_sessions.csv`, `analysis/BW_walk_live_hr_year_summary.csv`
+
 # Tirzepatide
 
-The set point (AG) and expenditure defense (K) describe the body's endogenous weight regulation. Tirzepatide intervenes pharmacologically. How does it interact with the system described above?
+The set point (AG) and metabolic rate adjustment (K) describe the body's endogenous weight regulation. Tirzepatide intervenes pharmacologically. How does it interact with the system described above?
 
 ## F. Pharmacokinetics
 
 One-compartment SC model (FDA: t½=5d, Tmax=24h, ka=3.31/day). 80 weekly injections, dose escalation 2.5→12.5mg.
 
-Blood level → daily intake (partial, controlling time): r=-0.50. Weekly sawtooth: injection day 1652 cal, trough (day 5) 2220 cal. 568 cal/day swing. Intake model: `cal = 2345 - 49 × effective_level`.
+**Appetite suppression: -49 cal per unit of effective level (F), revised to -74.5 cal per unit blood level (AX).** F's cross-sectional regression confounded drug effect with set point pressure. AX's within-week identification (week fixed effects) isolates the pure drug effect: **-74.5 cal per unit blood level**, 1.5x larger. Tachyphylaxis revised from 32-week per-dose HL (F) to **35-week cumulative HL** (AX). At 12.5mg: blood level cycles 8-17 through the weekly sawtooth, giving -600 to -1270 cal/day raw drug effect at peak, attenuated by cumulative tachyphylaxis. Observed intake: day 0: 1643 cal, day 5: 2222 cal (579 cal/day swing).
 
-Tachyphylaxis: effectiveness decays with 32-week half-life. After 20 weeks on the same dose, 65% effective.
+**Metabolic suppression: -9 cal per unit of effective level (AQ).** The body normally burns more during weight loss (+90 cal/day above composition-predicted, K). On the drug, direct calorimetry (3 on-drug measurements) shows RMR 206 cal *below* composition-predicted — **the metabolic boost is not just absent but reversed**. At effective level 7: -63 cal/day of metabolic cooperation removed. This is the drug working against itself on the calorie-burning side.
 
-Overall reduction: 456 cal/day (18.6%) from pre-tirzepatide year. Weight loss is 93% fat: FM 83→60 lbs, lean 141→143 lbs. The [15mg trial](https://doi.org/10.2337/db23-128-OR) reported -900 cal/day; this dataset's -456 at 12.5mg with tachyphylaxis is consistent. [Post-discontinuation data](https://doi.org/10.1002/oby.24331) and [Epic health records](https://epicresearch-prd.azurewebsites.net/articles/many-patients-maintain-weight-loss-a-year-after-stopping-semaglutide-and-liraglutide) suggest better real-world maintenance than trials predict — consistent with AG's set point adaptation during treatment.
-
-Direct calorimetry (25 measurements, 3 during tirzepatide era): RMR dropped from 1930 to 1750 over one year. Composition-aware model predicts 1956; actual 1750. 206 cal/day metabolic adaptation beyond tissue loss. The body IS conserving on the drug.
-
-Energy budget: -450 intake, +200 metabolic clawback, net -250 cal/day deficit.
+**Net energy budget:** -450 cal intake reduction, +200 cal metabolic cooperation lost, net ~-250 cal/day deficit. Overall reduction: 456 cal/day (18.6%) from pre-tirzepatide year. Weight loss is 93% fat: FM 83→60 lbs, lean 141→143 lbs. The [15mg trial](https://doi.org/10.2337/db23-128-OR) reported -900 cal/day; this dataset's -456 at 12.5mg with tachyphylaxis is consistent.
 
 Command: `python analysis/F_tirzepatide_pk.py`, `python analysis/P2_rmr_model.py` (RMR/calorimetry numbers)
 Artifact: `drugs/tirzepatide.csv`, `RMR/rmr.csv`
 
 ## G. Transition dynamics
 
-The PK model (F) shows tirzepatide reduces mean intake. But the set point (AG) predicts that appetite defense operates through binge *frequency*, not mean level. Does the drug reduce the mean or break the escalation pattern?
+The PK model (F) shows tirzepatide reduces mean intake. The set point (AG/AM) operates through mean daily surplus, which manifests as binge frequency at higher thresholds. Does the drug reduce the mean or break the escalation pattern?
 
 State machine: restriction (<1800), typical (1800-2399), high (2400-2799), binge (2800+).
 - High → binge: 19.6% pre-drug → 4.8% on drug
@@ -348,75 +478,122 @@ The drug breaks escalation and persistence, not just mean level.
 Command: `python analysis/G_tirzepatide_dynamics.py`
 Artifact: `analysis/G_tirzepatide_transition_summary.csv`, `analysis/G_tirzepatide_rebound_summary.csv`
 
-## AJ. Tirzepatide suppresses the expenditure defense
+## BX. Tirzepatide and heart rate
 
-Finding K shows falling phases have elevated TDEE (+0.075 on TDEE/RMR ratio). Finding F shows 206 cal metabolic clawback on tirzepatide. But tirzepatide is a falling phase — shouldn't TDEE be *elevated*, not suppressed? Does the drug override the expenditure defense?
+Two separate heart-rate checks:
 
-**Yes.** At matched fat mass (FM 61-71 lbs), tirz falling shows TDEE/RMR = 1.098 vs pre-tirz falling = 1.182 (Δ = -0.084). The drug eliminates most of the falling-phase TDEE bonus.
+1. **Walking exercise HR.** Using the exercise live-data charts (not the passive tracker), fit pace-adjusted walking HR on pre-tirz 2021+ walks:
+
+`walk HR = 81.73 + 5.91 * kph`
+
+Applying that pre-tirz fit to all 2021+ walks:
+- pre-tirz walk residual median: `+0.32 bpm`
+- on-tirz walk residual median: `-1.51 bpm`
+- delta: `-1.83 bpm`
+
+So at matched walking pace, on-drug walks are slightly **lower** heart-rate, not higher.
+
+2. **Passive overnight tracker HR.** Using `tracker.heart_rate` tag `21313`, overnight windows with at least 3 hourly points:
+- pre-tirz nightly median HR: `83.5`
+- on-tirz nightly median HR: `84.0`
+- delta: `+0.5 bpm`
+
+**Conclusion.** Tirzepatide does not show a large heart-rate shift here. Exercise-side walking HR is slightly lower on-drug at matched pace (`-1.8 bpm`), while passive overnight HR is essentially unchanged to slightly higher (`+0.5 bpm`). Any strong claim of a clinically meaningful HR increase from this subject's Samsung data would be overstated.
+
+Command: `python analysis/BX_tirz_heart_rate.py`
+Artifact: `analysis/BX_tirz_heart_rate_summary.csv`
+
+## AJ. Tirzepatide suppresses the metabolic cooperation with weight loss
+
+Finding K shows falling phases have elevated TDEE (+0.075 on TDEE/RMR ratio) — the body burns more when losing weight, which normally accelerates fat loss by widening the gap between intake and expenditure. Finding F shows 206 cal lower metabolic rate on tirzepatide. But tirzepatide is a falling phase — shouldn't TDEE be *elevated*? Does the drug suppress the body's own assistance?
+
+**Yes.** At matched fat mass (FM 61-71 lbs), tirz falling shows TDEE/RMR = 1.098 vs pre-tirz falling = 1.182 (Δ = -0.084). The drug eliminates most of the falling-phase metabolic boost.
 
 Regression (all days, TDEE/RMR ~ FM + falling + rising + on_tirz + falling×tirz):
 - Pre-tirz falling effect: +0.075
 - Tirz falling total effect: +0.012
-- The falling×tirz interaction is -0.047, wiping out 63% of the falling bonus.
+- The falling×tirz interaction is -0.047, wiping out 63% of the falling-phase boost.
 
 Within falling days only, controlling for FM: tirz coefficient = -0.095.
 
-**The drug loses on both sides of the energy balance.** F shows -450 cal/day intake reduction. But the expenditure defense that normally accompanies weight loss (+75 on the ratio, roughly +150 cal/day) is suppressed to +12. The net deficit is smaller than the intake reduction alone would predict: -450 intake + 150 expenditure defense lost = net ~-300, consistent with the observed -250 cal/day net deficit and -1.64 lbs/month fat loss (vs -3.06 pre-tirz).
+**The drug gives on appetite and takes on metabolism.** F shows -450 cal/day intake reduction. But the metabolic boost that normally accompanies weight loss (+75 on the ratio, roughly +150 cal/day of extra burning that accelerates loss) is suppressed to +12. This means less of the dietary restriction translates into actual fat loss: -450 intake reduction + 150 metabolic cooperation lost = net ~-300 cal/day effective deficit, consistent with the observed -250 cal/day and -1.64 lbs/month fat loss (vs -3.06 pre-tirz when the metabolic boost was intact).
 
-**Direct calorimetry confirms.** Pre-tirz falling calorimetry (n=8): measured RMR 90 cal above composition-predicted (elevated, K's defense). On-tirz calorimetry (n=2): measured RMR 193 cal below predicted (suppressed). The sign flip is visible in direct measurement.
+**Direct calorimetry confirms.** Pre-tirz falling calorimetry (n=8): measured RMR 90 cal above composition-predicted (body burning more during loss). On-tirz calorimetry (n=2): measured RMR 193 cal below predicted (body burning less). The sign flip is visible in direct measurement.
 
-**Mechanism.** The drug does not merely reduce appetite while leaving expenditure defense intact. It suppresses both arms: appetite (G: breaks binge escalation) and expenditure (this finding: eliminates the falling-phase TDEE bonus). This is consistent with GLP-1 agonists acting on hypothalamic energy homeostasis rather than purely on satiety circuits. The body's normal response to weight loss — burning more to defend the set point — is pharmacologically blunted.
+**Mechanism.** The drug does not merely reduce appetite while leaving the metabolic response intact. It affects both channels: appetite (G: breaks binge escalation) and metabolism (this finding: eliminates the falling-phase calorie-burning boost). This is consistent with GLP-1 agonists acting on hypothalamic energy homeostasis rather than purely on satiety circuits. The body's normal response to weight loss — burning more, which accelerates the loss while FM is above the set point — is pharmacologically suppressed.
 
-Command: `python analysis/AJ_tirz_expenditure_defense.py`
+**FM-matched confirmation (AO).** Finding AN showed the metabolic rate adjustment is 4.2x stronger when FM is above SP (where it assists loss by burning more) than below (where it barely adjusts). Tirz suppresses this adjustment. At matched fat mass and matched below-SP status: FM 60-70, pre-tirz TDEE-RMR = +191, on-tirz = +155, Δ = -37 cal. FM 70-84: pre-tirz = +344, on-tirz = +246, Δ = -98 cal. The drug effect is larger at higher fat mass.
 
-## AL. Walking partially rescues the suppressed expenditure defense
+Command: `python analysis/AJ_tirz_expenditure_defense.py`, `python analysis/AO_tirz_asymmetric_defense.py`
 
-AJ shows tirzepatide eliminates 63% of the falling-phase TDEE bonus (~125 cal/day lost). AD shows walk sessions raise RMR independently of composition. AH#5 says exercise and the set point are independent mechanisms. If all three are correct, walking should be additive — partially offsetting the pharmacologically suppressed defense.
+## AL. Walking partially rescues the suppressed metabolic boost
+
+AJ shows tirzepatide eliminates 63% of the falling-phase metabolic boost (~125 cal/day of extra burning lost). AD shows walk sessions raise RMR independently of composition. AH#5 says exercise and the set point are independent mechanisms. If all three are correct, walking should be additive — partially restoring the metabolic cooperation that the drug suppresses.
 
 **Walking predicts TDEE within the tirz era.** Walks (30d) vs TDEE/RMR: r=+0.21, controlling for FM and drug level (n=529 tirz days). During tirz falling phases (n=357), above-median walks (≥3 sessions/30d, n=211) show TDEE/RMR 1.130 vs below-median (n=146) at 1.082 — a +95 cal/day difference at the same fat mass (70.5 vs 70.8 lbs).
 
 **The drug barely dampens the walk effect.** Regression (TDEE/RMR ~ FM + on_tirz + walks_30d + walks×tirz): walk coefficient pre-tirz = +0.00177 per session, on tirz = +0.00133 (interaction -0.00044, small). The drug preserves ~75% of the walk effect. At mean RMR: +3.5 cal/day per walk-session pre-tirz, +2.6 cal/day on tirz.
 
-**Partial rescue, not full recovery.** The lost defense is 125 cal/day. At a realistic 15 walks/month: 15 × 2.6 = 39 cal/day recovered (~31% of the loss). Full recovery would require ~47 sessions/month (11/week) — unrealistic. But within the achievable range, walking is the largest single behavioral lever for expenditure during GLP-1 treatment.
+**Partial rescue, not full recovery.** The lost metabolic boost is 125 cal/day. At a realistic 15 walks/month: 15 × 2.6 = 39 cal/day recovered (~31% of the loss). Full recovery would require ~47 sessions/month (11/week) — unrealistic. But within the achievable range, walking is the largest single behavioral lever for calorie burning during GLP-1 treatment.
 
-**Pre-tirz comparison.** Walk effect on Kalman TDEE is actually *weaker* pre-tirz after controlling for FM (partial r=0.04 vs 0.19 on tirz). This is because pre-tirz, the endogenous expenditure defense dominates — walks are a rounding error on top of the body's own response. On the drug, the endogenous defense is suppressed, making walks the primary remaining lever.
+**Pre-tirz comparison.** Walk effect on Kalman TDEE is actually *weaker* pre-tirz after controlling for FM (partial r=0.04 vs 0.19 on tirz). This is because pre-tirz, the body's own metabolic adjustment dominates — walks are a rounding error on top of the body's natural response. On the drug, that natural response is suppressed, making walks the primary remaining lever for calorie burning.
 
 Command: `python analysis/AL_walk_rescue_expenditure.py`
 
 # Nulls and minor effects
 
-## X. Temperature
+## X. Temperature and metabolic state
 
-Does body temperature track metabolic adaptation? Does tirzepatide override the thermostat?
+1,305 temperature readings (Dec 2023 - Mar 2026), timezone-corrected for travel, with a 5am day boundary so late-night readings map to the correct waking period. Each reading is converted to a daily baseline estimate by subtracting the empirical circadian offset for its hours-since-wake.
 
-Pre-tirzepatide: 14-day trailing intake → temperature r=+0.22. The 2600-3200 cal bin is 0.10°F warmer than 2000-2300. Temperature weakly tracks Kalman TDEE (r=0.04).
+**Circadian curve.** 0.90°F peak-to-trough, wake-anchored (R² = 0.072, beats sunrise 0.056 and clock 0.045 on downstream signal strength). The curve shows a morning rise, afternoon dip at 5-6h, main peak at 11-12h after wake, and pre-sleep decline:
 
-An earlier analysis found temperature correlating with tirzepatide blood level at r=+0.45. This was confounded by dose escalation timing (low doses in fall/winter, high doses in spring/summer). Direct calorimetry disproves the override hypothesis: RMR 1930→1750, temperature 97.7→97.5°F. Both dropped. The drug does not override the thermostat.
+| Hours after wake | Mean °F | Offset | n |
+|---|---|---|---|
+| 0-1 (wake) | 97.42 | -0.25 | 98 |
+| 2-3 (morning) | 97.72 | +0.06 | 83 |
+| 5-6 (afternoon dip) | 97.53 | -0.14 | 72 |
+| 11-12 (peak) | 97.99 | +0.32 | 92 |
+| 16-17 (pre-sleep) | 97.35 | -0.31 | 28 |
 
-Command: `python analysis/X_temperature_phase.py`, `python analysis/P2_rmr_model.py`
-Artifact: `analysis/X_temperature_daily.csv`, `analysis/X_temperature_phase_overlap.csv`, `analysis/X_temperature_phase_band_summary.csv`, `analysis/X_temperature_phase_regression.csv`
+**Injection-day sawtooth.** The strongest temperature signal. Baseline-corrected temperature by day post-injection: day 0 = 97.41°F, day 5 = 97.74°F (0.33°F swing, r = +0.22, partial|calories r = +0.22). The drug modulates body temperature through a non-caloric pathway — the signal strengthens after controlling for same-day intake.
+
+**Rising phase is hot.** Weight gain phases are +0.30°F warmer than stable phases (regression controlling for FM, drug, phase). Falling phase: +0.06°F. Consistent with diet-induced thermogenesis during sustained surplus.
+
+**Intake → temperature: weak.** 14-day trailing intake, baseline-corrected, partial|FM: r = +0.10. Real but small.
+
+**Nulls.** Drug blood level → baseline temperature|FM: r = -0.03 (zero; raw r = +0.45 was season-confounded). Pre-tirz vs on-tirz baseline at matched FM: Δ = -0.07°F (negligible). TDEE residual → baseline|FM: r = +0.03 (temperature does not track the metabolic rate adjustment to the set point at daily resolution).
+
+Command: `python analysis/AS_temperature_baseline.py`, `python analysis/AT_temperature_retest.py`
+Artifact: `analysis/AS_temperature_baseline.csv`, `analysis/AS_circadian_curve.csv`
 
 ## AE. Sleep and energy balance (null)
 
-Does sleep duration predict next-day intake, steps, weight change, or TDEE?
+2,057 sleep measurements (median 7.8h, std 1.5h, schedule 3am-11am). Sleep duration → next-day calories: r = -0.01. Sleep → next-day steps: r = -0.02. No trailing window of sleep duration predicts intake, TDEE, or steps. The schedule is too consistent (CV 0.19) to detect effects that require cross-sectional variation.
 
-2,057 Samsung Health sleep measurements (2016-2026). Sleep → next-day calories: r = -0.01. Sleep → next-day steps: r = -0.02. Trailing 7-day sleep vs TDEE: r = +0.22 (confounded with era and fat mass). No trailing window of sleep hours predicts any energy balance variable.
+**An extra hour of sleep still does not show an independent effect.** Recasting the question as accumulated sleep debt does not rescue the signal. Raw sleep-debt correlations with metabolic proxies are negative, but they vanish after controlling for bedtime timing. Example: 30-day sleep debt vs TDEE residual is raw r = -0.24, partial r = +0.03 controlling for bedtime, FM, weekend, and year. The apparent "sleep debt lowers RMR" pattern was mostly shared structure with later bedtimes.
 
-Extreme short sleep (<5h, n=57): -80 cal and +757 steps next day — opposite the direction the sleep-obesity literature predicts. These are likely unusual days (travel, appointments), not chronic poor sleep.
+**Late bedtime matters a little; sleep duration does not.** Bedtime timing carries a small but persistent signal on the daily metabolic proxies even after controlling for sleep duration. Later bedtimes predict slightly lower TDEE residual / TDEE-to-RMR ratio, with the strongest effect on trailing windows: same-day bedtime partial r = -0.04, 7-day bedtime -0.06, 14-day -0.08, 30-day -0.10. Baseline temperature does not track the same signal (baseline temp vs TDEE residual partial r = +0.01).
 
-The subject sleeps 3am-11am consistently (median 7.8h, std 1.5h). Weekend effect: +0.9h on Sat/Sun. Autocorrelation lag-1: r = 0.21. The schedule is too consistent to detect effects — there is not enough variation to separate signal from noise. Most sleep-obesity research uses self-reported cross-sectional data with far more variation.
+**Interaction null.** Combining the two ideas does not help. The late-bed × short-sleep interaction is still null for TDEE residual (partial r = +0.01), TDEE/RMR ratio (+0.01), and same-day calories (-0.02). In this dataset, the independent signal is weak circadian timing, not quantity or debt.
 
 Command: `python analysis/AE_sleep_null.py`
+Artifact: `analysis/BS_sleep_timing_cutoff_sweep.csv`
 
-## AK. Sunlight exposure vs sleep duration
+## BY. Samsung exercise weather coverage
 
-AE found sleep duration predicts nothing (r≈0 for all targets). But sleep barely varies (std 1.3h, CV 0.164). Possible sunlight exposure — hours awake between sunrise and sunset, computed from wake time + solar position at the subject's location — varies more (std 1.8h, CV 0.196) and is only weakly correlated with sleep (r=-0.13). [A 13-million-hour light sensor study](https://doi.org/10.1016/j.lanepe.2024.100943) found personal light exposure patterns predict type 2 diabetes incidence. Is sunlight a better predictor here, and does it explain AD's walk-session → RMR effect?
+Samsung's export includes a per-exercise weather table with `exercise_id`, start-time weather snapshot, latitude, longitude, temperature, humidity, phrase, wind, UV, and provider. This is useful local metadata, but it is **not** hourly historical weather through the workout. It is one start-time snapshot row per exercise.
 
-**Sunlight beats sleep for daily energy balance, but both are weak.** Sunlight → same-day TDEE: r=+0.14 (sleep: +0.05). Sunlight → same-day steps: r=+0.14 (sleep: -0.02). After controlling for FM: sunlight→TDEE r=+0.11, sleep→TDEE r=-0.02. At trailing 30 days vs TDEE/RMR: sunlight r=+0.14, sleep r=+0.03 (controlling for FM). No sunlight window predicts intake (r=0.03-0.04 after FM control). Sunlight is a marginally better predictor than sleep, but neither explains meaningful variance in daily energy balance.
+Coverage in the newest archive is uneven: 589 matched weather rows out of 1,809 exercises overall (32.6%). Coverage is strong in 2018 (87%), 2020 (62%), and 2021 (70%), weak in 2022 (17%) and 2023 (5%), and absent in 2024-2026. By exercise type, walking has the bulk of the rows (558 weather-tagged walks; 34% coverage), with smaller coverage for running (24 rows; 21%) and biking (7 rows; 22%).
 
-**AD's walk-session finding is not a sunlight confound.** Among 22 calorimetry measurements: walk sessions (30d) vs measured RMR: r=+0.73. Sunlight (30d) vs RMR: r=+0.53. Controlling for sunlight, walks retain r=+0.66. Controlling for walks, sunlight drops to r=+0.36. In LOO-CV: walks alone RMSE=116, sunlight alone RMSE=144, walks+sunlight RMSE=121. Adding sunlight to walks adds nothing — walks are the signal, sunlight is along for the ride.
+Providers are mostly TWC (461 rows) with a smaller AccuWeather block (128 rows counting one capitalization variant). The table appears usable for start-time weather adjustment, but it needs light cleaning: at least one humidity entry is invalid (`-1`), so climate analyses should clamp or drop out-of-range values. For true hourly weather by route and time, you would still need an external historical weather source keyed by exercise timestamp and coordinates.
 
-**Sleep shows a surprising raw correlation with RMR** (r=-0.71: less sleep = higher RMR), but this mediates the walk effect — active periods have both more walks and less sleep. After controlling for walks + sunlight + composition: sleep partial r=+0.21. The full model (walks + sunlight + sleep + expected_rmr) achieves CV RMSE=115, only marginally better than walks alone (116).
+Command: `python analysis/BY_exercise_weather.py`
+Artifacts: `analysis/BY_exercise_weather_joined.csv`, `analysis/BY_exercise_weather_summary.csv`
+
+## AK. Sunlight exposure (null, but walk-session signal survives it)
+
+Sunlight hours (wake-to-sunset, from solar position at subject's location) vary more than sleep (CV 0.20 vs 0.16). Sunlight → TDEE|FM: r = +0.11. No sunlight window predicts intake. AD's walk-session → RMR finding is not a sunlight confound: controlling for sunlight, walks retain r = +0.66 (vs r = +0.73 raw); controlling for walks, sunlight drops to r = +0.36. In LOO-CV: walks alone RMSE = 116, sunlight alone 144, walks + sunlight 121. Sunlight adds nothing beyond walks.
 
 Command: `python analysis/AK_sunlight_exposure.py`
 Artifact: `steps-sleep/sunlight.csv`
@@ -438,7 +615,7 @@ Artifact: `analysis/O_diet_epoch_summary.csv`, `analysis/O_diet_epoch_family_sum
 
 # Narrative case
 
-The set point and expenditure defense together explain the 2013 inflection — the moment the decade of regain began.
+The set point and metabolic rate adjustment together explain the 2013 inflection — the moment the decade of regain began.
 
 ## AC. The 2013 inflection
 
@@ -448,6 +625,6 @@ Bottom (2013 Jul-Sep): intake 1864, TDEE 2021, ratio 0.977, binge rate 1%. Regai
 
 TDEE recovered +38 cal from bottom to regain. Intake increased +495 cal. Intake outran TDEE recovery by 457 cal/day. The metabolic adaptation was easing — ratio went from 0.98 to 1.03. But binge frequency exploded: 0% (Jul-Aug 2013) → 13% (Oct) → 20-23% (Nov-Dec) → sustained 12-26% through all of 2014. By 2014-H2, binges were running at 20%.
 
-The trigger was behavioral, not metabolic. The body's expenditure defense was releasing. Food noise — the variance, the binge clustering — took hold at FM=17 and never let go for a decade. This is one case study of the [1-in-210 statistic](https://doi.org/10.2105/AJPH.2015.302773): of men who pass BMI 30, only 0.5% reach normal weight within 9 years. The set point model (AG) explains the mechanism: at FM=17, the set point had stalled near 18.6 lbs (AH test #6, floor effect). Any weight above the floor put FM below the set point, triggering the binge frequency gradient. The expenditure arm (K) was simultaneously releasing — TDEE/RMR rose from 0.98 to 1.03 — but this was too little, too late. The appetite arm had already taken over.
+The trigger was behavioral, not metabolic. The body's metabolic rate was recovering — TDEE/RMR rose from 0.98 to 1.03 — meaning the metabolic channel was returning to normal and no longer helping weight loss. But food noise — the variance, the binge clustering — took hold at FM=17 and never let go for a decade. This is one case study of the [1-in-210 statistic](https://doi.org/10.2105/AJPH.2015.302773): of men who pass BMI 30, only 0.5% reach normal weight within 9 years. The set point model (AG) explains the mechanism: at FM=17, the set point had stalled near 18.6 lbs (AH test #6, floor effect). Any weight above the floor put FM below the set point, triggering the eating-pressure gradient. The metabolic channel (K) had already normalized — it was no longer burning extra — but the eating channel was fully engaged and overwhelmed any remaining metabolic contribution.
 
 Command: `python analysis/AC_inflection_2013.py`

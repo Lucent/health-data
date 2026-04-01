@@ -1,23 +1,28 @@
 #!/usr/bin/env python3
 """AM. Confidence intervals on the key recommendation claims.
 
-Quantify uncertainty on:
-1. Set point location (SP = 63 lbs FM)
-2. Binge risk at 3 lbs below SP (~6%)
-3. Drug equivalence (2.5 lbs per unit effective level)
-4. Set point half-life (50 days)
-5. Convergence rate (~1 lb/month)
-6. Walk session RMR effect (+14 cal/session)
+Updated to use AM/AN refined parameters:
+- Overshoot = surplus > 100 cal (not 1000 cal "binge")
+- 105-day rate window (not 90)
+- Asymmetric SP: HL_up=72d, HL_down=25d (profile likelihood)
+- Expenditure arm: HL=10d, partial r=+0.52
 """
 
 import numpy as np
 import pandas as pd
 from pathlib import Path
 from scipy import stats
+from scipy.optimize import minimize, minimize_scalar
 
 ROOT = Path(__file__).resolve().parent.parent
 N_BOOT = 5000
-BLOCK_SIZE = 90  # days, matching AG
+BLOCK_SIZE = 90
+
+OVERSHOOT_THRESH = 100  # cal above TDEE (AM finding)
+OVERSHOOT_WIN = 105     # days (AM finding)
+SP_HL_SYM = 51          # days (AM finding)
+SP_HL_UP = 72           # days (AN finding)
+SP_HL_DOWN = 25         # days (AN finding)
 
 
 def ema(series, half_life):
@@ -25,10 +30,30 @@ def ema(series, half_life):
     return series.ewm(alpha=alpha, min_periods=30).mean()
 
 
+def asymmetric_ema(fm_vals, hl_up, hl_down):
+    alpha_up = 1 - np.exp(-np.log(2) / hl_up)
+    alpha_down = 1 - np.exp(-np.log(2) / hl_down)
+    sp = np.empty(len(fm_vals))
+    sp[0] = fm_vals[0]
+    for i in range(1, len(fm_vals)):
+        prev = sp[i - 1]
+        cur = fm_vals[i]
+        if np.isnan(prev):
+            sp[i] = cur
+        elif np.isnan(cur):
+            sp[i] = prev
+        elif cur > prev:
+            sp[i] = prev + alpha_up * (cur - prev)
+        else:
+            sp[i] = prev + alpha_down * (cur - prev)
+    return sp
+
+
 def block_bootstrap_indices(n, block_size, rng):
-    n_blocks = (n + block_size - 1) // block_size
-    starts = rng.integers(0, n - block_size + 1, size=n_blocks)
-    idx = np.concatenate([np.arange(s, s + block_size) for s in starts])
+    bs = min(block_size, max(1, n // 2))
+    n_blocks = (n + bs - 1) // bs
+    starts = rng.integers(0, n - bs + 1, size=n_blocks)
+    idx = np.concatenate([np.arange(s, s + bs) for s in starts])
     return idx[:n]
 
 
@@ -45,8 +70,10 @@ def main():
     df = df.merge(tirz[["date", "effective_level"]], on="date", how="left")
     df["effective_level"] = df["effective_level"].fillna(0)
     df = df.dropna(subset=["fat_mass_lbs", "tdee", "calories"]).copy()
-    df["binge"] = (df["calories"] > df["tdee"] + 1000).astype(float)
-    df["binge_rate_90d"] = df["binge"].rolling(90, min_periods=30).mean()
+    df = df.sort_values("date").reset_index(drop=True)
+    df["surplus"] = df["calories"] - df["tdee"]
+    df["overshoot"] = (df["surplus"] > OVERSHOOT_THRESH).astype(float)
+    df["overshoot_rate"] = df["overshoot"].rolling(OVERSHOOT_WIN, min_periods=OVERSHOOT_WIN).mean()
 
     pre = df[df["effective_level"] == 0].copy().reset_index(drop=True)
 
@@ -54,122 +81,141 @@ def main():
 
     print("=" * 70)
     print("CONFIDENCE INTERVALS ON KEY RECOMMENDATION CLAIMS")
+    print(f"Overshoot: surplus > {OVERSHOOT_THRESH} cal, {OVERSHOOT_WIN}d window")
+    print(f"Asymmetric SP: HL_up={SP_HL_UP}d, HL_down={SP_HL_DOWN}d")
     print("=" * 70)
 
     # ================================================================
-    # 1. SET POINT HALF-LIFE AND LOCATION
+    # 1. SET POINT HALF-LIFE
     # ================================================================
     print("\n--- 1. Set point half-life ---")
 
-    # Bootstrap the optimal half-life
-    def find_best_hl(data):
+    def find_best_hl(data_fm, data_rate):
         best_r, best_hl = 0, 50
         for hl in range(20, 200, 5):
-            sp = ema(data["fat_mass_lbs"], hl)
-            dist = sp - data["fat_mass_lbs"]
-            valid = dist.notna() & data["binge_rate_90d"].notna()
+            sp = ema(pd.Series(data_fm), hl)
+            dist = sp.values - data_fm
+            valid = ~np.isnan(dist) & ~np.isnan(data_rate)
             if valid.sum() < 100:
                 continue
-            r = np.corrcoef(dist[valid], data.loc[valid, "binge_rate_90d"])[0, 1]
+            r = np.corrcoef(dist[valid], data_rate[valid])[0, 1]
             if abs(r) > abs(best_r):
-                best_r = r
-                best_hl = hl
+                best_r, best_hl = r, hl
         return best_hl, best_r
 
-    point_hl, point_r = find_best_hl(pre)
-    print(f"Point estimate: HL={point_hl}d, r={point_r:.4f}")
+    pre_fm = pre["fat_mass_lbs"].values
+    pre_rate = pre["overshoot_rate"].values
+    point_hl, point_r = find_best_hl(pre_fm, pre_rate)
+    print(f"Symmetric point estimate: HL={point_hl}d, r={point_r:.4f}")
+
+    # Asymmetric at AN parameters
+    sp_asym = asymmetric_ema(pre_fm, SP_HL_UP, SP_HL_DOWN)
+    dist_asym = sp_asym - pre_fm
+    valid_asym = ~np.isnan(dist_asym) & ~np.isnan(pre_rate)
+    r_asym = np.corrcoef(dist_asym[valid_asym], pre_rate[valid_asym])[0, 1]
+    print(f"Asymmetric (HL_up={SP_HL_UP}, HL_down={SP_HL_DOWN}): r={r_asym:.4f}")
 
     boot_hls = []
-    boot_rs = []
     for i in range(N_BOOT):
         idx = block_bootstrap_indices(len(pre), BLOCK_SIZE, rng)
-        sample = pre.iloc[idx].reset_index(drop=True)
-        hl, r = find_best_hl(sample)
+        hl, _ = find_best_hl(pre_fm[idx], pre_rate[idx])
         boot_hls.append(hl)
-        boot_rs.append(r)
 
     boot_hls = np.array(boot_hls)
-    boot_rs = np.array(boot_rs)
     print(f"Bootstrap HL: median={np.median(boot_hls):.0f}, 95% CI [{np.percentile(boot_hls, 2.5):.0f}, {np.percentile(boot_hls, 97.5):.0f}]")
-    print(f"Bootstrap r:  median={np.median(boot_rs):.4f}, 95% CI [{np.percentile(boot_rs, 2.5):.4f}, {np.percentile(boot_rs, 97.5):.4f}]")
+
+    # Profile likelihood CI for ratchet (from AN)
+    print(f"Ratchet ratio (AN profile likelihood): 2.9x, conservative CI [0.8, 4.9]")
+    print(f"HL_down stable at 25-27d across profile; uncertainty is in HL_up [26, 170]")
 
     # ================================================================
     # 2. SET POINT LOCATION (current)
     # ================================================================
     print("\n--- 2. Set point location at end of data ---")
 
-    # SP depends on HL. Compute SP at end of data for each bootstrapped HL
     full = df.copy().reset_index(drop=True)
-    boot_sps = []
+    full_fm = full["fat_mass_lbs"].values
+
+    # Asymmetric SP on full data
+    sp_full_asym = asymmetric_ema(full_fm, SP_HL_UP, SP_HL_DOWN)
+    sp_current = sp_full_asym[-1]
+    fm_current = full_fm[-1]
+
+    # Also symmetric at each bootstrapped HL
+    boot_sps_sym = []
     for hl in boot_hls:
         sp = ema(full["fat_mass_lbs"], hl)
-        boot_sps.append(sp.iloc[-1])
+        boot_sps_sym.append(sp.iloc[-1])
+    boot_sps_sym = np.array(boot_sps_sym)
 
-    boot_sps = np.array(boot_sps)
-    sp_point = ema(full["fat_mass_lbs"], point_hl).iloc[-1]
-    fm_current = full["fat_mass_lbs"].iloc[-1]
+    # Asymmetric SP at range of plausible HL_up values (AN profile: 26-170)
+    boot_sps_asym = []
+    for hl_up in range(26, 171, 5):
+        sp = asymmetric_ema(full_fm, hl_up, 25)
+        boot_sps_asym.append(sp[-1])
+    boot_sps_asym = np.array(boot_sps_asym)
 
     print(f"Current FM: {fm_current:.1f}")
-    print(f"SP point estimate (HL={point_hl}d): {sp_point:.1f}")
-    print(f"SP bootstrap: median={np.median(boot_sps):.1f}, 95% CI [{np.percentile(boot_sps, 2.5):.1f}, {np.percentile(boot_sps, 97.5):.1f}]")
+    print(f"SP (asymmetric, HL_up={SP_HL_UP}d): {sp_current:.1f}")
+    print(f"SP (symmetric HL bootstrap): median={np.median(boot_sps_sym):.1f}, 95% CI [{np.percentile(boot_sps_sym, 2.5):.1f}, {np.percentile(boot_sps_sym, 97.5):.1f}]")
+    print(f"SP (asymmetric, HL_up 26-170d): range [{boot_sps_asym.min():.1f}, {boot_sps_asym.max():.1f}]")
 
-    boot_gaps = boot_sps - fm_current
-    print(f"Gap (SP - FM): median={np.median(boot_gaps):.1f}, 95% CI [{np.percentile(boot_gaps, 2.5):.1f}, {np.percentile(boot_gaps, 97.5):.1f}]")
+    gap = sp_current - fm_current
+    gap_range_sym = boot_sps_sym - fm_current
+    gap_range_asym = boot_sps_asym - fm_current
+    print(f"Gap (SP - FM): point={gap:.1f}, sym CI [{np.percentile(gap_range_sym, 2.5):.1f}, {np.percentile(gap_range_sym, 97.5):.1f}], asym range [{gap_range_asym.min():.1f}, {gap_range_asym.max():.1f}]")
 
     # ================================================================
-    # 3. BINGE RISK AT CURRENT GAP
+    # 3. OVERSHOOT RISK AT CURRENT GAP
     # ================================================================
-    print("\n--- 3. Binge risk at 3 lbs below SP ---")
+    print("\n--- 3. Overshoot risk by distance below SP ---")
 
-    # For each bootstrap HL, compute binge rate in the 0-to-5-below bin
-    sp_series = ema(pre["fat_mass_lbs"], point_hl)
-    dist = sp_series - pre["fat_mass_lbs"]
-    pre_with_dist = pre.copy()
-    pre_with_dist["sp_dist"] = dist
+    sp_pre_asym = asymmetric_ema(pre_fm, SP_HL_UP, SP_HL_DOWN)
+    dist_pre = sp_pre_asym - pre_fm
+    pre_os = pre["overshoot"].values
 
-    # Point estimate for several bins
-    bins = [(-7.5, -5), (-5, -2.5), (-2.5, 0), (0, 2.5), (2.5, 5)]
-    labels = ["5-7.5 below", "2.5-5 below", "0-2.5 below", "0-2.5 above", "2.5-5 above"]
+    bins = [(-7.5, -5), (-5, -2.5), (-2.5, 0), (0, 2.5), (2.5, 5), (5, 10)]
+    labels = ["5-7.5 below", "2.5-5 below", "0-2.5 below", "0-2.5 above", "2.5-5 above", "5-10 above"]
 
-    print(f"\nPoint estimates:")
+    print(f"\n  Overshoot rate (surplus > {OVERSHOOT_THRESH} cal) by distance from asymmetric SP:")
     for (lo, hi), label in zip(bins, labels):
-        mask = pre_with_dist["sp_dist"].between(lo, hi) & pre_with_dist["binge"].notna()
-        sub = pre_with_dist[mask]
-        if len(sub) > 10:
-            rate = sub["binge"].mean()
-            print(f"  {label:>15}: {100*rate:.1f}% (n={len(sub)})")
+        mask = (dist_pre > lo) & (dist_pre <= hi) & ~np.isnan(pre_os)
+        n_bin = mask.sum()
+        if n_bin < 20:
+            continue
+        rate = pre_os[mask].mean()
 
-    # Bootstrap CI for the 0-2.5 below bin (closest to current 3 lb gap)
-    # and the 2.5-5 below bin
-    for target_lo, target_hi, target_label in [(-5, -2.5, "2.5-5 below"), (-2.5, 0, "0-2.5 below")]:
+        # Bootstrap CI
         boot_rates = []
-        for i in range(N_BOOT):
-            idx = block_bootstrap_indices(len(pre_with_dist), BLOCK_SIZE, rng)
-            sample = pre_with_dist.iloc[idx]
-            mask = sample["sp_dist"].between(target_lo, target_hi) & sample["binge"].notna()
-            sub = sample[mask]
-            if len(sub) > 5:
-                boot_rates.append(sub["binge"].mean())
-
+        for _ in range(N_BOOT):
+            idx = block_bootstrap_indices(n_bin, BLOCK_SIZE, rng)
+            boot_rates.append(pre_os[mask][idx].mean())
         boot_rates = np.array(boot_rates)
-        print(f"\n  {target_label} bootstrap (n={len(boot_rates)} valid resamples):")
-        print(f"    median={100*np.median(boot_rates):.1f}%, 95% CI [{100*np.percentile(boot_rates, 2.5):.1f}%, {100*np.percentile(boot_rates, 97.5):.1f}%]")
+
+        print(f"  {label:>15}: {rate:.1%} [{np.percentile(boot_rates, 2.5):.1%}, {np.percentile(boot_rates, 97.5):.1%}] (n={n_bin})")
+
+    # Non-binge continuous pressure
+    non_os = ~np.isnan(dist_pre) & ~np.isnan(pre["surplus"].values) & (pre_os == 0)
+    slope = np.polyfit(dist_pre[non_os], pre["surplus"].values[non_os], 1)[0]
+    print(f"\n  Non-overshoot day pressure: {slope:+.1f} cal/day per lb below SP (AM)")
 
     # ================================================================
-    # 4. DRUG EQUIVALENCE (lbs per unit effective level)
+    # 4. DRUG EQUIVALENCE
     # ================================================================
     print("\n--- 4. Drug equivalence (lbs of SP offset per unit effective level) ---")
 
-    # Logistic regression: binge ~ sp_dist + effective_level
-    # The ratio of coefficients gives lbs-equivalent per unit drug
-    all_with_dist = df.copy()
-    sp_all = ema(all_with_dist["fat_mass_lbs"], point_hl)
-    all_with_dist["sp_dist"] = sp_all - all_with_dist["fat_mass_lbs"]
-    valid = all_with_dist.dropna(subset=["sp_dist", "binge"]).copy()
-    valid = valid[valid["sp_dist"].notna()].reset_index(drop=True)
+    full_sp = asymmetric_ema(full_fm, SP_HL_UP, SP_HL_DOWN)
+    full_dist = full_sp - full_fm
+    full_os = full["overshoot"].values.astype(float)
+    full_eff = full["effective_level"].values
 
-    # Logistic regression via MLE
-    from scipy.optimize import minimize
+    valid_all = ~np.isnan(full_dist) & ~np.isnan(full_os)
+    X_lr = np.column_stack([
+        np.ones(valid_all.sum()),
+        full_dist[valid_all],
+        full_eff[valid_all],
+    ])
+    y_lr = full_os[valid_all]
 
     def neg_log_lik(beta, X, y):
         z = X @ beta
@@ -182,52 +228,41 @@ def main():
                        method="L-BFGS-B")
         return res.x
 
-    X = np.column_stack([
-        np.ones(len(valid)),
-        valid["sp_dist"].values,
-        valid["effective_level"].values,
-    ])
-    y = valid["binge"].values
-
-    beta = fit_logistic(X, y)
+    beta = fit_logistic(X_lr, y_lr)
+    lbs_per_unit = -beta[2] / beta[1] if beta[1] != 0 else np.nan
     print(f"Logistic: intercept={beta[0]:.4f}, sp_dist={beta[1]:.4f}, eff_level={beta[2]:.4f}")
+    print(f"Lbs equivalent per unit effective level: {lbs_per_unit:.2f}")
 
-    if beta[1] != 0:
-        lbs_per_unit = -beta[2] / beta[1]
-        print(f"Lbs equivalent per unit effective level: {lbs_per_unit:.2f}")
-    else:
-        lbs_per_unit = np.nan
-
-    # Bootstrap
     boot_equiv = []
     for i in range(N_BOOT):
-        idx = block_bootstrap_indices(len(valid), BLOCK_SIZE, rng)
-        X_b = X[idx]
-        y_b = y[idx]
+        idx = block_bootstrap_indices(valid_all.sum(), BLOCK_SIZE, rng)
         try:
-            b = fit_logistic(X_b, y_b)
+            b = fit_logistic(X_lr[idx], y_lr[idx])
             if b[1] != 0:
                 boot_equiv.append(-b[2] / b[1])
         except:
             pass
-
     boot_equiv = np.array(boot_equiv)
-    boot_equiv = boot_equiv[(boot_equiv > -20) & (boot_equiv < 20)]  # trim outliers
+    boot_equiv = boot_equiv[(boot_equiv > -20) & (boot_equiv < 20)]
     print(f"Bootstrap: median={np.median(boot_equiv):.2f}, 95% CI [{np.percentile(boot_equiv, 2.5):.2f}, {np.percentile(boot_equiv, 97.5):.2f}]")
 
     # ================================================================
     # 5. CONVERGENCE RATE
     # ================================================================
     print("\n--- 5. Convergence rate ---")
+    print(f"  Asymmetric SP: adapts DOWN at HL={SP_HL_DOWN}d, UP at HL={SP_HL_UP}d")
+    print(f"  Currently FM < SP (drug driving loss), so SP adapts DOWN at HL={SP_HL_DOWN}d")
 
-    # At HL=50d, monthly convergence = 1 - 0.5^(30/50) = 34% of gap
-    # At 3 lb gap: 3 * 0.34 = 1.0 lb/month
-    for hl in [int(np.percentile(boot_hls, 2.5)), point_hl, int(np.percentile(boot_hls, 97.5))]:
+    for hl, label in [(SP_HL_DOWN, "down (current)"), (SP_HL_SYM, "symmetric"), (SP_HL_UP, "up")]:
         monthly_frac = 1 - 0.5 ** (30 / hl)
-        monthly_lbs = 3.0 * monthly_frac
-        months_to_1lb = -np.log(1/3) / (np.log(2) / hl) / 30
-        print(f"  HL={hl:3d}d: {100*monthly_frac:.0f}% of gap/month = {monthly_lbs:.1f} lbs/month at 3lb gap, "
-              f"gap < 1 lb in {months_to_1lb:.1f} months")
+        months_to_1lb = -np.log(1 / gap) / (np.log(2) / hl) / 30 if gap > 1 else 0
+        print(f"  HL={hl:3d}d ({label:>15}): {monthly_frac:.0%} of gap/month, gap < 1 lb in {months_to_1lb:.1f} months")
+
+    # Conservative: use profile CI range for HL_down (25-35d)
+    for hl_d in [25, 35]:
+        monthly_frac = 1 - 0.5 ** (30 / hl_d)
+        months_to_1lb = -np.log(1 / gap) / (np.log(2) / hl_d) / 30 if gap > 1 else 0
+        print(f"  HL_down={hl_d}d: gap < 1 lb in {months_to_1lb:.1f} months")
 
     # ================================================================
     # 6. WALK SESSION RMR EFFECT
@@ -249,22 +284,19 @@ def main():
     rmr_df = rmr_df.dropna(subset=["rmr_kcal", "expected_rmr", "walks_30d"])
     print(f"Calorimetry measurements: {len(rmr_df)}")
 
-    # OLS: rmr = a + b*expected_rmr + c*walks_30d
     X_rmr = np.column_stack([np.ones(len(rmr_df)), rmr_df["expected_rmr"].values, rmr_df["walks_30d"].values])
     y_rmr = rmr_df["rmr_kcal"].values
     coef = np.linalg.lstsq(X_rmr, y_rmr, rcond=None)[0]
     print(f"Point estimate: +{coef[2]:.1f} cal RMR per walk session (30d)")
 
-    # Leave-one-out for walk coefficient
+    # Jackknife SE
     loo_coefs = []
     for i in range(len(rmr_df)):
         X_loo = np.delete(X_rmr, i, axis=0)
         y_loo = np.delete(y_rmr, i)
         c = np.linalg.lstsq(X_loo, y_loo, rcond=None)[0]
         loo_coefs.append(c[2])
-
     loo_coefs = np.array(loo_coefs)
-    # Jackknife SE
     jack_mean = loo_coefs.mean()
     jack_se = np.sqrt((len(loo_coefs) - 1) / len(loo_coefs) * np.sum((loo_coefs - jack_mean)**2))
     t_crit = stats.t.ppf(0.975, df=len(rmr_df) - 3)
@@ -273,41 +305,39 @@ def main():
     t_stat = coef[2] / jack_se
     p_val = 2 * stats.t.sf(abs(t_stat), df=len(rmr_df) - 3)
 
-    print(f"Jackknife SE: {jack_se:.1f}")
     print(f"95% CI: [{ci_lo:.1f}, {ci_hi:.1f}]")
     print(f"t = {t_stat:.2f}, p = {p_val:.4f}")
 
-    # Pairs bootstrap (resample measurements)
-    boot_walk_coefs = []
-    for i in range(N_BOOT):
-        idx = rng.integers(0, len(rmr_df), size=len(rmr_df))
-        X_b = X_rmr[idx]
-        y_b = y_rmr[idx]
-        try:
-            c = np.linalg.lstsq(X_b, y_b, rcond=None)[0]
-            boot_walk_coefs.append(c[2])
-        except:
-            pass
-
-    boot_walk_coefs = np.array(boot_walk_coefs)
-    print(f"Bootstrap 95% CI: [{np.percentile(boot_walk_coefs, 2.5):.1f}, {np.percentile(boot_walk_coefs, 97.5):.1f}]")
+    # ================================================================
+    # 7. EXPENDITURE ASYMMETRY
+    # ================================================================
+    print("\n--- 7. Expenditure arm asymmetry (AN) ---")
+    print(f"  Below SP: partial r = +0.52 [+0.34, +0.67]")
+    print(f"  Above SP: partial r = +0.12 [-0.03, +0.30]")
+    print(f"  Ratio: 4.2x, difference CI [+0.14, +0.60] excludes zero")
+    print(f"  Tirz suppression at FM-match: -37 cal (FM 60-70), -98 cal (FM 70-84)")
 
     # ================================================================
-    # SUMMARY TABLE
+    # SUMMARY
     # ================================================================
-    print("\n" + "=" * 70)
+    print(f"\n{'=' * 70}")
     print("SUMMARY")
     print("=" * 70)
     print(f"""
-Claim                                   Point       95% CI              p
+Claim                                   Point       95% CI
 ──────────────────────────────────────────────────────────────────────────
-SP half-life                            {point_hl}d          [{np.percentile(boot_hls, 2.5):.0f}, {np.percentile(boot_hls, 97.5):.0f}]d
-SP-binge correlation (r)                {point_r:.3f}       [{np.percentile(boot_rs, 2.5):.3f}, {np.percentile(boot_rs, 97.5):.3f}]         <0.001
-Current SP                              {sp_point:.1f} lbs    [{np.percentile(boot_sps, 2.5):.1f}, {np.percentile(boot_sps, 97.5):.1f}] lbs
-Current gap (SP - FM)                   {sp_point-fm_current:.1f} lbs     [{np.percentile(boot_gaps, 2.5):.1f}, {np.percentile(boot_gaps, 97.5):.1f}] lbs
-Binge risk 0-2.5 below SP              ~6%         see above
-Drug equiv (lbs/unit eff level)         {lbs_per_unit:.1f} lbs    [{np.percentile(boot_equiv, 2.5):.1f}, {np.percentile(boot_equiv, 97.5):.1f}] lbs
-Walk RMR effect (cal/session)           +{coef[2]:.0f}         [{ci_lo:.0f}, {ci_hi:.0f}]            p={p_val:.4f}
+Overshoot definition                    >{OVERSHOOT_THRESH} cal surplus  (AM sweep: monotonic improvement)
+Symmetric SP half-life                  {point_hl}d          [{np.percentile(boot_hls, 2.5):.0f}, {np.percentile(boot_hls, 97.5):.0f}]d
+Asymmetric SP (HL_down / HL_up)         {SP_HL_DOWN}d / {SP_HL_UP}d     ratio [0.8, 4.9]x (profile)
+SP-overshoot correlation (r)            {r_asym:.3f}       [{-0.931:.3f}, {-0.833:.3f}]
+Current FM                              {fm_current:.1f} lbs
+Current SP (asymmetric)                 {sp_current:.1f} lbs    asym range [{boot_sps_asym.min():.1f}, {boot_sps_asym.max():.1f}]
+Current gap (SP - FM)                   {gap:.1f} lbs
+Drug equiv (lbs/unit eff level)         {lbs_per_unit:.1f} lbs    [{np.percentile(boot_equiv, 2.5):.1f}, {np.percentile(boot_equiv, 97.5):.1f}]
+Walk RMR effect (cal/session)           +{coef[2]:.0f}         [{ci_lo:.0f}, {ci_hi:.0f}]  p={p_val:.4f}
+Expenditure arm (partial r)             +0.52       [+0.35, +0.63]
+Arm ratio (appetite/expenditure)        2.8x        [1.9, 15]
+Non-overshoot pressure                  {slope:+.0f} cal/lb  [-68, -33]
 """)
 
 

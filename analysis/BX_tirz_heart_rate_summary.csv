@@ -1,0 +1,7 @@
+metric,n,mean,median
+walk_resid_pre_tirz,269,0.00,0.32
+walk_resid_on_tirz,75,-1.42,-1.51
+night_median_hr_pre_tirz,280,83.67,83.50
+night_median_hr_on_tirz,57,84.46,84.00
+walk_on_minus_pre_median_bpm,75,,-1.83
+night_on_minus_pre_median_bpm,57,,0.50

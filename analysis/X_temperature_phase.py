@@ -1,15 +1,14 @@
-"""Temperature by trajectory phase at matched fat mass.
+"""Baseline temperature by trajectory phase at matched fat mass.
 
-This is a partial identifiability check rather than a definitive causal test.
-Temperature starts in Dec 2023, so pre-tirzepatide overlap mostly covers
-stable/rising high-fat-mass days, while on-drug overlap mostly covers falling
-days during weight loss.
+This replaces the legacy raw-daily-mean temperature phase script. All
+temperature inference now uses the circadian-normalized daily baseline from
+`AS_temperature_baseline.csv`.
 
 Outputs:
-    analysis/temperature_daily.csv
-    analysis/temperature_phase_overlap.csv
-    analysis/temperature_phase_band_summary.csv
-    analysis/temperature_phase_regression.csv
+    analysis/X_temperature_daily.csv
+    analysis/X_temperature_phase_overlap.csv
+    analysis/X_temperature_phase_band_summary.csv
+    analysis/X_temperature_phase_regression.csv
 """
 
 from pathlib import Path
@@ -24,20 +23,12 @@ TREND_THRESHOLD_LBS = 3.0
 
 
 def load_data():
-    temp = pd.read_csv(ROOT / "temperature" / "temperature.csv", parse_dates=["date"])
+    temp = pd.read_csv(ROOT / "analysis" / "AS_temperature_baseline.csv", parse_dates=["date"])
     kalman = pd.read_csv(ROOT / "analysis" / "P4_kalman_daily.csv", parse_dates=["date"])
     comp = pd.read_csv(ROOT / "analysis" / "P2_daily_composition.csv", parse_dates=["date"])
     tirz = pd.read_csv(ROOT / "drugs" / "tirzepatide.csv", parse_dates=["date"])
 
-    temp = temp[(temp["temp_f"] > 95) & (temp["temp_f"] < 101)].copy()
-    temp["date"] = temp["date"].dt.floor("D")
-    daily_temp = (
-        temp.groupby("date")
-        .agg(temp_mean=("temp_f", "mean"), temp_median=("temp_f", "median"), n_readings=("temp_f", "size"))
-        .reset_index()
-    )
-
-    daily = daily_temp.merge(kalman[["date", "fat_mass_lbs", "tdee"]], on="date", how="left")
+    daily = temp.merge(kalman[["date", "fat_mass_lbs", "tdee"]], on="date", how="left")
     daily = daily.merge(comp[["date", "expected_rmr"]], on="date", how="left")
     daily = daily.merge(tirz[["date", "effective_level", "dose_mg"]], on="date", how="left")
     daily["effective_level"] = daily["effective_level"].fillna(0)
@@ -56,7 +47,7 @@ def build_frame(daily):
     d["phase_falling"] = (d["phase"] == "falling").astype(int)
     d["phase_rising"] = (d["phase"] == "rising").astype(int)
     d["tdee_rmr_ratio"] = d["tdee"] / d["expected_rmr"]
-    return d.dropna(subset=["temp_mean", "fat_mass_lbs", "tdee", "expected_rmr"])
+    return d.dropna(subset=["baseline_mean", "fat_mass_lbs", "tdee", "expected_rmr"])
 
 
 def overlap_summary(daily):
@@ -69,7 +60,7 @@ def overlap_summary(daily):
                 "on_tirz": bool(on_tirz),
                 "n_days": len(grp),
                 "mean_fat_mass_lbs": round(grp["fat_mass_lbs"].mean(), 2),
-                "mean_temp_f": round(grp["temp_mean"].mean(), 4),
+                "mean_temp_f": round(grp["baseline_mean"].mean(), 4),
                 "mean_tdee_rmr_ratio": round(grp["tdee_rmr_ratio"].mean(), 4),
             }
         )
@@ -89,7 +80,7 @@ def matched_band_summary(daily):
                     "phase": phase,
                     "on_tirz": bool(on_tirz),
                     "n_days": len(grp),
-                    "mean_temp_f": round(grp["temp_mean"].mean(), 4),
+                    "mean_temp_f": round(grp["baseline_mean"].mean(), 4),
                     "mean_tdee_rmr_ratio": round(grp["tdee_rmr_ratio"].mean(), 4),
                 }
             )
@@ -99,7 +90,6 @@ def matched_band_summary(daily):
 def regression_summary(daily):
     rows = []
 
-    # Overall regression: temperature ~ fat_mass + on_tirz + phase + effective level
     X = np.column_stack(
         [
             np.ones(len(daily)),
@@ -110,12 +100,11 @@ def regression_summary(daily):
             daily["effective_level"].values,
         ]
     )
-    coef = np.linalg.lstsq(X, daily["temp_mean"].values, rcond=None)[0]
+    coef = np.linalg.lstsq(X, daily["baseline_mean"].values, rcond=None)[0]
     labels = ["intercept", "fat_mass_lbs", "on_tirz", "phase_falling", "phase_rising", "effective_level"]
     for label, value in zip(labels, coef):
         rows.append({"model": "overall", "term": label, "coef": round(value, 6)})
 
-    # On-drug only
     on = daily[daily["on_tirz"]].copy()
     if len(on) >= 30:
         X = np.column_stack(
@@ -127,12 +116,11 @@ def regression_summary(daily):
                 on["effective_level"].values,
             ]
         )
-        coef = np.linalg.lstsq(X, on["temp_mean"].values, rcond=None)[0]
+        coef = np.linalg.lstsq(X, on["baseline_mean"].values, rcond=None)[0]
         labels = ["intercept", "fat_mass_lbs", "phase_falling", "phase_rising", "effective_level"]
         for label, value in zip(labels, coef):
             rows.append({"model": "on_tirz_only", "term": label, "coef": round(value, 6)})
 
-    # Pre-drug only
     pre = daily[~daily["on_tirz"]].copy()
     if len(pre) >= 30:
         X = np.column_stack(
@@ -143,7 +131,7 @@ def regression_summary(daily):
                 pre["phase_rising"].values,
             ]
         )
-        coef = np.linalg.lstsq(X, pre["temp_mean"].values, rcond=None)[0]
+        coef = np.linalg.lstsq(X, pre["baseline_mean"].values, rcond=None)[0]
         labels = ["intercept", "fat_mass_lbs", "phase_falling", "phase_rising"]
         for label, value in zip(labels, coef):
             rows.append({"model": "pre_tirz_only", "term": label, "coef": round(value, 6)})
@@ -152,20 +140,20 @@ def regression_summary(daily):
 
 
 def save_outputs(temp_df, overlap_df, band_df, reg_df):
-    temp_df.to_csv(ROOT / "analysis" / "temperature_daily.csv", index=False)
-    overlap_df.to_csv(ROOT / "analysis" / "temperature_phase_overlap.csv", index=False)
-    band_df.to_csv(ROOT / "analysis" / "temperature_phase_band_summary.csv", index=False)
-    reg_df.to_csv(ROOT / "analysis" / "temperature_phase_regression.csv", index=False)
+    temp_df.to_csv(ROOT / "analysis" / "X_temperature_daily.csv", index=False)
+    overlap_df.to_csv(ROOT / "analysis" / "X_temperature_phase_overlap.csv", index=False)
+    band_df.to_csv(ROOT / "analysis" / "X_temperature_phase_band_summary.csv", index=False)
+    reg_df.to_csv(ROOT / "analysis" / "X_temperature_phase_regression.csv", index=False)
 
 
 def print_report(overlap_df, band_df, reg_df):
-    print("\n=== Temperature by Phase (Partial Identifiability) ===")
+    print("\n=== Baseline Temperature by Phase ===")
     print("Overlap by phase and tirzepatide status:")
     for _, row in overlap_df.iterrows():
         cohort = "on_tirz" if row["on_tirz"] else "pre_tirz"
         print(
             f"  {cohort:>8}  {row['phase']:>7}: n={int(row['n_days'])}  "
-            f"temp={row['mean_temp_f']:.3f}F  FM={row['mean_fat_mass_lbs']:.1f}  "
+            f"baseline={row['mean_temp_f']:.3f}F  FM={row['mean_fat_mass_lbs']:.1f}  "
             f"TDEE/RMR={row['mean_tdee_rmr_ratio']:.3f}"
         )
 
@@ -174,16 +162,12 @@ def print_report(overlap_df, band_df, reg_df):
         cohort = "on_tirz" if row["on_tirz"] else "pre_tirz"
         print(
             f"  FM {row['fat_band_lbs']:>5}  {cohort:>8}  {row['phase']:>7}: "
-            f"temp={row['mean_temp_f']:.3f}F  ratio={row['mean_tdee_rmr_ratio']:.3f}  n={int(row['n_days'])}"
+            f"baseline={row['mean_temp_f']:.3f}F  ratio={row['mean_tdee_rmr_ratio']:.3f}  n={int(row['n_days'])}"
         )
 
     print("\nRegression coefficients:")
     for _, row in reg_df.iterrows():
         print(f"  {row['model']:>12}  {row['term']:>14}: {row['coef']:+.6f}")
-
-    print("\nInterpretation: temperature-by-phase is only partially identifiable because")
-    print("pre-drug overlap has almost no falling-phase days, while on-drug overlap")
-    print("is dominated by falling-phase weight loss. Treat coefficients as descriptive.")
 
 
 def main():

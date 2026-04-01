@@ -21,6 +21,11 @@ All Python scripts run in the project virtualenv: `source .venv/bin/activate`
 
 ## Extraction pipeline
 All extractors are idempotent. Re-run to regenerate CSVs from raw data.
+
+Raw source locations used by the extractors:
+- Samsung Health export: newest `*.7z` in `/mnt/c/Users/Lucent/OneDrive/Documents/Backup/Samsung`
+- `steps-sleep/extract.py` lists the archive with `7z l`, extracts only the needed Samsung CSVs to a temp dir, then writes `steps_samsung.csv`, `sleep.csv`, and `exercises_samsung.csv`
+
 ```
 # Data extraction (order doesn't matter)
 python intake/merge.py              → intake/intake_foods.csv + intake/intake_daily.csv + steps-sleep/mfp_exercises.csv
@@ -32,6 +37,7 @@ python RMR/extract.py               → RMR/rmr.csv
 python drugs/extract.py             → drugs/medicine.csv + drugs/tirzepatide.csv
 python intake/atwater_check.py      — Atwater factor validation (per-item and per-day)
 python intake/compare_extractors.py — cross-validates OXPS vs HTML extractors
+python temperature/merge.py        → temperature/temperature.csv (body_temperature + body_temperature2, TZ-corrected)
 
 # Merge pipeline (runs after extraction; each merges source-specific CSVs into canonical files)
 python steps-sleep/merge_steps.py      → steps-sleep/steps.csv (Samsung + MFP/calendar hospital+walk+run backfill)
@@ -80,6 +86,19 @@ python analysis/AI_expenditure_arm_timescale.py — expenditure arm adapts faste
 python analysis/AJ_tirz_expenditure_defense.py  — tirzepatide suppresses the falling-phase TDEE bonus
 python analysis/AK_sunlight_exposure.py          — sunlight exposure vs sleep; AD's walk effect survives sunlight control
 python analysis/AL_walk_rescue_expenditure.py    — walking partially rescues tirz-suppressed expenditure defense (+95 cal/day)
+python analysis/AM_lipostat_sensitivity.py       — parameter sweeps + bootstrap CIs for AG/AH/AI set point model
+python analysis/AN_ratchet_profile.py            — profile likelihood for ratchet ratio, expenditure asymmetry
+python analysis/AO_tirz_asymmetric_defense.py    — tirz suppresses below-SP expenditure defense selectively
+python analysis/AP_overshoot_shape.py            — 90d mean surplus (r=-0.94) beats all binary thresholds
+python analysis/AQ_tirz_set_point_coverage.py    — drug coverage in lbs/cal per arm, tachyphylaxis erosion
+python analysis/AW_tirz_reconcile.py             — superseded by AX (confounded SP/drug decomposition)
+python analysis/AX_drug_model.py                 — clean drug model: -74.5 cal/unit within-week, 35wk cumulative tachy
+python analysis/AV_surmount_simulation.py        — preliminary SURMOUNT simulation (15mg within 2.2% of published)
+python analysis/AY_sp_from_regain.py             — derive SP adaptation from SURMOUNT-4 regain
+python analysis/AZ_sp_model_search.py            — exhaustive search: SmoothLatch fits subject + SURMOUNT + STEP-1
+python analysis/BD_smooth_latch.py               — SmoothLatch model: all key numbers, trial predictions, scenarios
+python analysis/AS_temperature_baseline.py       — empirical circadian curve (0.90°F, wake-anchored), per-reading baseline
+python analysis/AT_temperature_retest.py         — re-tests all X claims with baseline-corrected temperatures
 ```
 
 ## CSV column reference

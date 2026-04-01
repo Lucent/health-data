@@ -34,6 +34,7 @@ SAMSUNG_BACKUP = Path("/mnt/c/Users/Lucent/OneDrive/Documents/Backup/Samsung")
 # Files we need from the archive (glob-style, matched against member names)
 NEEDED_FILES = [
     "com.samsung.shealth.step_daily_trend.*.csv",
+    "com.samsung.shealth.activity.day_summary.*.csv",
     "com.samsung.shealth.sleep.*.csv",
     "com.samsung.health.sleep.*.csv",
     "com.samsung.shealth.exercise.*.csv",
@@ -140,7 +141,13 @@ def infer_exercise_label(exercise_type):
 
 
 def extract_steps(search_dir):
-    """Extract daily step counts from step_daily_trend CSV."""
+    """Extract daily step counts from Samsung Health daily summaries.
+
+    Prefer `activity.day_summary` when available because it matches the app's
+    consolidated daily totals more closely than `step_daily_trend source_type=-2`
+    on some watch/phone sync days. Fall back to `step_daily_trend` for earlier
+    history not covered by activity-day summaries.
+    """
     f = find_latest_file(search_dir, "com.samsung.shealth.step_daily_trend.*.csv")
     with open(f) as fh:
         next(fh)  # skip metadata row
@@ -166,19 +173,57 @@ def extract_steps(search_dir):
                 "update_time": update,
             }
 
-    results = []
+    trend_results = {}
     for date in sorted(by_date):
         d = by_date[date]
-        # Convert active time: speed * distance / count gives rough check,
-        # but we don't have active_time in this file. Just output what we have.
-        results.append({
+        trend_results[date] = {
             "date": d["date"],
             "steps": d["steps"],
             "distance": d["distance"],
             "speed": d["speed"],
-        })
+        }
 
-    return results
+    try:
+        activity_file = find_latest_file(search_dir, "com.samsung.shealth.activity.day_summary.*.csv")
+    except FileNotFoundError:
+        activity_file = None
+
+    activity_results = {}
+    if activity_file is not None:
+        with open(activity_file, encoding="utf-8-sig") as fh:
+            next(fh)  # skip metadata row
+            reader = csv.DictReader(fh)
+            activity_rows = list(reader)
+
+        print(f"  Activity summaries: {len(activity_rows)} rows from {activity_file.name}", file=sys.stderr)
+
+        by_date = {}
+        for r in activity_rows:
+            day_time = r.get("day_time", "")
+            if not day_time:
+                continue
+            date = day_time[:10]
+            update = r.get("update_time", "")
+            if date not in by_date or update > by_date[date]["update_time"]:
+                by_date[date] = {
+                    "date": date,
+                    "steps": r.get("step_count", "0"),
+                    "distance": r.get("distance", ""),
+                    "speed": "",
+                    "update_time": update,
+                }
+
+        for date, row in by_date.items():
+            activity_results[date] = {
+                "date": row["date"],
+                "steps": row["steps"],
+                "distance": row["distance"],
+                "speed": row["speed"],
+            }
+
+    merged = dict(trend_results)
+    merged.update(activity_results)
+    return [merged[date] for date in sorted(merged)]
 
 
 def extract_sleep(search_dir):
