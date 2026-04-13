@@ -71,21 +71,43 @@ High-step calorie restriction is the worst archetype (J: -0.011 TDEE/RMR, -29 ca
 
 Command: `python analysis/J_restriction_archetypes.py`, `python analysis/R_metabolic_failure_predictors.py`
 
-## 6. Switch to every-other-day dosing with a clickpen
+## 6. Switch to every-3-day dosing with a clickpen
 
 The weekly 12.5 mg injection creates a sawtooth in blood level that wastes drug at peak and underdelivers at trough. The PK model (t½ = 5.0 days, Tmax = 24h, ka = 3.31/day; FDA prescribing information) gives steady-state blood levels of 8.0 at trough (day 6) and 17.9 at peak (day 1) — a 2.2× swing. Since appetite suppression scales at -74.5 cal per unit blood level (AX, within-week identification), this produces a 739 cal/day sawtooth in appetite pressure. Observed intake confirms: injection day 1643 cal, trough day 2222 cal — a 580 cal swing.
 
 **The problem is asymmetric waste.** At peak (17.9 units), the model predicts 1332 cal of appetite suppression — but observed day-1 intake is ~1700 cal, implying actual suppression of ~300-400 cal. The drug saturates. At trough (8.0 units), suppression drops to 593 cal and binges cluster on days 4-5. The peak is wasted; the trough is where the drug fails.
 
-**Redistribute the same 50 mg/month using a clickpen at higher frequency.** The KwikPen delivers 60 clicks per full dose (0.6 mL); at the 12.5 mg strength each click = 0.208 mg. At steady state:
+**Redistribute using a clickpen at higher frequency.** All KwikPen strengths deliver 60 clicks per full dose (0.6 mL). At the 12.5 mg strength, each click = 0.2083 mg. At steady state:
 
-| Schedule | Clicks | Inj/mo | Trough | Peak | Mean | CV | Trough suppression | Sawtooth |
-|---|---|---|---|---|---|---|---|---|
-| 12.5 mg q7d (current) | 60 | 4 | 8.0 | 17.9 | 12.9 | 25% | 593 cal | 739 cal |
-| 5.4 mg q3d | 26 | 9 | 10.8 | 14.4 | 12.8 | 9% | 808 cal | 262 cal |
-| 3.5 mg q2d (EOD) | 17 | 14 | 11.7 | 13.6 | 12.9 | 5% | 868 cal | 148 cal |
+| Schedule | Clicks | Inj/mo | mg/mo | Trough | Peak | Mean | CV | Trough suppression | Sawtooth |
+|---|---|---|---|---|---|---|---|---|---|
+| 12.5 mg q7d (current) | 60 | 4 | 50.0 | 8.0 | 17.9 | 12.9 | 25% | 593 cal | 739 cal |
+| **5.2 mg q3d (recommended)** | **25** | **9.3** | **48.6** | **10.5** | **13.9** | **12.5** | **9%** | **781 cal** | **248 cal** |
+| 3.5 mg q2d (EOD) | 17 | 14 | 49.0 | 11.7 | 13.6 | 12.9 | 5% | 868 cal | 148 cal |
 
-Mean blood level is identical across all schedules (dose rate / ke = 1.79 mg/day / 0.1386/day = 12.9 units). Total monthly exposure (AUC) is identical. Every-3-days captures 65% of the sawtooth reduction (739→262 cal) with 9 injections/month. EOD captures 80% (739→148 cal) with 14. Diminishing returns from q3d to q2d: 5 extra injections buy only 60 cal more trough suppression.
+Every-3-days captures 66% of the sawtooth reduction (739→248 cal) with 9 injections/month. EOD captures 80% (739→148 cal) with 14. Diminishing returns from q3d to q2d: 5 extra injections buy only 87 cal more trough suppression.
+
+**Predicted intake by day of cycle.** Calibrated from the observed q7d sawtooth (baseline = observed mean intake + 74.5 × mean blood level = 2899 cal):
+
+| | Day 0 (injection) | Day 1 (peak) | Day 2 (trough) |
+|---|---|---|---|
+| Blood level | 10.5 | 13.7 | 12.1 |
+| Predicted intake | 2114 cal | 1878 cal | 1998 cal |
+
+Compare to current q7d: intake swings from 1572 (day 1) to 2306 (day 0) — a 734 cal range. On q3d: 1878 to 2114 — a **248 cal range**. The worst day on q3d (2114 cal, injection day before absorption) is better than the worst day on q7d (2222-2306 cal, days 5-6).
+
+**Pen consumption guide.** Each injection: 1 click prime + 25 clicks dose = 26 clicks. Each 12.5 mg KwikPen holds 240 clicks. One pen yields 9 full injections with 6 clicks remaining; the 10th injection bridges across pens.
+
+| Injection | Day | Pen | Notes |
+|---|---|---|---|
+| 1-9 | 0-24 | Pen 1 | 26 clicks each; 6 remaining after #9 |
+| 10 | 27 | Pen 1→2 | Prime 1 + 5 clicks from pen 1, swap, 20 clicks from pen 2 |
+| 11-18 | 30-51 | Pen 2 | 26 clicks each; 12 remaining after #18 |
+| 19 | 54 | Pen 2→3 | Prime 1 + 11 clicks from pen 2, swap, 14 clicks from pen 3 |
+| 20-27 | 57-78 | Pen 3 | 26 clicks each; 18 remaining after #27 |
+| 28 | 81 | Pen 3→4 | Prime 1 + 17 clicks from pen 3, swap, 8 clicks from pen 4 |
+
+The cycle repeats every 90 days / 4 pens. Consumption: **1.08 pens per month**, zero waste.
 
 **Flatter dosing does not accelerate tachyphylaxis.** This was the key concern — does eliminating the weekly trough remove a recovery window that slows receptor desensitization? The literature resolves this clearly by showing that GLP-1R effects desensitize through two independent pathways with opposite behavior:
 
@@ -103,9 +125,34 @@ Mean blood level is identical across all schedules (dose rate / ke = 1.79 mg/day
 
 **Injection time of day does not matter.** With t½=5 days, the waking-hours fraction of drug absorption varies only 63-68% across all injection times (noon vs midnight). Regression of intake on injection hour, controlling for effective level and calendar time, shows no effect (t=-0.56). The 12-hour drift from noon to midnight injections over 2024-2026 is cosmetic — the apparent correlation with rising intake is entirely absorbed by tachyphylaxis (r=0.894 between injection hour and days on drug).
 
-**Priority: switch to 26 clicks (5.4 mg) every 3 days, or 17 clicks (3.5 mg) EOD. Same drug, same cost, same tachyphylaxis — 65-80% less sawtooth, 36-46% stronger trough. Inject at any consistent time.**
+**Priority: switch to 25 clicks (5.2 mg) every 3 days. Same drug, 1.08 pens/month, same tachyphylaxis — 66% less sawtooth, 32% stronger trough. Inject at any consistent time.**
 
 Command: `python analysis/AX_drug_model.py`
+
+### Preregistered prediction (2026-04-01): q3d intake model
+
+Switched from 12.5 mg q7d to 25 clicks (5.2 mg) q3d on 2026-04-01. Model G fitted to 529 days of q7d data predicts intake from two drug mechanisms:
+
+```
+calories = 2271 + (-102.5) × (blood - EMA₁ᵈ(blood)) + (-53.5) × blood × exp(-0.0126 × weeks)
+           base   acute (response to Δblood)            tonic (decaying steady-state suppression)
+```
+
+The acute term (-102.5 cal/unit deviation from 1-day EMA of blood level) captures within-cycle sawtooth. The tonic term (-53.5 cal/unit × blood, HL=55 weeks) captures long-run suppression. The multiplicative model (AX: -74.5 × blood × tachy) fails to predict the 2026 sawtooth because it crushes the within-week slope to -19 cal/unit at 80 weeks, while observed is -70.
+
+**Predictions for q3d weeks 1-4 (Apr 4 onward, after transition):**
+
+| | q3d predicted | q7d counterfactual |
+|---|---|---|
+| Mean intake | 2046 cal | 2053 cal |
+| Intake range | 1977-2122 cal | 1667-2256 cal |
+| Intake std | 68 cal | 197 cal |
+| Mean deficit (vs TDEE 2063) | -17 cal/day | -10 cal/day |
+| Fat loss | ~0.1 lbs/month | ~0.1 lbs/month |
+
+The model predicts q3d and q7d produce identical mean intake (±7 cal). The acute component nearly vanishes on q3d (blood deviations ±0.6 units vs ±5 on q7d) while tonic suppression is unchanged. The q3d intake range narrows from 589 to 145 cal. Model G has 4 parameters fit to 529 days; possible overfit of the acute term. If the observed q3d sawtooth is larger than 145 cal or mean intake diverges from 2046 by more than ±100 cal, the model is wrong.
+
+Command: `python analysis/BA_q3d_prediction.py`
 
 ## What the data says doesn't matter
 

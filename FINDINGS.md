@@ -318,6 +318,44 @@ Command: `python analysis/AY_sp_from_regain.py`, `python analysis/AZ_sp_model_se
 
 Command: `python analysis/AX_drug_model.py`, `python analysis/AV_surmount_simulation.py`
 
+## BZ. Two-component drug effect model (acute + decaying tonic)
+
+AX's multiplicative tachyphylaxis model (drug = -74.5 × blood × exp(-decay × wk)) correctly identifies within-week sensitivity and between-week decay, but fails forward prediction: at 80 weeks it predicts a 130-cal sawtooth while the observed sawtooth is still 650 cal. The multiplicative assumption — that tachyphylaxis scales down within-week sensitivity — is wrong. Era-stratified within-week slopes confirm this: the slope decays only from -105 to -70 cal/unit over 80 weeks (33%), not the 74% the exponential demands.
+
+**Two-component model.** The drug effect decomposes into acute response and decaying tonic suppression:
+
+    drug_effect = 2×tonic × (blood - EMA₁ᵈ(blood)) + tonic × blood × exp(-0.0126 × weeks)
+
+The acute term responds to blood level *changes* relative to a 1-day adapted baseline. It captures the injection-day sawtooth and does not decay — consistent with GLP-1 receptor recycling (beta-arrestin-mediated desensitization recovers within ~6 hours; Jones et al., doi:10.1038/s41467-018-03941-2). The tonic term captures sustained mean suppression that erodes with a 55-week half-life as hypothalamic circuits adapt to chronic receptor occupancy. The 2:1 ratio between acute and tonic is locked from the unconstrained subject fit (2.45:1, rounded to 2:1).
+
+**Subject fit (constrained, 1 free parameter).** tonic = -47 cal/unit, acute = -94 cal/unit. RMSE = 332 (vs 363 multiplicative), r = 0.54 (vs 0.47). Sawtooth prediction by era:
+
+| Era | Observed swing | Two-component | Multiplicative |
+|---|---|---|---|
+| Weeks 0-20 | +191 cal | +167 cal | +73 cal |
+| Weeks 20-40 | +536 cal | +370 cal | +159 cal |
+| Weeks 40-60 | +589 cal | +523 cal | +171 cal |
+| Weeks 60-80 | +653 cal | +529 cal | +130 cal |
+
+The multiplicative model underpredicts the 2026 sawtooth by 5×. The two-component model tracks it within 20%.
+
+**Trial validation (no set point, pure drug + MSJ-scaled TDEE).** Sweeping tonic across SURMOUNT-1, SURMOUNT-2, and SURMOUNT-4 with locked structure (adapt=1d, HL=55wk, 2:1 ratio):
+
+| Trial | Dose | Simulated | Published | Δ |
+|---|---|---|---|---|
+| SURMOUNT-1 | 5mg | -8.7% | -16.0% | +7.3% |
+| SURMOUNT-1 | 10mg | -16.0% | -21.4% | +5.4% |
+| SURMOUNT-1 | 15mg | -22.0% | -22.5% | +0.5% |
+| SURMOUNT-2 | 10mg | -16.6% | -12.8% | -3.8% |
+| SURMOUNT-2 | 15mg | -22.9% | -14.7% | -8.2% |
+| SURMOUNT-4 | 15mg | -11.1% | -20.0% | +8.9% |
+
+Best trial tonic: -65 cal/unit (SSE=244 across 6 arms). SURMOUNT-1 15mg is within 0.5%. The residual pattern is structural, not a tachyphylaxis failure: 5mg underpredicted (missing set point pressure that opposes the weak drug), SURMOUNT-2 overpredicted (T2D diverts GLP-1 to glucose control), SURMOUNT-4 underpredicted (36-week window misses that intake exceeded TDEE at baseline — these subjects were gaining).
+
+**Subject vs trial tonic.** Subject: -47 cal/unit (logged-calorie basis), corrected for 7% undercount: -51 cal/unit. Trial best: -65. The 22% gap is consistent with body composition differences (subject at 27% body fat vs trial population at 40%). For standard weekly dosing, the two-component and multiplicative models produce identical predictions (the acute term averages to zero over each cycle). **The models diverge only when dosing frequency changes** — which is exactly where the two-component model is needed for the q3d dosing recommendation.
+
+Command: `python analysis/BZ_drug_twocomponent.py`
+
 # Intake characterization
 
 The set point (AG/AM) controls mean daily surplus at r = -0.92. But what shapes day-to-day intake beyond the set point? Several dietary hypotheses predict intake modulation that should be visible in this dataset.

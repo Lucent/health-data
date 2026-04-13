@@ -93,6 +93,7 @@ python analysis/AP_overshoot_shape.py            — 90d mean surplus (r=-0.94) 
 python analysis/AQ_tirz_set_point_coverage.py    — drug coverage in lbs/cal per arm, tachyphylaxis erosion
 python analysis/AW_tirz_reconcile.py             — superseded by AX (confounded SP/drug decomposition)
 python analysis/AX_drug_model.py                 — clean drug model: -74.5 cal/unit within-week, 35wk cumulative tachy
+python analysis/BZ_drug_twocomponent.py          — two-component drug model: acute (-94/unit) + decaying tonic (-47/unit, HL=55wk)
 python analysis/AV_surmount_simulation.py        — preliminary SURMOUNT simulation (15mg within 2.2% of published)
 python analysis/AY_sp_from_regain.py             — derive SP adaptation from SURMOUNT-4 regain
 python analysis/AZ_sp_model_search.py            — exhaustive search: SmoothLatch fits subject + SURMOUNT + STEP-1
