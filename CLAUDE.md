@@ -49,22 +49,20 @@ python workout/merge.py                → workout/strength.csv (PDFs + Chloe xl
 #
 # Each component is estimated from independent raw data:
 #   P1: weight + intake(carbs, sodium) → water corrections
-#   P2: composition scans + RMR calorimetry → daily FM/FFM + fitted RMR
+#   P2: composition scans + RMR calorimetry → daily FM/FFM + fitted RMR (used as TDEE prior only;
+#       P4 no longer mean-reverts TDEE to P2's anchor)
 #   AA: composition scans + strength sessions → training delta + half-life
-#   P4: combines P1 observations + P2 lean mass + AA training + intake → Kalman FM + TDEE
-#
-# P2 interpolates FM/FFM linearly between scans — it ignores energy balance.
-# This is the weakest link: between scans, it misses weight changes that
-# intake + weight observations capture. P4's Kalman FM is better between
-# scans, but feeding P4 output back into P2 would create circularity.
-# The 70 composition scans (median 39 days apart) limit the interpolation error.
+#   P4: 4-state Kalman (FM, LM, BUF, TDEE) anchored to weight + composition scans only.
+#       Lean mass is now a state, not an interpolated input. TDEE drifts freely with rate
+#       caps and no anchor. BUF is a bounded transient buffer for non-glycogen
+#       water/gut variation. Calorimetry RMR observations are held out for posterior validation.
+#       See FINDINGS.md "Kalman filter appendix" for design and constants.
 
 python analysis/P0_tune_glycogen.py    — parameter tuning (run once to derive P1 constants)
 python analysis/P1_glycogen_smooth.py  → analysis/P1_smoothed_weight.csv
 python analysis/P2_rmr_model.py        → analysis/P2_daily_composition.csv
 python analysis/P3_interpolate_weight.py → analysis/P3_daily_weight.csv
-python analysis/P4_kalman_filter.py    → analysis/P4_kalman_daily.csv (v1: composition-interpolated lean)
-python analysis/P4_kalman_filter_v2.py → analysis/P4_kalman_daily.csv (v2: training-adjusted lean, current default)
+python analysis/P4_kalman_filter.py    → analysis/P4_kalman_daily.csv + analysis/P4_kalman_sweep.csv
 python analysis/P5_plot_models.py      → P5_plot_*.png diagnostic plots
 
 # Standalone claim reproducers (each prints the numbers cited in README/THEORIES)
@@ -91,13 +89,17 @@ python analysis/AN_ratchet_profile.py            — profile likelihood for ratc
 python analysis/AO_tirz_asymmetric_defense.py    — tirz suppresses below-SP expenditure defense selectively
 python analysis/AP_overshoot_shape.py            — 90d mean surplus (r=-0.94) beats all binary thresholds
 python analysis/AQ_tirz_set_point_coverage.py    — drug coverage in lbs/cal per arm, tachyphylaxis erosion
-python analysis/AW_tirz_reconcile.py             — superseded by AX (confounded SP/drug decomposition)
+python analysis/AU_noncircular_set_point.py      — non-circular SP test from observed weigh-ins only (HL 35-50d)
 python analysis/AX_drug_model.py                 — clean drug model: -74.5 cal/unit within-week, 35wk cumulative tachy
-python analysis/BZ_drug_twocomponent.py          — two-component drug model: acute (-94/unit) + decaying tonic (-47/unit, HL=55wk)
+python analysis/BZ_drug_twocomponent.py          — two-component drug model: acute (-126/unit) + tonic (-63/unit) with AUC-based tachyphylaxis (K_AUC ≈ 0.0034/unit-wk)
 python analysis/AV_surmount_simulation.py        — preliminary SURMOUNT simulation (15mg within 2.2% of published)
 python analysis/AY_sp_from_regain.py             — derive SP adaptation from SURMOUNT-4 regain
 python analysis/AZ_sp_model_search.py            — exhaustive search: SmoothLatch fits subject + SURMOUNT + STEP-1
 python analysis/BD_smooth_latch.py               — SmoothLatch model: all key numbers, trial predictions, scenarios
+python analysis/BG_trial_regain_search.py        — trial-only SP fit (no subject data): same latch family wins
+python analysis/BR_sp_surplus_identifiability.py — 2D ridge: HL × surplus window are partially interchangeable
+python analysis/BK_control_stock_model.py        — willpower-era stock model; 26% impossible days under one stock
+python analysis/BA_q3d_prediction.py             — preregistered q3d intake prediction from two-component drug model
 python analysis/AS_temperature_baseline.py       — empirical circadian curve (0.90°F, wake-anchored), per-reading baseline
 python analysis/AT_temperature_retest.py         — re-tests all X claims with baseline-corrected temperatures
 ```
@@ -175,36 +177,18 @@ python analysis/AT_temperature_retest.py         — re-tests all X claims with 
 
 ### analysis/P4_kalman_daily.csv
 
-The Kalman filter is the basis of all TDEE and fat mass estimates used in FINDINGS.md. Every finding that references TDEE, TDEE/RMR ratio, fat mass trajectory, or metabolic adaptation depends on this model.
+The Kalman filter underlies every TDEE, FM, and LM estimate cited in FINDINGS. See FINDINGS "Kalman filter appendix" for the design. Summary:
 
-**Model.** Two latent states: fat mass (lbs) and TDEE (cal/day). Lean mass is a known input, not a state variable — it comes from linear interpolation between 70 InBody/BOD POD scans, adjusted for strength training effects (finding AA: 41g per session, 275-day half-life). The filter observes `smoothed_weight - known_lean = fat_mass + noise` on the 1,544 days with weigh-ins, and predicts forward through gaps using the energy balance.
+**4 latent states.** FM (lbs), LM (lbs), BUF (lbs — bounded transient buffer for non-glycogen, non-sodium water/gut variation, ±3 lb cap, HL=5d, decays toward 0), TDEE (cal/day, free random walk with rate cap, no anchor).
 
-**Process model (daily):**
-- `fat_mass(t+1) = fat_mass(t) + (logged_intake(t) - tdee(t)) × forbes_fat_fraction / 3500`
-- `tdee(t+1) = tdee(t) + 0.005 × (expected_rmr(t) × 1.15 - tdee(t)) + noise`
-- Forbes fat fraction partitions surplus/deficit between fat and lean based on current fat mass. At high FM (80 lbs), ~95% of weight change is fat. At low FM (20 lbs), ~80%.
-- TDEE mean-reverts toward the composition-aware expected RMR × 1.15 (sedentary activity factor) at 0.5% per day. This prevents unbounded drift during long gaps without weight observations but allows the filter to discover TDEE from the data when observations are dense.
+**Forbes-coupled energy partition.** `deficit = dFM × 3500 + dLM × 1100`, `dFM/dW = ff(FM, workouts/wk)` where `ff_base = 1 − C²/(C+FM_kg)²`, C = 10.4 kg, plus a workout modulation per CB (α = 0.084 per workout/wk). Hard daily-rate caps from physiology: FM gain ≤ +0.5 lb/day; FM loss ≤ FM × 31/3500 lb/day (Alpert ceiling); |dTDEE/dt| ≤ 100 cal/day.
 
-**Constants.** These control the tradeoff between TDEE responsiveness and smoothness:
-- `Q_FAT = 0.005 lbs²/day` — fat mass process noise. Small but nonzero. Absorbs the ~7% intake undercount (logged calories are lower than actual; the filter lets observations correct the resulting drift).
-- `Q_TDEE = 500 cal²/day` — TDEE process noise (~22 cal/day std). Allows TDEE to respond to restriction runs and metabolic adaptation within their timescales (days to weeks). Chosen over Q=200 (smoother but too stiff to detect restriction effects) and Q=1000 (responsive but TDEE wanders too much on quiet days).
-- `R = 0.97 lbs²` — observation noise. Measured from consecutive-day weight variance after glycogen+sodium correction. Represents gut contents, non-dietary hydration, and scale positioning.
+**Calorimetry observations are held out** — never used by the filter; they're a posterior validation channel.
 
-**Why Q_TDEE=500.** The restriction archetype and hysteresis findings (J, K, L, M) examine TDEE changes around 3-30 day restriction runs. At Q=200, TDEE can shift at most ~17 cal over a 7-day run — too little to detect the effects being tested. At Q=500, TDEE can shift ~27 cal over 7 days, allowing the filter to track within-run metabolic changes. The cost is 0.2 lbs more FM error (3.0 vs 2.8) and slightly noisier TDEE on stable days. The innovation lag-1 autocorrelation is 0.35 at Q=500 vs 0.39 at Q=200 — closer to white noise, indicating better model fit.
-
-**Intake is treated as logged, not corrected.** The filter does not adjust for the ~7% undercount. TDEE is therefore "logged-calorie TDEE" — the expenditure that balances logged intake against observed weight. This is systematically lower than true TDEE by the undercount. The 25 Cosmed calorimetry measurements validate the result: TDEE/RMR ratios of 1.01-1.31 (expect ~1.15-1.20 for sedentary). The gap below 1.20 at most dates is the undercount, visible but not fed back into the model. A v3 filter that estimates intake bias as a third state was tested but the bias and TDEE are nearly degenerate — they can't be separated from weight observations alone without more frequent calorimetry.
-
-**Known limitation.** During the 2017-2018 keto era, BIA composition scans overreport fat loss due to keto-induced dehydration (reduced insulin → sodium/water excretion beyond what the glycogen/sodium model captures). The filter's FM during keto is 6-12 lbs higher than BIA readings. Outside keto, FM MAE at scans is 2.2 lbs.
-
-**Two versions available:**
-- `P4_kalman_filter.py` (v1): original, composition-interpolated lean
-- `P4_kalman_filter_v2.py` (v2): training-adjusted lean, current default
-- `P4_kalman_filter_v3.py` (v3): experimental, estimates intake bias as third state
-
-`date, fat_mass_lbs_filtered, fat_mass_std_filtered, tdee_filtered, tdee_std_filtered, fat_mass_lbs, fat_mass_std, tdee, tdee_std, innovation`
-- `*_filtered` columns are causal estimates available on that date (forward filter only)
-- Unsuffixed `fat_mass_lbs` / `tdee` are retrospective RTS-smoothed estimates using future weigh-ins
-- Innovation is the prediction error at each weight observation (should be approximately white noise)
+`date, fat_mass_lbs_filtered, fat_mass_std_filtered, tdee_filtered, tdee_std_filtered, fat_mass_lbs, fat_mass_std, tdee, tdee_std, innovation, lm_lbs, buf_lbs`
+- `fat_mass_lbs` and `tdee` (with `_filtered` aliases) are the smoothed FM and TDEE states.
+- `lm_lbs` and `buf_lbs` expose the lean-mass and transient-buffer states for downstream analyses (CB, CC, etc.).
+- Innovation is the weight prediction residual (approximately white noise; current lag-1 ACF ≈ 0.08).
 
 ## Known pitfalls
 - **Dry lean mass vs total lean mass**: InBody XLSX column 5 ("Lean Mass") contains dry lean mass (protein + minerals, ~38 lbs), not total lean mass (~140 lbs including water). Always derive lean mass as `weight - fat_mass`. The InBody CSV exports have the correct column names.

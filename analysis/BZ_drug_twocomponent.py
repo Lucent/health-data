@@ -76,7 +76,12 @@ def blood_on_day(schedule, day):
 # MODEL PARAMETERS
 # ═══════════════════════════════════════════════════════════════════
 ADAPT_HL = 1.0        # day — EMA half-life for adapted baseline
-TONIC_DECAY = 0.0126  # per week → HL = ln(2)/0.0126 = 55 weeks
+# Tachyphylaxis is occupancy-time-based, not calendar-time-based: receptor
+# desensitization scales with cumulative AUC of blood level, not elapsed weeks.
+# Calendar-time made low-dose trial arms wrongly match high-dose tachyphylaxis;
+# the AUC form fits the slope of (sim − published) across SURMOUNT-1 dose arms.
+# K_AUC is fit from subject data below; this constant is the seed.
+K_AUC_INIT = 0.001  # per (unit blood × week of integrated exposure)
 ACUTE_RATIO = 2.0     # acute_slope = ACUTE_RATIO × tonic_slope
 FORBES_FAT_FRAC = 0.85
 
@@ -113,6 +118,8 @@ def fit_subject():
     df = df[df["blood_level"] > 0].sort_values("date").reset_index(drop=True)
     drug_start = df["date"].min()
     df["cum_weeks"] = (df["date"] - drug_start).dt.days / 7
+    # AUC: cumulative integral of blood level (unit-weeks)
+    df["cum_auc"] = df["blood_level"].cumsum() / 7
 
     # SP pressure (to isolate drug effect in the target)
     SP_HL, SP_CAL_PER_LB = 45, 27
@@ -130,62 +137,68 @@ def fit_subject():
 
     blood = df["blood_level"].values
     target = df["target"].values
-    cum_weeks = df["cum_weeks"].values
+    cum_auc = df["cum_auc"].values
     n = len(df)
 
     ema = compute_ema(blood, ADAPT_HL)
     deviation = blood - ema
 
-    # Fit: target = base + acute×deviation + tonic×blood×exp(-decay×wk)
-    # With constraint: acute = 2 × tonic
+    # Fit: target = acute×deviation + tonic×blood×exp(-K_AUC × cum_AUC)
+    # With constraint: acute = 2 × tonic.  K_AUC and tonic fit jointly.
     def objective(params):
-        tonic = params[0]
+        tonic, k_auc = params
+        if k_auc < 0:
+            return 1e12
         acute = ACUTE_RATIO * tonic
-        pred = acute * deviation + tonic * blood * np.exp(-TONIC_DECAY * cum_weeks)
+        pred = acute * deviation + tonic * blood * np.exp(-k_auc * cum_auc)
         return np.mean((target - pred) ** 2)
 
-    res = minimize(objective, [-55], method="Nelder-Mead")
-    tonic = res.x[0]
+    res = minimize(objective, [-55, K_AUC_INIT], method="Nelder-Mead")
+    tonic, k_auc = res.x
     acute = ACUTE_RATIO * tonic
-    pred = acute * deviation + tonic * blood * np.exp(-TONIC_DECAY * cum_weeks)
+    pred = acute * deviation + tonic * blood * np.exp(-k_auc * cum_auc)
     rmse = np.sqrt(np.mean((target - pred) ** 2))
     r = np.corrcoef(target, pred)[0, 1]
+    auc_hl = math.log(2) / k_auc if k_auc > 0 else float("inf")
 
-    # Also fit unconstrained for comparison
+    # Unconstrained two-component
     def obj_free(params):
-        acute_f, tonic_f = params
-        pred_f = acute_f * deviation + tonic_f * blood * np.exp(-TONIC_DECAY * cum_weeks)
+        acute_f, tonic_f, k_f = params
+        if k_f < 0:
+            return 1e12
+        pred_f = acute_f * deviation + tonic_f * blood * np.exp(-k_f * cum_auc)
         return np.mean((target - pred_f) ** 2)
 
-    res_free = minimize(obj_free, [-100, -55], method="Nelder-Mead")
-    acute_free, tonic_free = res_free.x
-    pred_free = acute_free * deviation + tonic_free * blood * np.exp(-TONIC_DECAY * cum_weeks)
+    res_free = minimize(obj_free, [-100, -55, K_AUC_INIT], method="Nelder-Mead")
+    acute_free, tonic_free, k_free = res_free.x
+    pred_free = acute_free * deviation + tonic_free * blood * np.exp(-k_free * cum_auc)
     rmse_free = np.sqrt(np.mean((target - pred_free) ** 2))
     r_free = np.corrcoef(target, pred_free)[0, 1]
 
-    # Multiplicative model (AX) for comparison
+    # Multiplicative model (single-term, AUC form) for comparison
     def obj_mult(params):
-        slope, decay = params
-        if decay < 0:
+        slope, k_m = params
+        if k_m < 0:
             return 1e12
-        pred_m = slope * blood * np.exp(-decay * cum_weeks)
+        pred_m = slope * blood * np.exp(-k_m * cum_auc)
         return np.mean((target - pred_m) ** 2)
 
-    res_mult = minimize(obj_mult, [-65, 0.02], method="Nelder-Mead")
-    slope_m, decay_m = res_mult.x
-    pred_mult = slope_m * blood * np.exp(-decay_m * cum_weeks)
+    res_mult = minimize(obj_mult, [-65, K_AUC_INIT], method="Nelder-Mead")
+    slope_m, k_mult = res_mult.x
+    pred_mult = slope_m * blood * np.exp(-k_mult * cum_auc)
     rmse_mult = np.sqrt(np.mean((target - pred_mult) ** 2))
     r_mult = np.corrcoef(target, pred_mult)[0, 1]
-    hl_mult = math.log(2) / decay_m if decay_m > 0 else float("inf")
+    hl_mult = math.log(2) / k_mult if k_mult > 0 else float("inf")
 
     print("=" * 70)
-    print("1. SUBJECT FIT (529 on-drug days)")
+    print("1. SUBJECT FIT (529 on-drug days; AUC-based tachyphylaxis)")
     print("=" * 70)
-    print(f"\n  Multiplicative (AX-style): slope={slope_m:+.1f}, HL={hl_mult:.0f}wk")
+    print(f"\n  Multiplicative (single-term): slope={slope_m:+.1f}, K_AUC={k_mult:.5f}/unit-wk, HL={hl_mult:.0f} unit-wk")
     print(f"    RMSE={rmse_mult:.0f}, r={r_mult:.3f}")
-    print(f"\n  Two-component (unconstrained): acute={acute_free:+.1f}, tonic={tonic_free:+.1f}")
+    print(f"\n  Two-component (unconstrained): acute={acute_free:+.1f}, tonic={tonic_free:+.1f}, K_AUC={k_free:.5f}/unit-wk")
     print(f"    ratio={acute_free / tonic_free:.2f}:1, RMSE={rmse_free:.0f}, r={r_free:.3f}")
-    print(f"\n  Two-component (acute=2×tonic): acute={acute:+.1f}, tonic={tonic:+.1f}")
+    print(f"\n  Two-component (acute=2×tonic): acute={acute:+.1f}, tonic={tonic:+.1f}, K_AUC={k_auc:.5f}/unit-wk")
+    print(f"    AUC half-life: {auc_hl:.1f} unit-weeks")
     print(f"    RMSE={rmse:.0f}, r={r:.3f}")
 
     # Sawtooth validation by era
@@ -208,7 +221,7 @@ def fit_subject():
                     - sub[sub["days_since_injection"].isin([0, 1])]["pred_mult"].mean())
         print(f"  {label:<20} {obs_swing:>+8.0f} {p2c_swing:>+11.0f} {pm_swing:>+14.0f}")
 
-    return tonic
+    return tonic, k_auc
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -232,9 +245,14 @@ def build_tirz_schedule(target_mg, n_weeks):
     return schedule
 
 
-def simulate_trial(start_kg, target_mg, n_weeks, fm_frac, tonic_slope,
+def simulate_trial(start_kg, target_mg, n_weeks, fm_frac, tonic_slope, k_auc,
                    height_cm, age, pct_female, pal=1.4):
-    """Pure drug effect simulation: intake = TDEE + drug_effect, no set point."""
+    """Pure drug effect simulation: intake = TDEE + drug_effect, no set point.
+
+    Tachyphylaxis is occupancy-time-based: tachy = exp(-k_auc × ∫blood dτ).
+    Low-dose arms accumulate AUC slowly and retain more drug effect over time
+    than the (wrong) calendar-time form would predict.
+    """
     acute_slope = ACUTE_RATIO * tonic_slope
     start_lbs = start_kg * 2.205
     n_days = n_weeks * 7 + 1
@@ -244,12 +262,14 @@ def simulate_trial(start_kg, target_mg, n_weeks, fm_frac, tonic_slope,
     lean = start_lbs * (1 - fm_frac)
     alpha_ema = 1 - math.exp(-math.log(2) / ADAPT_HL)
     blood_ema = 0.0
+    cum_auc = 0.0  # unit-weeks
 
     for d in range(1, n_days):
         blood = blood_on_day(schedule, d)
         blood_ema = blood_ema + alpha_ema * (blood - blood_ema)
         deviation = blood - blood_ema
-        tachy = math.exp(-TONIC_DECAY * d / 7)
+        cum_auc += blood / 7.0  # daily contribution to unit-weeks
+        tachy = math.exp(-k_auc * cum_auc)
         drug_effect = acute_slope * deviation + tonic_slope * blood * tachy
 
         weight_kg = (fm + lean) / 2.205
@@ -262,7 +282,7 @@ def simulate_trial(start_kg, target_mg, n_weeks, fm_frac, tonic_slope,
     return (weight_end - start_lbs) / start_lbs * 100
 
 
-def run_trials(tonic_slope, label=""):
+def run_trials(tonic_slope, k_auc, label=""):
     trials = {
         "SURMOUNT-1": {
             "desc": "Jastreboff NEJM 2022, non-diabetic",
@@ -290,7 +310,7 @@ def run_trials(tonic_slope, label=""):
     for name, t in trials.items():
         for dose, published in t["arms"].items():
             pct = simulate_trial(t["start_kg"], dose, t["n_weeks"], t["fm_frac"],
-                                 tonic_slope, t["height_cm"], t["age"], t["pct_female"])
+                                 tonic_slope, k_auc, t["height_cm"], t["age"], t["pct_female"])
             delta = pct - published
             total_sse += delta ** 2
             print(f"  {name:<14} {dose:>3}mg {pct:>+9.1f}% {published:>+9.1f}% {delta:>+6.1f}%")
@@ -299,11 +319,11 @@ def run_trials(tonic_slope, label=""):
     return total_sse
 
 
-def sweep_trials():
-    """Sweep tonic_slope across all trial arms."""
+def sweep_trials(k_auc):
+    """Sweep tonic_slope across all trial arms with the subject-derived K_AUC."""
     print(f"\n{'=' * 70}")
     print("2. TRIAL SWEEP (no set point, pure drug + MSJ TDEE)")
-    print("   Locked: acute=2×tonic, adapt=1d, tachy_HL=55wk")
+    print(f"   Locked: acute=2×tonic, adapt=1d, K_AUC={k_auc:.5f}/unit-wk (subject-fit)")
     print("=" * 70)
 
     # Show baseline TDEEs
@@ -325,53 +345,52 @@ def sweep_trials():
             (107.3, 15, 36, 0.455, 167, 46, 0.67, -20.0),
         ]
         for kg, dose, wk, fm, h, a, f, pub in trials:
-            pct = simulate_trial(kg, dose, wk, fm, tonic, h, a, f)
+            pct = simulate_trial(kg, dose, wk, fm, tonic, k_auc, h, a, f)
             sse += (pct - pub) ** 2
         if sse < best_sse:
             best_sse = sse
             best_tonic = tonic
 
     print(f"\n  Best tonic: {best_tonic:+.0f} (acute={2*best_tonic:+.0f}), SSE={best_sse:.1f}")
-    run_trials(best_tonic, "trial-best")
+    run_trials(best_tonic, k_auc, "trial-best")
     return best_tonic
 
 
 def main():
-    subject_tonic = fit_subject()
+    subject_tonic, subject_k_auc = fit_subject()
 
-    trial_tonic = sweep_trials()
+    trial_tonic = sweep_trials(subject_k_auc)
 
     # Subject-fitted values against trials
     print(f"\n{'=' * 70}")
     print("3. SUBJECT-FITTED tonic against trials")
     print("=" * 70)
     print(f"  Subject: tonic={subject_tonic:+.1f} (logged-calorie basis)")
+    print(f"  Subject K_AUC: {subject_k_auc:.5f}/unit-wk")
     print(f"  Undercount-corrected (~7%): {subject_tonic / 0.93:+.1f}")
-    run_trials(subject_tonic, "subject-fitted")
+    run_trials(subject_tonic, subject_k_auc, "subject-fitted")
 
     print(f"\n{'=' * 70}")
     print("4. SUMMARY")
     print("=" * 70)
     print(f"""
-  Formula:
-    drug_effect = {ACUTE_RATIO:.0f}×tonic × (blood - EMA(blood, {ADAPT_HL:.0f}d)) + tonic × blood × exp(-{TONIC_DECAY}×wk)
-                  ─────────────────────────────────────────  ──────────────────────────────────────
-                  acute: responds to blood level changes      tonic: sustained suppression, decays
+  Formula (AUC-based tachyphylaxis):
+    drug_effect = {ACUTE_RATIO:.0f}×tonic × (blood - EMA(blood, {ADAPT_HL:.0f}d))
+                  + tonic × blood × exp(-K_AUC × ∫blood dτ)
+                  ────────────────────────────────────────  ──────────────────────────────────
+                  acute: responds to blood-level changes    tonic: sustained suppression,
+                                                            erodes with cumulative exposure
 
-  Locked parameters (3):
+  Locked parameters (2):
     adapt_hl     = {ADAPT_HL:.0f} day    (grid-searched, best fit)
-    tonic_decay  = {TONIC_DECAY}/wk  (HL={math.log(2)/TONIC_DECAY:.0f} weeks)
     acute/tonic  = {ACUTE_RATIO:.0f}:1     (from subject ratio {-102.5/-53.5:.2f}:1, locked)
 
-  Free parameter (1):
-    tonic_slope — cal per unit blood level
-    Subject fit:           {subject_tonic:+.1f} cal/unit
-    Undercount-corrected:  {subject_tonic/0.93:+.1f} cal/unit
-    Trial best-fit:        {trial_tonic:+.0f} cal/unit
-    Ratio trial/corrected: {trial_tonic / (subject_tonic/0.93):.2f}x
-
-  The subject's tonic is {abs(subject_tonic/0.93 / trial_tonic - 1)*100:.0f}% below the trial value.
-  Consistent with body composition and individual variation.
+  Subject-fit parameters (2):
+    tonic_slope    = {subject_tonic:+.1f} cal/unit blood
+    K_AUC          = {subject_k_auc:.5f} per unit-week of cumulative exposure
+    AUC half-life  = {math.log(2)/subject_k_auc:.0f} unit-weeks
+    Undercount-corrected tonic: {subject_tonic/0.93:+.1f}
+    Trial best-fit tonic:       {trial_tonic:+.0f}
 """)
 
 

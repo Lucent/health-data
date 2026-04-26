@@ -39,11 +39,11 @@ Command: `python analysis/AZ_sp_model_search.py`
 
 ## 2. Walk sessions — the only validated calorie-burning lever
 
-+14 cal RMR per walk session (30d trailing count), validated by 23 calorimetry measurements (AD: CV RMSE 116, R²=0.49). On tirzepatide, walks matter more because the drug suppresses the body's natural metabolic boost during weight loss (AJ). Walks partially restore this (AL: partial r=0.19 on tirz vs 0.04 pre-tirz). At 15 walks/month: ~39 cal/day restored. At 20 walks/month: ~52 cal/day.
++14 cal RMR per walk session (30d trailing count), validated by 23 calorimetry measurements (AD: CV RMSE 116, R²=0.49). The drug suppresses the body's natural metabolic boost during weight loss (AJ); the previously-cited "walks partially rescue this" claim (AL) is **retracted** — the tirz-era walk coefficient is indistinguishable from zero. Walks still raise RMR per AD (calorimetry-anchored), so they remain worth doing — but the specific drug-era rescue mechanism was a filter-architecture artifact.
 
 The count of discrete outings matters more than total minutes (AD: sessions CV RMSE 116 beats minutes at 135) or total steps (179). Running adds nothing over walking at matched steps (AB: null).
 
-**Priority: walk frequently, especially while on drug.**
+**Priority: walk frequently for general RMR support; do not expect a specific drug-era rescue.**
 
 Command: `python analysis/AD_tdee_formula_sweep.py`, `python analysis/AL_walk_rescue_expenditure.py`
 
@@ -119,7 +119,7 @@ The cycle repeats every 90 days / 4 pens. Consumption: **1.08 pens per month**, 
 
 *Receptor recycling timescale:* Beta-arrestin-mediated GLP-1R desensitization recovers within ~6 hours of agonist removal (Jones et al., doi:10.1038/s41467-018-03941-2). But the current weekly trough (blood level 8.0) still provides heavy receptor occupancy — there is no meaningful off-period in the weekly cycle. True receptor recovery would require blood levels near zero for hours, i.e., a multi-day drug holiday, not the natural trough of weekly dosing.
 
-**Tachyphylaxis rate is unchanged.** The fitted tachyphylaxis model (35-week cumulative half-life, AX) is time-based, not occupancy-based. Since calendar time and total AUC are both identical across schedules, the tachyphylaxis trajectory is the same.
+**Tachyphylaxis rate is unchanged.** The fitted tachyphylaxis model is now AUC-based (BZ): erosion ∝ exp(−K_AUC × ∫blood dτ). Total AUC across a fixed monthly mg-dose is identical regardless of schedule (same drug per month, same blood-level integral), so the tachyphylaxis trajectory is the same on weekly vs every-3-day vs every-2-day dosing.
 
 **Expenditure arm is neutral.** The drug's metabolic suppression cost (-10.2 cal per unit blood level, AX) depends on mean level, which is unchanged at 12.9.
 
@@ -134,11 +134,11 @@ Command: `python analysis/AX_drug_model.py`
 Switched from 12.5 mg q7d to 25 clicks (5.2 mg) q3d on 2026-04-01. Model G fitted to 529 days of q7d data predicts intake from two drug mechanisms:
 
 ```
-calories = 2271 + (-102.5) × (blood - EMA₁ᵈ(blood)) + (-53.5) × blood × exp(-0.0126 × weeks)
-           base   acute (response to Δblood)            tonic (decaying steady-state suppression)
+calories = 2271 + (-126) × (blood - EMA₁ᵈ(blood)) + (-63) × blood × exp(-0.0034 × cum_AUC)
+           base   acute (response to Δblood)         tonic (suppression eroded by cumulative exposure)
 ```
 
-The acute term (-102.5 cal/unit deviation from 1-day EMA of blood level) captures within-cycle sawtooth. The tonic term (-53.5 cal/unit × blood, HL=55 weeks) captures long-run suppression. The multiplicative model (AX: -74.5 × blood × tachy) fails to predict the 2026 sawtooth because it crushes the within-week slope to -19 cal/unit at 80 weeks, while observed is -70.
+The acute term (-126 cal/unit deviation from 1-day EMA of blood level) captures within-cycle sawtooth. The tonic term (-63 cal/unit × blood) captures sustained suppression; its erosion is proportional to cumulative AUC of blood (∫blood dτ), not calendar time. Subject K_AUC ≈ 0.0034 / unit-week.
 
 **Predictions for q3d weeks 1-4 (Apr 4 onward, after transition):**
 
