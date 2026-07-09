@@ -10,9 +10,18 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parent.parent
 
 def main():
+    # Apply the same intake multiplier the canonical Kalman uses, so TDEE and
+    # intake are on the same "true expenditure" footing.
+    import sys
+    sys.path.insert(0, str(ROOT / "analysis"))
+    from P4_kalman_filter import INTAKE_MULTIPLIER
+
     kf = pd.read_csv(ROOT / "analysis" / "P4_kalman_daily.csv", parse_dates=["date"])
     intake = pd.read_csv(ROOT / "intake" / "intake_daily.csv", parse_dates=["date"])
     comp = pd.read_csv(ROOT / "analysis" / "P2_daily_composition.csv", parse_dates=["date"])
+
+    intake = intake.copy()
+    intake["calories"] = intake["calories"] * INTAKE_MULTIPLIER
 
     daily = intake.merge(kf[["date", "fat_mass_lbs", "tdee"]], on="date", how="left")
     daily = daily.merge(comp[["date", "expected_rmr"]], on="date", how="left")

@@ -7,8 +7,8 @@ States:
   TDEE (cal/d) — total daily expenditure, free random walk
 
 Design notes:
-  - LM is anchored to composition scans + the AA training term; otherwise evolves
-    via the lean fraction of energy balance with workout-modulated Forbes (CB).
+  - LM is anchored to composition scans; between scans it evolves via the lean
+    fraction of energy balance with workout-modulated Forbes (CB).
   - BUF is a generalized water/gut buffer that decays toward zero with HL ~5 days
     and is capped at ±3 lb. It absorbs daily weight noise that the P1 glycogen+sodium
     correction does not capture.
@@ -53,7 +53,10 @@ BUF_DECAY = np.exp(-np.log(2) / BUF_HL)
 # ── Process noise (Q) ─────────────────────────────────────────────────
 Q_FM = 0.005                   # lb²/day — daily FM std ≈ 0.07 lb
 Q_LM = 0.005                   # lb²/day — daily LM std ≈ 0.07 lb
-Q_BUF = 0.16                   # lb²/day — daily BUF std ≈ 0.4 lb
+Q_BUF = 0.32                   # lb²/day — daily BUF std ≈ 0.57 lb
+                               # (raised from 0.16 to absorb daily water/gut wobble that
+                               # otherwise leaked into TDEE drift; biological prior says
+                               # daily metabolism doesn't actually wiggle that much)
 
 # ── Observation noise (R) ─────────────────────────────────────────────
 R_WEIGHT = 0.97                # lb² — measured from consecutive-day weight variance
@@ -63,10 +66,15 @@ R_LM_SCAN = 2.25               # lb² — same
 R_BOOT_FM = 0.50               # tighter scan noise during burn-in for stable init
 R_BOOT_LM = 0.50
 
-# ── Training term (finding AA) ────────────────────────────────────────
-TRAINING_DELTA = 0.091         # lb LM per session
-TRAINING_HL = 275.0            # days
-TRAINING_DECAY = np.log(2) / TRAINING_HL
+# ── Intake undercount correction (finding A, CI) ─────────────────────
+# Logged intake is biased low by ~9% on this subject. CI's composite-optimum
+# uniform multiplier is 1.09; finding A's composition-aware energy-balance
+# check independently estimated 8-14% by phase. Applying 1.09 closes the
+# cumulative 15-year EB residual from −2.2 lb to −0.04 lb and slightly tightens
+# FM scan MAE. TDEE estimates rise ~9% — calorimetry-day TDEE/RMR ratios shift
+# to a mean of 1.28 (range 1.10-1.47), which is biologically defensible given
+# the subject's actual activity (walks, strength, cycling).
+INTAKE_MULTIPLIER = 1.09
 
 # ── Workout-modulated Forbes partition (finding CB) ──────────────────
 # CB regression on cuts: each workout/wk reduces lean fraction of weight loss
@@ -76,8 +84,8 @@ TRAINING_DECAY = np.log(2) / TRAINING_HL
 FORBES_WORKOUT_ALPHA = 0.084   # per workout/wk, additive to ff
 
 # ── Sweep grid ────────────────────────────────────────────────────────
-SIGMA_TDEE_GRID = [15, 30, 50]    # cal/day daily noise
-MAX_DTDEE_GRID = [30, 60, 100]    # cal/day hard cap
+SIGMA_TDEE_GRID = [15, 25, 35, 50]    # cal/day daily noise
+MAX_DTDEE_GRID = [60, 100]            # cal/day hard cap
 
 
 def load_data():
@@ -105,35 +113,9 @@ def forbes_fat_fraction(fm_lbs, workouts_per_wk=0.0):
     return float(np.clip(ff_modified, 0.0, 1.0))
 
 
-def compute_training_increment(dates, strength_dates):
-    """Daily LM increment from the AA training model.
-
-    On a workout day, add TRAINING_DELTA. The exponential decay of past sessions
-    is folded into LM dynamics naturally — we don't add a global stock; the
-    accumulated effect emerges from the daily increments minus the decay-implied
-    bleed. To avoid double-counting decay (LM doesn't decay on its own here), we
-    add the *net* daily increment: delta on workout days minus a small bleed
-    on non-workout days proportional to time-since-last-session.
-    """
-    n = len(dates)
-    workout_set = set(np.datetime64(d, "D") for d in strength_dates)
-    out = np.zeros(n)
-    accumulated = 0.0
-    for i in range(n):
-        d = np.datetime64(dates[i], "D")
-        if d in workout_set:
-            out[i] += TRAINING_DELTA
-            accumulated += TRAINING_DELTA
-        # bleed: accumulated × decay rate
-        bleed = accumulated * TRAINING_DECAY
-        out[i] -= bleed
-        accumulated -= bleed
-    return out
-
-
 def build_inputs(smooth, intake, strength, comp_scans, p2):
     dates = intake["date"].values
-    calories = intake["calories"].values
+    calories = intake["calories"].values * INTAKE_MULTIPLIER
     n = len(dates)
 
     expected_rmr = p2.set_index("date")["expected_rmr"].reindex(intake["date"]).values
@@ -159,10 +141,7 @@ def build_inputs(smooth, intake, strength, comp_scans, p2):
             # CLAUDE.md: derive LM as weight - fat_mass (raw "Lean Mass" col is dry lean)
             lm_scan[i] = row["weight_lbs"] - row["fat_mass_lbs"]
 
-    # Daily training increment for LM dynamics
-    training_inc = compute_training_increment(dates, strength["date"].values)
-
-    # Workouts per week, 30-day trailing — used to modulate Forbes partition
+    # Workouts per week, 30-day trailing — used to modulate Forbes partition (CB)
     workout_set = set(pd.to_datetime(strength["date"]).dt.normalize())
     workout_indicator = np.array([1 if pd.Timestamp(d).normalize() in workout_set else 0
                                   for d in dates], dtype=float)
@@ -170,11 +149,11 @@ def build_inputs(smooth, intake, strength, comp_scans, p2):
         pd.Series(workout_indicator).rolling(30, min_periods=1).sum().values * 7.0 / 30.0
     )
 
-    return dates, calories, weight_obs, fm_scan, lm_scan, expected_rmr, training_inc, workouts_per_wk
+    return dates, calories, weight_obs, fm_scan, lm_scan, expected_rmr, workouts_per_wk
 
 
 def kalman_v4_forward(calories, weight_obs, fm_scan, lm_scan, expected_rmr,
-                      training_inc, workouts_per_wk, fm_start, lm_start,
+                      workouts_per_wk, fm_start, lm_start,
                       sigma_tdee, max_dtdee):
     """Forward EKF on 4-state (FM, LM, BUF, TDEE)."""
     n = len(calories)
@@ -213,7 +192,7 @@ def kalman_v4_forward(calories, weight_obs, fm_scan, lm_scan, expected_rmr,
         e_per_lb = ff * E_FAT + (1 - ff) * E_LEAN
         dW_raw = deficit / e_per_lb
         dFM_raw = ff * dW_raw
-        dLM_raw = (1 - ff) * dW_raw + training_inc[i]
+        dLM_raw = (1 - ff) * dW_raw
 
         # Apply hard rate caps
         dFM = np.clip(dFM_raw, -fm * ALPERT_RATE, DFM_GAIN_CAP)
@@ -431,11 +410,11 @@ def diagnostics(dates, x_smooth, innovations, fm_scan, lm_scan, calories, rmr_df
     return out
 
 
-def run_one(dates, calories, weight_obs, fm_scan, lm_scan, expected_rmr, training_inc,
+def run_one(dates, calories, weight_obs, fm_scan, lm_scan, expected_rmr,
             workouts_per_wk, fm_start, lm_start, rmr_df, sigma_tdee, max_dtdee, temp_df=None):
     x_filt, P_filt, x_pred, P_pred, innov, first_scan = kalman_v4_forward(
         calories, weight_obs, fm_scan, lm_scan, expected_rmr,
-        training_inc, workouts_per_wk, fm_start, lm_start, sigma_tdee, max_dtdee,
+        workouts_per_wk, fm_start, lm_start, sigma_tdee, max_dtdee,
     )
     x_smooth, P_smooth = rts_smoother_v4(x_filt, P_filt, x_pred, P_pred, first_scan, workouts_per_wk)
     diag = diagnostics(dates, x_smooth, innov, fm_scan, lm_scan, calories, rmr_df,
@@ -445,7 +424,7 @@ def run_one(dates, calories, weight_obs, fm_scan, lm_scan, expected_rmr, trainin
 
 def main():
     smooth, intake, strength, comp_scans, rmr_df, p2, temp_df = load_data()
-    dates, calories, weight_obs, fm_scan, lm_scan, expected_rmr, training_inc, workouts_per_wk = \
+    dates, calories, weight_obs, fm_scan, lm_scan, expected_rmr, workouts_per_wk = \
         build_inputs(smooth, intake, strength, comp_scans, p2)
 
     first_scan = np.where(~np.isnan(fm_scan))[0][0]
@@ -471,7 +450,7 @@ def main():
         for max_dtdee in MAX_DTDEE_GRID:
             x_filt, x_smooth, innov, diag = run_one(
                 dates, calories, weight_obs, fm_scan, lm_scan, expected_rmr,
-                training_inc, workouts_per_wk, fm_start, lm_start, rmr_df,
+                workouts_per_wk, fm_start, lm_start, rmr_df,
                 sigma_tdee, max_dtdee, temp_df=temp_df,
             )
             results.append({

@@ -29,11 +29,11 @@ from BZ_drug_twocomponent import (
     simulate_trial, mifflin_tdee, ACUTE_RATIO, ADAPT_HL,
 )
 
-# Parameters from current BZ fits
-TRIAL_TONIC_NONDIABETIC = -113.0   # cal/unit blood, fit from SURMOUNT-1 alone
-SUBJECT_TONIC_LOGGED = -63.0       # cal/unit blood, subject fit (logged-calorie basis)
-SUBJECT_TONIC_CORRECTED = -68.0    # corrected for ~7% intake undercount
-K_AUC = 0.00337                    # /unit-week, subject-fit AUC tachyphylaxis
+# Parameters from current BZ fits (under canonical Kalman with INTAKE_MULTIPLIER=1.09)
+TRIAL_TONIC_NONDIABETIC = -78.0    # cal/unit blood, BZ trial best-fit
+SUBJECT_TONIC_LOGGED = -69.1       # cal/unit blood, BZ subject fit (already × 1.09 by canonical)
+SUBJECT_TONIC_CORRECTED = -74.3    # BZ's reported undercount-corrected value
+K_AUC = 0.00187                    # /unit-week, subject-fit AUC tachyphylaxis (BZ)
 
 # Published trial outcomes
 SURMOUNT_1 = {  # non-diabetic

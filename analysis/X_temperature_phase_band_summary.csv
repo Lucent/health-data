@@ -1,7 +1,8 @@
 fat_band_lbs,phase,on_tirz,n_days,mean_temp_f,mean_tdee_rmr_ratio
-60-70,falling,True,62,97.689,1.0716
-65-75,falling,True,86,97.643,1.0932
-70-80,falling,True,80,97.5032,1.1112
-75-85,falling,True,43,97.3526,1.1293
-75-85,stable,False,80,97.5937,1.2055
-75-85,stable,True,22,97.5534,1.2131
+60-70,falling,True,68,97.6654,1.1587
+65-75,falling,True,87,97.6448,1.1816
+70-80,falling,True,78,97.4929,1.2094
+75-85,falling,True,35,97.3491,1.2071
+75-85,rising,True,8,97.5526,1.3193
+75-85,stable,False,143,97.5374,1.3101
+75-85,stable,True,24,97.4988,1.2678

@@ -39,7 +39,7 @@ Command: `python analysis/AZ_sp_model_search.py`
 
 ## 2. Walk sessions — the only validated calorie-burning lever
 
-+14 cal RMR per walk session (30d trailing count), validated by 23 calorimetry measurements (AD: CV RMSE 116, R²=0.49). The drug suppresses the body's natural metabolic boost during weight loss (AJ); the previously-cited "walks partially rescue this" claim (AL) is **retracted** — the tirz-era walk coefficient is indistinguishable from zero. Walks still raise RMR per AD (calorimetry-anchored), so they remain worth doing — but the specific drug-era rescue mechanism was a filter-architecture artifact.
++14 cal RMR per walk session (30d trailing count), validated by 23 calorimetry measurements (AD: CV RMSE 116, R²=0.49). The drug suppresses the body's natural metabolic boost during weight loss (AJ); walks raise RMR per AD's calorimetry-anchored finding, so they remain worth doing. The Kalman-side "walks partially rescue tirz expenditure" channel is a null (AL).
 
 The count of discrete outings matters more than total minutes (AD: sessions CV RMSE 116 beats minutes at 135) or total steps (179). Running adds nothing over walking at matched steps (AB: null).
 
