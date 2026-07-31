@@ -188,7 +188,6 @@ def classify_daylight_walk_regimes(exercises: pd.DataFrame) -> pd.DataFrame:
             )
 
     out = pd.DataFrame(rows).sort_values(["date", "walk_regime"])
-    out.to_csv(WALK_DAYS_PATH, index=False)
     return out
 
 
@@ -310,6 +309,7 @@ def main() -> None:
     exercises, steps = load_data()
     type_summary = build_type_summary(exercises)
     walk_days = classify_daylight_walk_regimes(exercises)
+    walk_days.to_csv(WALK_DAYS_PATH, index=False)
     walk_summary = summarize_walk_regimes(walk_days, steps)
     walk_contrast = build_walk_contrast(walk_days, steps)
 

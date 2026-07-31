@@ -2,7 +2,7 @@
 """Merge strength training dates from all sources into canonical strength.csv.
 
 Sources (priority on date overlap: PDF > Chloe > MFP):
-  workout/*.pdf            — ActivTrax YMCA sessions (2018-01 to 2025-10)
+  workout/*.pdf            — ActivTrax YMCA sessions (2018-01 onward)
   workout/Chloe Workout.xlsx — personal trainer sessions (2016-09 to 2017-01)
   exercises_mfp.csv        — "Circuit training, general" entries
 
@@ -90,7 +90,11 @@ def main():
 
     out_path = WORKOUT_DIR / "strength.csv"
     with open(out_path, "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=["date", "duration_min", "source"])
+        writer = csv.DictWriter(
+            f,
+            fieldnames=["date", "duration_min", "source"],
+            lineterminator="\n",
+        )
         writer.writeheader()
         writer.writerows(rows)
 
