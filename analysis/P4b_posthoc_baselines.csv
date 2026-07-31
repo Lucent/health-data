@@ -1,0 +1,9 @@
+segment,channel,comparison_status,p4b_n,p4b_mae,p4b_rmse,persistence_n,persistence_mae,persistence_rmse,weight_adjusted_persistence_n,weight_adjusted_persistence_mae,weight_adjusted_persistence_rmse,p4b_mae_improvement_vs_persistence,p4b_mae_improvement_vs_weight_adjusted_persistence,median_days_since_persistence_anchor
+development,total_weight,posthoc_after_locked_test_opened,1010,0.97279852,1.44933675,1010,1.12366337,1.63681954,0,,,0.15086484,,1.00000000
+development,composition_fm,posthoc_after_locked_test_opened,48,3.14419042,4.15203252,48,3.80625000,9.44593166,48,3.03125000,4.10855307,0.66205958,-0.11294042,17.50000000
+calibration,total_weight,posthoc_after_locked_test_opened,256,0.63244068,0.77803689,256,0.68203125,0.85096453,0,,,0.04959057,,1.00000000
+calibration,composition_fm,posthoc_after_locked_test_opened,8,1.90861328,2.12364161,8,2.26250000,4.39786880,8,1.08750000,1.35231283,0.35388672,-0.82111327,9.50000000
+locked_test,total_weight,posthoc_after_locked_test_opened,294,0.64804072,0.82459545,294,0.71564626,0.92224954,0,,,0.06760554,,1.00000000
+locked_test,composition_fm,posthoc_after_locked_test_opened,13,1.83322058,2.22334526,13,2.08461538,2.60871321,13,1.78461538,1.90262976,0.25139481,-0.04860519,17.00000000
+all,total_weight,posthoc_after_locked_test_opened,1560,0.85574057,1.25994957,1560,0.97429487,1.41905756,0,,,0.11855430,,1.00000000
+all,composition_fm,posthoc_after_locked_test_opened,69,2.75394078,3.66699185,69,3.30289855,8.09905165,69,2.57101449,3.55482933,0.54895777,-0.18292629,17.00000000

@@ -1,0 +1,12 @@
+metric,value,denominator,pct,note
+sleep_all_rows,2057,,,one longest Samsung sleep episode per wake date
+sleep_all_nap_like_under_2h,32,2057,1.5556635877491491,all occur before 2022; legacy AE and BS did not remove them
+sleep_post2022_calendar_coverage,1504,1520,98.94736842105263,"near-complete, stable Samsung regime"
+sleep_post2022_plausible_2_to_14h,1504,1520,98.94736842105263,primary analysis set
+sleep_post2022_under_5h,6,1504,0.39893617021276595,only six observations; extreme-sleep inference is underpowered
+steps_post2022_calendar_coverage,1520,1520,100.0,complete canonical daily series
+steps_post2022_direct_samsung_source,1520,1520,100.0,no MFP/calendar step estimates in primary regime
+steps_post2022_under_100,14,1520,0.9210526315789472,likely non-wear or partial-wear days; retain an explicit wear-quality flag
+exercise_days_steps_exceed_daily_total,4,404,0.9900990099009901,device reconciliation failures; do not assume every daily total is complete
+weight_post2022_observed_dates,1059,1520,69.67105263157895,exact observed-date pairs only; no interpolation
+exercise_post2022_sessions,729,,,Samsung session records

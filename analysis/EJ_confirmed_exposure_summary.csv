@@ -1,0 +1,27 @@
+label,criterion,group,days,share_of_labeled_days,mean_calories,median_calories,mean_carbs_g,mean_fat_g,mean_protein_g,mean_fiber_g,mean_carb_pct_cal,mean_fat_pct_cal,mean_protein_pct_cal,high_intake_rate,exact_next_day_weight_pairs,mean_next_calendar_day_weight_change_lbs,median_next_calendar_day_weight_change_lbs,total_potato_food_calories,total_enlightened_food_calories
+travel_binge_1,logged intake >= 3000 kcal,other_labeled_days,10,0.4348,1935.9,1779.5,213.5,72.8,81.1,22.5,43.9,34.3,17.3,0.0,3.0,-0.667,-0.8,0.0,0.0
+travel_binge_1,logged intake >= 3000 kcal,confirmed_exposure,13,0.5652,3725.5,3631.0,395.7,173.4,94.8,25.9,42.5,41.8,10.3,1.0,0.0,,,1191.0,0.0
+high_protein_experiment,protein >=20% of logged calories,other_labeled_days,6,0.1935,2048.3,2057.0,121.5,136.3,91.5,49.0,24.6,59.2,18.0,0.0,0.0,,,0.0,400.0
+high_protein_experiment,protein >=20% of logged calories,confirmed_exposure,25,0.8065,1822.6,1768.0,78.1,102.3,126.6,26.4,17.2,50.2,28.1,0.0,0.0,,,134.0,0.0
+keto_phase_1,carbohydrate <=25% and fat >=50% of logged calories,other_labeled_days,23,0.2674,2255.5,2044.0,177.3,136.1,92.2,70.3,30.5,56.4,17.2,0.087,0.0,,,621.0,3070.0
+keto_phase_1,carbohydrate <=25% and fat >=50% of logged calories,confirmed_exposure,63,0.7326,2173.4,2092.0,96.2,152.3,111.5,47.6,17.7,62.9,20.7,0.0159,0.0,,,0.0,5470.0
+keto_phase_2,carbohydrate <=25% and fat >=50% of logged calories,other_labeled_days,18,0.3,2021.0,1967.0,140.3,125.6,111.6,65.8,27.8,56.1,22.2,0.0,0.0,,,500.0,3810.0
+keto_phase_2,carbohydrate <=25% and fat >=50% of logged calories,confirmed_exposure,42,0.7,2159.0,2169.5,111.5,142.2,118.5,52.7,20.7,59.3,22.1,0.0,0.0,,,1100.0,5100.0
+enlightened_era,any logged Enlightened-brand calories,other_labeled_days,88,0.2066,2184.3,2033.0,227.3,106.2,81.3,48.0,41.2,43.9,16.0,0.1136,0.0,,,3184.0,0.0
+enlightened_era,any logged Enlightened-brand calories,confirmed_exposure,338,0.7934,2029.7,1970.5,198.6,104.5,96.1,72.2,39.0,46.5,19.4,0.0325,0.0,,,8800.0,146658.0
+travel_binge_2,logged intake >= 3000 kcal,other_labeled_days,26,0.8667,2400.7,2529.0,243.3,112.0,67.8,22.0,40.5,42.1,11.3,0.0,0.0,,,1473.0,400.0
+travel_binge_2,logged intake >= 3000 kcal,confirmed_exposure,4,0.1333,3437.0,3415.0,373.5,163.8,82.0,31.2,43.4,42.9,9.5,1.0,0.0,,,0.0,0.0
+post_travel_restriction,logged intake <=1800 kcal,other_labeled_days,37,0.4022,2289.9,2148.0,238.6,103.8,86.2,42.9,41.3,41.2,15.2,0.0541,0.0,,,370.0,10170.0
+post_travel_restriction,logged intake <=1800 kcal,confirmed_exposure,55,0.5978,1545.3,1562.0,149.8,75.5,83.8,41.9,38.9,43.9,21.7,0.0,0.0,,,528.0,17350.0
+weekend_fasting,Saturday or Sunday with <200 logged kcal,other_labeled_days,30,0.6818,2334.9,2326.0,225.3,120.2,85.8,42.7,38.4,46.3,15.0,0.0333,19.0,0.789,1.2,100.0,5660.0
+weekend_fasting,Saturday or Sunday with <200 logged kcal,confirmed_exposure,14,0.3182,99.3,100.0,11.4,2.8,3.1,1.9,48.7,23.2,12.3,0.0,10.0,-1.93,-1.55,0.0,0.0
+potato_diet_1,logged potato/yukon/russet foods >= 500 kcal,confirmed_exposure,13,1.0,1715.5,1658.0,228.3,76.2,26.3,28.4,53.4,40.3,6.2,0.0,13.0,-0.538,-0.5,12580.0,0.0
+potato_diet_1,logged potato/yukon/russet foods >= 500 kcal,other_labeled_days,0,0.0,,,,,,,,,,,,,,,
+potato_diet_2,logged potato/yukon/russet foods >= 500 kcal,other_labeled_days,25,0.625,2306.5,2365.0,239.6,119.9,69.3,41.0,41.5,47.1,12.1,0.0,25.0,0.452,0.4,0.0,0.0
+potato_diet_2,logged potato/yukon/russet foods >= 500 kcal,confirmed_exposure,15,0.375,1505.3,1498.0,222.9,61.7,49.1,56.7,59.2,36.9,13.1,0.0,15.0,-1.307,-1.1,11935.0,0.0
+low_protein_experiment,protein <=10% of logged calories,other_labeled_days,3,0.0811,2149.0,2199.0,283.3,93.0,61.0,31.3,52.6,39.1,11.3,0.0,3.0,1.567,0.8,0.0,0.0
+low_protein_experiment,protein <=10% of logged calories,confirmed_exposure,34,0.9189,2339.7,2211.5,285.0,113.7,43.7,27.6,48.7,43.7,7.5,0.0882,19.0,-0.084,0.3,5504.0,0.0
+potato_diet_3,logged potato/yukon/russet foods >= 500 kcal,confirmed_exposure,6,1.0,1821.7,1704.0,326.7,50.7,31.0,32.5,71.7,25.1,6.8,0.0,5.0,-0.06,-0.6,8447.0,0.0
+potato_diet_3,logged potato/yukon/russet foods >= 500 kcal,other_labeled_days,0,0.0,,,,,,,,,,,,,,,
+potato_diet_4,logged potato/yukon/russet foods >= 500 kcal,confirmed_exposure,10,1.0,1966.6,1996.5,312.2,67.3,36.0,24.0,63.8,30.6,7.4,0.0,10.0,-0.45,-0.3,13280.0,0.0
+potato_diet_4,logged potato/yukon/russet foods >= 500 kcal,other_labeled_days,0,0.0,,,,,,,,,,,,,,,

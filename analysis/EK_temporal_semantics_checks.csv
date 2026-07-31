@@ -1,0 +1,28 @@
+check,metric,value,notes
+window_algebra,shift(-1).rolling(7),t-5 through t+1,"5 prior days, current day, 1 future day"
+window_algebra,shift(-1).rolling(14),t-12 through t+1,"12 prior days, current day, 1 future day"
+window_algebra,rolling(3).shift(-1),t-1 through t+1,"1 prior day, current day, 1 future day"
+window_algebra,rolling(7).shift(-7),t+1 through t+7,Correct following-seven-day window on a complete daily index
+sleep_rows,rows,2057,Unique source dates.
+sleep_rows,consecutive_transition_fraction,0.913911,Fraction of shift(-1) transitions that are exactly one calendar day.
+sleep_rows,maximum_gap_days,80,Largest next-record date gap.
+sunlight_rows,rows,2012,Unique source dates.
+sunlight_rows,consecutive_transition_fraction,0.914968,Fraction of shift(-1) transitions that are exactly one calendar day.
+sunlight_rows,maximum_gap_days,117,Largest next-record date gap.
+step_rows,rows,4592,Unique source dates.
+step_rows,consecutive_transition_fraction,0.951209,Fraction of shift(-1) transitions that are exactly one calendar day.
+step_rows,maximum_gap_days,14,Largest next-record date gap.
+N_gravitostat,legacy_next_cal_partial_r,0.055161,"n=4566; controls same-day calories, matching legacy N."
+N_gravitostat,exact_next_cal_partial_r,0.05736,"n=4566; controls same-day calories, matching legacy N."
+N_gravitostat,legacy_exact_next_day_fraction,0.950952,Share of legacy row shifts that actually land on t+1.
+AB_running,matched_pairs,90,Legacy matching rule.
+AB_running,legacy_next_3d_run_minus_walk_kcal,-62.452,"Actually t-1,t,t+1."
+AB_running,exact_next_3d_run_minus_walk_kcal,14.8,"Exact t+1,t+2,t+3."
+AF_variance,h14_future_delta_partial_r,-0.204179,n=5394; controls trailing modeled surplus.
+AF_variance,h14_future_delta_std_coefficient_lb_per_kcal_sd,-0.001271585,Legacy P4 latent FM/TDEE; comparison diagnoses temporal alignment only.
+AF_variance,h14_same_window_delta_partial_r,0.002876,n=5407; controls trailing modeled surplus.
+AF_variance,h14_same_window_delta_std_coefficient_lb_per_kcal_sd,3.633e-06,Legacy P4 latent FM/TDEE; comparison diagnoses temporal alignment only.
+AF_variance,h30_future_delta_partial_r,-0.122698,n=5362; controls trailing modeled surplus.
+AF_variance,h30_future_delta_std_coefficient_lb_per_kcal_sd,-0.00160669,Legacy P4 latent FM/TDEE; comparison diagnoses temporal alignment only.
+AF_variance,h30_same_window_delta_partial_r,-0.00627,n=5391; controls trailing modeled surplus.
+AF_variance,h30_same_window_delta_std_coefficient_lb_per_kcal_sd,-1.089e-05,Legacy P4 latent FM/TDEE; comparison diagnoses temporal alignment only.

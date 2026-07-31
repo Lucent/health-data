@@ -1,0 +1,4 @@
+group,calories,calories_per_day,calorie_share,protein_g,protein_g_per_day
+full 90-day window,180400,2004.4444444444443,1.0,4915.0,54.611111111111114
+all recurring foods below 3g protein per 100 kcal,82299,914.4333333333333,0.45620288248337026,1022.0,11.355555555555556
+top 10 recurring low-protein calorie sources,38515,427.94444444444446,0.21349778270509978,547.0,6.0777777777777775

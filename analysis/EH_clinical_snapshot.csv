@@ -1,0 +1,39 @@
+metric,value,unit,date_start,date_end,source,evidence_note
+daily_calories_mean,2004.444,kcal/day,2025-12-01,2026-02-28,intake/intake_daily.csv,direct diary total; recording accuracy is not independently verified
+daily_sodium_mean,2597.667,mg/day,2025-12-01,2026-02-28,intake/intake_daily.csv,direct diary total; recording accuracy is not independently verified
+daily_fiber_mean,14.067,g/day,2025-12-01,2026-02-28,intake/intake_daily.csv,direct diary total; recording accuracy is not independently verified
+daily_protein_mean,54.611,g/day,2025-12-01,2026-02-28,intake/intake_daily.csv,direct diary total; recording accuracy is not independently verified
+known_saturated_fat_mean,33.507,g/day,2025-12-01,2026-02-28,intake/intake_foods.csv + intake/mfp_food_dict.csv,database-enriched estimate; missing foods are not zero and values are not biomarkers
+known_saturated_fat_energy,15.045,% kcal,2025-12-01,2026-02-28,intake/intake_foods.csv + intake/mfp_food_dict.csv,database-enriched estimate; missing foods are not zero and values are not biomarkers
+saturated_fat_calorie_coverage,90.257,% diary kcal,2025-12-01,2026-02-28,intake/intake_foods.csv + intake/mfp_food_dict.csv,database-enriched estimate; missing foods are not zero and values are not biomarkers
+known_potassium_mean,976.564,mg/day,2025-12-01,2026-02-28,intake/intake_foods.csv + intake/mfp_food_dict.csv,database-enriched estimate; missing foods are not zero and values are not biomarkers
+potassium_calorie_coverage,79.572,% diary kcal,2025-12-01,2026-02-28,intake/intake_foods.csv + intake/mfp_food_dict.csv,database-enriched estimate; missing foods are not zero and values are not biomarkers
+h30_first_weight,224.7,lb,2024-10-20,2024-10-20,composition/composition.csv,direct device reading; bioimpedance-derived composition is hydration-sensitive
+h30_first_bmi,30.8,kg/m2,2024-10-20,2024-10-20,composition/composition.csv,direct device reading; bioimpedance-derived composition is hydration-sensitive
+h30_first_fat_mass,83.6,lb,2024-10-20,2024-10-20,composition/composition.csv,direct device reading; bioimpedance-derived composition is hydration-sensitive
+h30_first_fat_pct,37.2,%,2024-10-20,2024-10-20,composition/composition.csv,direct device reading; bioimpedance-derived composition is hydration-sensitive
+h30_first_lean_mass,141.1,lb,2024-10-20,2024-10-20,composition/composition.csv,direct device reading; bioimpedance-derived composition is hydration-sensitive
+h30_first_skeletal_muscle_mass,80.2,lb,2024-10-20,2024-10-20,composition/composition.csv,direct device reading; bioimpedance-derived composition is hydration-sensitive
+h30_first_visceral_fat_level,18.0,device level,2024-10-20,2024-10-20,composition/composition.csv,direct device reading; bioimpedance-derived composition is hydration-sensitive
+h30_first_waist_hip_ratio,1.07,ratio,2024-10-20,2024-10-20,composition/composition.csv,direct device reading; bioimpedance-derived composition is hydration-sensitive
+h30_latest_weight,203.0,lb,2026-02-28,2026-02-28,composition/composition.csv,direct device reading; bioimpedance-derived composition is hydration-sensitive
+h30_latest_bmi,27.8,kg/m2,2026-02-28,2026-02-28,composition/composition.csv,direct device reading; bioimpedance-derived composition is hydration-sensitive
+h30_latest_fat_mass,60.0,lb,2026-02-28,2026-02-28,composition/composition.csv,direct device reading; bioimpedance-derived composition is hydration-sensitive
+h30_latest_fat_pct,29.5,%,2026-02-28,2026-02-28,composition/composition.csv,direct device reading; bioimpedance-derived composition is hydration-sensitive
+h30_latest_lean_mass,143.0,lb,2026-02-28,2026-02-28,composition/composition.csv,direct device reading; bioimpedance-derived composition is hydration-sensitive
+h30_latest_skeletal_muscle_mass,82.0,lb,2026-02-28,2026-02-28,composition/composition.csv,direct device reading; bioimpedance-derived composition is hydration-sensitive
+h30_latest_visceral_fat_level,11.0,device level,2026-02-28,2026-02-28,composition/composition.csv,direct device reading; bioimpedance-derived composition is hydration-sensitive
+h30_latest_waist_hip_ratio,0.98,ratio,2026-02-28,2026-02-28,composition/composition.csv,direct device reading; bioimpedance-derived composition is hydration-sensitive
+latest_measured_rmr,1750.0,kcal/day,2025-09-03,2025-09-03,RMR/rmr.csv,direct cosmed_fitmate test; single-test uncertainty applies
+2024_same_week_rmr_mean,1883.0,kcal/day,2024-09-17,2024-09-19,RMR/rmr.csv,mean of two direct cosmed_fitmate tests
+latest_omega_3_index,6.06,%,2025-09-05,2025-09-05,fatty-acids/fatty_acids.csv,manually extracted lab value; source PDF is absent from the repository
+latest_epa,0.45,%,2025-09-05,2025-09-05,fatty-acids/fatty_acids.csv,manually extracted lab value; source PDF is absent from the repository
+latest_dha,3.71,%,2025-09-05,2025-09-05,fatty-acids/fatty_acids.csv,manually extracted lab value; source PDF is absent from the repository
+latest_arachidonic_acid,8.93,%,2025-09-05,2025-09-05,fatty-acids/fatty_acids.csv,manually extracted lab value; source PDF is absent from the repository
+latest_aa_epa_ratio,19.8,ratio,2025-09-05,2025-09-05,fatty-acids/fatty_acids.csv,manually extracted lab value; source PDF is absent from the repository
+latest_omega_6_omega_3_ratio,6.1,ratio,2025-09-05,2025-09-05,fatty-acids/fatty_acids.csv,manually extracted lab value; source PDF is absent from the repository
+night_median_hr_pre_tirz,83.5,bpm,,,analysis/BX_tirz_heart_rate_summary.csv,derived nightly proxy; underlying external Samsung archive is not in this repository
+night_median_hr_on_tirz,84.0,bpm,,,analysis/BX_tirz_heart_rate_summary.csv,derived nightly proxy; underlying external Samsung archive is not in this repository
+temperature_reading_count,1315.0,readings,2023-12-02,2026-03-23,temperature/temperature.csv,"direct logged values; measurement site, device, and standardized protocol are not recorded"
+medicine_log_row_count,93.0,records,2020-12-27,2026-04-10,drugs/medicine.csv,observed records only; current regimen is not established by the last log entry
+click_dose_three_day_intervals,3.0,intervals,2026-04-01,2026-04-10,drugs/medicine.csv,observed record only; click-count dosing is not operationalized or endorsed
