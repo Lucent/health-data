@@ -1,5 +1,7 @@
 # Health background
 
+> **Genetics audit, 2026-07-30:** The genotype calls below may be useful raw annotations, but the former “worst-case profile” and genotype-directed intervention story was not clinically valid. Linked SNPs were double-counted, several mechanisms were overextended, and the IRS1 risk-allele direction was reversed. The interpretation and intervention sections have been corrected; see [`new_findings/05_genetics_and_fatty_acids_audit.md`](new_findings/05_genetics_and_fatty_acids_audit.md).
+
 ## Health conditions
 * Born October 1982
 * Height 5'11.75" without shoes
@@ -18,7 +20,7 @@
 ## Genetic profile (obesity/metabolism SNPs)
 
 Raw 23andMe data for subject and both parents. Genes for Good imputed genotypes fill gaps.
-This is the worst-case common-variant obesity profile short of rare monogenic mutations.
+The previous analysis called this a “worst-case common-variant obesity profile.” That is not defensible: linked SNPs within a locus are not independent hits, the list is not an ancestry-calibrated polygenic score, and common variants do not determine treatment.
 
 ### FTO — Fat Mass and Obesity-Associated (homozygous risk at all loci)
 
@@ -26,15 +28,15 @@ Both parents are heterozygous carriers at every FTO locus. Subject drew the risk
 
 | SNP | Subject | Father | Mother | EUR hom. risk | Function |
 |-----|---------|--------|--------|---------------|----------|
-| rs9939609 | **AA** | AT | AT | ~17% | Most-studied obesity SNP. +1.5 kg per allele. Increases appetite, reduces satiety. |
+| rs9939609 | **AA** | AT | AT | ~17% | Common obesity association; effect is modest and non-deterministic (about +0.34 BMI units per allele in a large analysis). |
 | rs1558902 | **AA** | AT | AT | ~17% | Strongest FTO GWAS signal. +0.39 kg/m² BMI per allele. |
-| rs1421085 | **CC** | CT | CT | ~17% | **Functional causal variant.** Disrupts ARID5B repressor binding, shifting adipocyte programming from beige (thermogenic) to white (storage). Directly explains low body temperature. |
+| rs1421085 | **CC** | CT | CT | ~17% | Alters ARID5B/IRX3/IRX5 adipocyte programming in vitro; does not establish clinical low body temperature or cold intolerance. |
 | rs17817449 | **GG** | GT | GT | ~17% | Increased ghrelin, reduced satiety signaling. |
 | rs8050136 | **AA** | AC | AC | ~17% | Obesity and type 2 diabetes risk. |
 
 ### MC4R — Melanocortin 4 Receptor (heterozygous risk, all from father)
 
-These are in moderate LD. Risk allele frequency ~23-28% in Europeans.
+These are common nearby GWAS tags in moderate LD, not pathogenic MC4R variants or evidence of MC4R deficiency. Risk allele frequency ~23-28% in Europeans.
 
 | SNP | Subject | Father | Mother | EUR carrier freq | Function |
 |-----|---------|--------|--------|------------------|----------|
@@ -44,7 +46,7 @@ These are in moderate LD. Risk allele frequency ~23-28% in Europeans.
 
 ### FADS1/FADS2 — Fatty Acid Desaturase (high activity — efficient omega-6 converter)
 
-Relevant to the omega-6:3 ratio theories. High desaturase activity means dietary linoleic acid (omega-6) is efficiently converted to arachidonic acid (the most inflammatory omega-6 metabolite). If dietary omega-6 is high, this genotype maximizes the inflammatory downstream products.
+These variants are associated with fatty-acid profile and desaturase measures. They do not establish that dietary linoleic acid creates systemic inflammation or obesity; human trials generally do not show higher inflammatory markers from increased linoleic acid.
 
 | SNP | Subject | Father | Mother | EUR hom. freq | Function |
 |-----|---------|--------|--------|---------------|----------|
@@ -53,21 +55,21 @@ Relevant to the omega-6:3 ratio theories. High desaturase activity means dietary
 | rs1535 | **AA** | AG | AG | | |
 | rs174575 | **CC** | CG | CC | | |
 
-### GLP1R — GLP-1 Receptor (normal — good tirzepatide response)
+### GLP1R — GLP-1 Receptor
 
 | SNP | Subject | Father | Mother | EUR freq | Function |
 |-----|---------|--------|--------|----------|----------|
-| rs6923761 | **GG** | GG | AG | ~58% | Normal receptor function. No impairment. Confirmed by tirzepatide response in practice. |
+| rs6923761 | **GG** | GG | AG | ~58% | No consistent, clinically actionable prediction of GLP-1 drug response; actual treatment response is more informative. |
 
-### UCP — Uncoupling Proteins / Thermogenesis (reduced, from mother)
+### UCP — Uncoupling Proteins / Thermogenesis
 
-Combined with FTO rs1421085 CC driving fat cells to white (storage) instead of beige (thermogenic), these variants provide a clear genetic basis for the cold intolerance documented in health conditions.
+The heterozygous UCP2 calls do not provide a clear genetic diagnosis of low RMR, reduced whole-body thermogenesis, or cold intolerance. UCP2 is not interchangeable with UCP1, and association studies are inconsistent.
 
 | SNP | Gene | Subject | Father | Mother | EUR carrier freq | Function |
 |-----|------|---------|--------|--------|------------------|----------|
 | rs1800592 | UCP1 | not typed | TT | CT | | Father has no thermogenesis variant. |
-| rs659366 | UCP2 | **CT** | CC | CT | ~44% | One copy of reduced metabolic rate allele, from mother. |
-| rs660339 | UCP2 | **AG** | GG | AG | ~44% | One copy of reduced energy expenditure allele, from mother. Reduced mitochondrial proton leak = less heat from food. |
+| rs659366 | UCP2 | **CT** | CC | CT | ~44% | Common heterozygous call; no established individual-level RMR or obesity prescription. |
+| rs660339 | UCP2 | **AG** | GG | AG | ~44% | Common heterozygous call; does not establish reduced energy expenditure or cold intolerance. |
 | rs1800849 | UCP3 | GG | GG | GG | | Normal. |
 
 ### Adrenergic Receptors — Lipolysis / Fat Breakdown
@@ -85,40 +87,29 @@ Combined with FTO rs1421085 CC driving fat cells to white (storage) instead of b
 | SNP | Gene | Subject | EUR freq | Risk? | Function |
 |-----|------|---------|----------|-------|----------|
 | rs1801282 | PPARG | **CC** | ~82% | Pro/Pro — lacks protective Ala allele | Common risk genotype for insulin resistance and fat storage. |
-| rs5082 | APOA2 | AG | ~39% | Heterozygous carrier | Moderate saturated fat sensitivity (CC would be high). |
+| rs5082 | APOA2 | AG | ~39% | Heterozygous carrier | Foundational saturated-fat interaction was recessive in CC homozygotes; no validated heterozygote sensitivity. |
 | rs6265 | BDNF | CC | ~80% | Normal | No additional appetite dysregulation. |
 | rs1137101 | LEPR | AA | ~35% | Normal | Leptin receptor signaling intact. |
 | rs4988235 | LCT | AG | ~41% | Lactase persistent | Can digest dairy — relevant since dairy is the only animal product consumed. |
 | rs1801260 | CLOCK | AA | ~65% | Normal | No circadian gene penalty (though behavior is shifted 4 hours regardless). |
 | rs5443 | GNB3 | CT | ~37% | Heterozygous carrier | One copy of enhanced signal transduction variant, associated with obesity and hypertension. |
-| rs2943641 | IRS1 | CC | ~56% | Normal | CC is the standard genotype. The T allele is associated with insulin resistance. |
+| rs2943641 | IRS1 | CC | ~56% | Association-level | C, not T, is the reported insulin-resistance/T2D-risk allele; the effect is small and does not prescribe magnesium timing. |
 
 ### Genetic summary
 
-FTO homozygous risk shifts fat cells from thermogenic to storage. UCP2 variants from mother reduce mitochondrial heat generation. MC4R risk from father amplifies hunger. FADS1 high activity converts dietary omega-6 to inflammatory arachidonic acid. ADRB2 variants impair fat breakdown. GLP-1 receptor is normal, explaining the tirzepatide response. Neither parent is obese despite both carrying FTO heterozygously — the subject drew both risk alleles at every FTO locus.
+The FTO haplotype is associated with a modestly higher average BMI/appetite risk, but all five listed FTO calls mostly represent one linked signal. The common MC4R-region markers are not receptor deficiency. FADS variants can affect fatty-acid profiles without proving inflammation. UCP2, ADRB2, APOA2, and GLP1R results do not justify personalized treatment prescriptions.
 
-The individual risk genotype frequencies are each common in Europeans (13-44%), but the combination across independent loci is unusual. The EUR prevalence estimates in the tables above are approximate (from published allele frequencies, not individual gnomAD queries) and the independence assumption is only valid across chromosomes.
+Normal single SNPs also do not prove that an entire pathway is intact or has “no target.” The clinical phenotype and response to treatment matter more than these annotations.
 
-### Genetically indicated interventions
+### Intervention implications after audit
 
-**Already doing:**
-- EPA+DHA 500mg each daily (algal oil, started 2025-08-17) — addresses FADS1 CC / low EPA
-- Tirzepatide — GLP1R GG confirms normal receptor, good response
-- Antihistamine reduction (10mg cetirizine → 2.5mg levocetirizine) — independent of genetics but additive
-- Taurine 500mg — activates brown adipose tissue via bile acid TGR5 receptor
-
-**Indicated but not yet tried:**
-- **Cold exposure** — UCP2 CT + FTO rs1421085 CC = impaired thermogenesis. Cold intolerance is itself evidence the pathway is suppressed. Even mild cold exposure (cool showers, lower indoor temp) could recruit beige adipose. Temperature data would show response directly.
-- **Taurine dose increase** — Current 500mg is low end. BAT activation studies use 1-3g. With impaired UCP thermogenesis, bile acid–mediated BAT activation is one of few alternate pathways.
-- **Magnesium timing** — PPARG CC + IRS1 CC = dual insulin resistance risk. Current 500mg mornings. Taking with highest-carb meal may better target the insulin resistance window.
-
-**Won't help based on genotype:**
-- Beta-3 agonist strategies — ADRB3 rs4994 AA (normal), no target
-- Exogenous leptin — LEPR rs1137101 AA (normal), signaling intact
-- BDNF-targeting — rs6265 CC (normal), hypothalamic circuits fine
-
-**Worth investigating with existing data:**
-- **Saturated fat sensitivity** — APOA2 rs5082 AG (heterozygous). Are high-dairy/butter days associated with more weight gain than equivalent calories from other fat sources? Testable from food diary by classifying high-sat-fat days.
+- **Tirzepatide:** supported by the observed clinical response and external trial evidence, not by rs6923761. Dosing remains clinical, not genotype-based.
+- **EPA/DHA:** reasonable to discuss for nutrient adequacy in a long-term vegetarian with low EPA/DHA status. It is not a FADS-specific weight-loss treatment.
+- **Cold exposure:** not genetically indicated and a poor fit for severe cold intolerance and prolonged vasomotor rhinitis. Ordinary clinical causes of cold intolerance deserve consideration before a cold experiment.
+- **Taurine:** human weight-loss evidence is insufficient to justify escalation for this genotype.
+- **Magnesium:** there is no genotype-based reason to time it to the highest-carbohydrate meal. If “500 mg” is elemental magnesium, verify the label and indication with a clinician because it exceeds the U.S. supplemental upper limit for adults.
+- **Saturated fat:** investigate for conventional lipid outcomes if relevant, not because APOA2 AG establishes special sensitivity.
+- **Further genetic work:** first verify strand, genome build, and imputation quality. A validated ancestry-aware genome-wide score would be required to quantify polygenic risk, but would still not choose routine obesity treatment.
 
 ## Weighing protocol
 * Always upon waking

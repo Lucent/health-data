@@ -1,5 +1,7 @@
 # Findings
 
+> **LEGACY EXPLORATORY RESULTS — AUDIT WARNING, 2026-07-30:** Many results below use `analysis/P4_kalman_daily.csv`, which leaks RMR/temperature into model selection, labels retrospective smooths as filtered estimates, and exports blank uncertainty. P3 is also intake-derived, so it is not an intake-free confirmation. The exact set-point, expenditure, tirzepatide PK-response, and discontinuation claims are not decision-grade. Start with [`new_findings/README.md`](new_findings/README.md) and the [`claim registry`](new_findings/01_claim_registry.md). This file is retained as a reproducible hypothesis archive.
+
 Each section has a `Command:` line pointing to the standalone script that reproduces the numbers. Untested hypotheses are in [ROADMAP.md](ROADMAP.md).
 
 # Data quality
@@ -301,21 +303,17 @@ Gravitostat: foot-pounds → next-day intake r=0.050 partial. Positive (wrong di
 
 Command: `python analysis/N_dietary_predictors.py`
 
-## AF. Intake variance is mildly protective, not fattening
+## AF. The protective-variance interpretation is invalidated
 
-If food noise manifests as variance (finding D), does that variance cause metabolic damage, or is it neutral?
+**Temporal-audit correction (2026-07-30).** AF's intake mean, variance, and modeled TDEE are trailing measurements from days `t-w+1..t`, but its fat-mass outcome is `FM[t+w] - FM[t]`. The exposure and outcome intervals do not overlap. This can describe whether past variability marks a later weight-cycle phase; it cannot establish that variable eating is less fattening than consistent eating at the same contemporaneous surplus.
 
-At the same caloric surplus, does higher day-to-day calorie variance cause more fat gain ("metabolic damage from yo-yo dieting") or less?
+The legacy non-overlapping result reproduces at partial `r=-0.204` for 14 days and `-0.123` for 30 days. Aligning modeled fat-mass change to the same intake window makes the association vanish: partial `r=+0.003` at 14 days and `-0.006` at 30 days. Both calculations still use quarantined P4 latent states, so the correct conclusion is agnostic: this repository establishes neither metabolic damage nor metabolic protection from intake variability.
 
-Controlling for surplus (mean intake - TDEE), trailing 14-day calorie standard deviation predicts slightly *less* fat gain: partial r = -0.20, coefficient -0.0011 lbs/day per cal of std (bootstrap 95% CI: -0.0013 to -0.0010, significant). At 30 days: partial r = -0.10, also significant.
+The historical bootstrap also treated thousands of overlapping daily windows as independent. Its narrow confidence interval and the old “mildly protective” wording should not be used.
 
-At matched calorie levels (30-day tertiles): low-calorie + low-variance periods lose 1.3 lbs/month; low-calorie + high-variance periods lose only 0.5 lbs/month. But high-calorie + high-variance periods gain 0.5 lbs/month vs 0.7 for low-variance. The protective effect is strongest at the high end — variable eating while in surplus is less fattening than consistent surplus.
+Command: `uv run --with numpy --with pandas python analysis/EK_temporal_semantics_audit.py`
 
-The mechanism is likely finding B: high-variance periods include fasting days that transiently raise TDEE through metabolic adjustment. The variance itself is not protective — it proxies for intermittent acute deficits. Diet epochs confirm: weekend fasting (CV = 0.68) lost weight despite moderate mean; COVID lockdown (CV = 0.18, very consistent eating) gained despite similar mean.
-
-The effect is small — adding variance to a surplus-only model reduces RMSE from 1.019 to 0.998 (2%). But the sign is the opposite of "yo-yo dieting is metabolically damaging." In this dataset, consistent overeating is more fattening than variable overeating at the same mean. (Cf. the [Biggest Loser reanalysis](https://doi.org/10.1002/oby.23308) which found 500 cal/day metabolic adaptation from rapid cycling — but that study's subjects were in continuous severe deficit, not the intermittent variance measured here.)
-
-Command: `python analysis/AF_intake_variance.py`
+Artifact: `analysis/EK_temporal_semantics_checks.csv`
 
 # Body composition
 
@@ -441,9 +439,13 @@ Does running suppress appetite more than walking at the same step count? (Exerci
 
 121 running sessions (2013-2023), 1,640 walking sessions. All-eras step-matched comparison showed -338 cal same-day for running — but this was entirely era confounding (running clustered in the 2014-2016 restriction era).
 
-Era-matched within 2014-2016 only, step-matched (90 pairs, mean 9650 steps): same-day cal difference -50, next-day +30, next-3d -46. All within noise. TDEE/RMR: run 1.072 vs walk 1.098 (-0.026). No exercise-induced anorexia detected. Running and walking produce equivalent intake effects at matched steps within the same era.
+Era-matched within 2014-2016 only, step-matched (90 pairs, mean 9656 vs 9675 steps): current same-day calorie difference -25 and next-day +41. The legacy `next_3d_cal` expression averages days `t-1,t,t+1`, not days +1 through +3; it currently prints -62. The exact following-three-day difference is +15 kcal/day. All are within noise. P4-derived TDEE/RMR is 1.170 vs 1.196 (-0.026) and remains exploratory. No exercise-induced anorexia is detected.
 
-Command: `python analysis/AB_running_vs_walking.py`
+Command: `uv run --with numpy --with pandas python analysis/AB_running_vs_walking.py`
+
+Command: `uv run --with numpy --with pandas python analysis/EK_temporal_semantics_audit.py`
+
+Artifact: `analysis/EK_temporal_semantics_checks.csv`
 
 ## BW. Walking fitness from exercise live-data heart rate
 

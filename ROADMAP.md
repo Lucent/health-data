@@ -1,12 +1,81 @@
 # Roadmap
 
+## Current audit
+
+The legacy set-point and drug-model findings are being re-evaluated under explicit observation/model boundaries and locked temporal validation. See `new_findings/README.md`. P4 leaks RMR/temperature into selection, aliases retrospective smooths as filtered states, and exports blank uncertainty columns; P4-dependent claims remain exploratory. The separate opt-in P4b fixes those semantics, but v1 uncertainty is over-wide and its fat-mass forecast does not beat a simple weight-adjusted baseline, so it is not yet a downstream replacement.
+
+Raw-data analysis now identifies travel/context disruption as the largest replicating intake signal: 36/41 eligible trips exceeded their own prior 14-day intake, by a mean 605 kcal/day. High recent-menu repetition marks fewer extreme-intake days, while high novelty marks more; the direction survives ordered discovery/validation/confirmation and a home-only sensitivity.
+
+Command: `uv run --with numpy --with pandas python analysis/EB_direct_future_intake.py`
+
+Artifact: `analysis/EB_direct_future_intake_results.csv`, `analysis/EB_direct_event_summaries.csv`
+
+Command: `uv run --with numpy --with pandas python analysis/EC_travel_event_study.py`
+
+Artifact: `analysis/EC_travel_trip_results.csv`, `analysis/EC_travel_summary.csv`
+
+Raw tirzepatide outcomes show a durable benefit without relying on modeled PK: mean intake fell from 2,454 kcal/day in the pre-drug year to 2,004 in the last 90 logged days, and ≥3,000-kcal days fell from 11.0% to 1.1%. The observed weekly cycle is 99.1% aligned with weekday and cannot identify an exact drug coefficient. Same-device H30 scans do not show lean decline after treatment day 33, but last-90 protein averaged only 54.6 g/day and fiber 14.1 g/day.
+
+Command: `uv run --with numpy --with pandas python analysis/ED_tirzepatide_direct_audit.py`
+
+Artifact: `analysis/ED_tirzepatide_window_summary.csv`, `analysis/ED_tirzepatide_cycle_summary.csv`
+
+Command: `uv run --with numpy --with pandas python analysis/EE_tirzepatide_composition_support.py`
+
+Artifact: `analysis/EE_tirzepatide_composition_summary.csv`, `analysis/EE_tirzepatide_support_periods.csv`
+
+The final-90 menu contains a concrete calorie-neutral nutrition lever: recurring foods below 3 g protein per 100 kcal supply 914 kcal/day (45.6% of intake). Breakfast averages 364 kcal/6.4 g protein and snacks 316 kcal/4.1 g. Familiar 7–13 g/100-kcal foods already in the ledger make an approximately +25 g/day protein substitution possible without adding calories.
+
+Command: `uv run --with numpy --with pandas python analysis/EF_current_protein_menu.py`
+
+Artifact: `analysis/EF_current_food_sources.csv`, `analysis/EF_current_swap_candidates.csv`, `analysis/EF_current_menu_summary.csv`
+
+A provenance-aware 5,429-day table now exposes direct observations, source/device regimes, and distance to the nearest weight, composition, and RMR measurement. Only 70 days have direct composition, 25 direct RMR, and 1,544 same-day observed weights; 2,756 days are more than 90 days from a composition scan.
+
+Command: `uv run --with numpy --with pandas python analysis/EG_observation_provenance.py`
+
+Artifact: `analysis/EG_observation_provenance_daily.csv`
+
+The direct long-run audit finds that three clear loss-to-regain reversals
+coincide with sustained intake increases, while the pre-treatment-to-treatment
+transition moves in the opposite direction. No proposed 28-day feature score
+reliably ranks next-quarter weight change in the internal locked test. All five
+weigh-in gaps of at least 90 days end higher, making missingness a process
+marker rather than a causal effect of weighing.
+
+Command: `uv run --with numpy --with pandas python analysis/EL_long_run_trajectory_audit.py`
+
+Artifact: `analysis/EL_long_run_episodes.csv`, `analysis/EL_locked_warning_results.csv`, `analysis/EL_weight_gaps.csv`
+
+Extreme-intake days cluster before treatment, including at home, and recent
+calorie momentum improves one-day-ahead ranking in both held-out pre-treatment
+periods. Calibration shifts across eras, so the output is an ordinary-menu
+reset cue rather than a deployable risk score. Weekend effects are smaller and
+unstable.
+
+Command: `uv run --with numpy --with pandas python analysis/EM_calendar_extreme_clustering.py`
+
+Artifact: `analysis/EM_extreme_transitions.csv`, `analysis/EM_extreme_runs.csv`, `analysis/EM_forward_prediction.csv`
+
+Exact food mass covers only 17.0% of solid calories overall and 10.8% in the
+final 90 days, so historical whole-diet energy density is unavailable.
+Prespecified nutrient-density, beverage-share, item-count, variety, and
+meal-count features do not add stable future-intake prediction across both
+ordered holdouts. Breakfast and snacks remain direct current substitution
+targets because they supply 31% of calories and have the lowest protein/fiber
+density.
+
+Command: `uv run --with numpy --with pandas python analysis/EN_energy_density_nutrient_leverage.py`
+
+Artifact: `analysis/EN_data_coverage_by_year_source.csv`, `analysis/EN_locked_prediction_results.csv`, `analysis/EN_current_meal_summary.csv`
+
 ## Completed
 
 ### Data extraction
-- `intake/merge.py` → `intake_foods.csv` (54,925 items), `intake_daily.csv` (5,429 days)
+- `intake/merge.py` → `intake_foods.csv` (54,453 items), `intake_daily.csv` (5,429 days)
 - `weight/extract.py` → `weight.csv` (1,693 days)
 - `steps-sleep/extract.py` → `steps_samsung.csv`, `sleep.csv`, `exercises_samsung.csv`
-- `steps-sleep/merge_steps.py` → `steps.csv` (canonical merged, 4,540 days including MFP/calendar backfill)
+- `steps-sleep/merge_steps.py` → `steps.csv` (canonical merged, 4,592 days including MFP/calendar backfill)
 - `composition/extract.py` → `composition.csv` (70 measurements, 4 eras)
 - `RMR/extract.py` → `rmr.csv` (25 Cosmed Fitmate measurements: 3 at sports medicine clinic, 22 at home)
 - `drugs/extract.py` → `medicine.csv`, `tirzepatide.csv`
@@ -28,7 +97,19 @@
 ## Data gaps
 - **2018-02-20 to 2018-02-28**: Still OXPS-only. Re-exportable from MFP.
 
-## Untested hypotheses
+## Current next steps
+
+1. Refresh intake after 2026-02-28, observed weight after 2026-03-22, and medication history after 2026-04-10.
+2. Run the preregistered calorie-neutral protein/menu experiment and travel playbook in `new_findings/07_next_data_and_preregistered_experiments.md`.
+3. Use a non-punitive ordinary-menu reset when recent calorie momentum is high; test it prospectively instead of retuning the retrospective score.
+4. Record exercises, sets, reps, load, and effort; the existing strength file is date-only.
+5. Obtain an auditable conventional cardiometabolic baseline rather than inferring health from food logs or latent states.
+6. Preserve P4b v1 as the first frozen forward-model test; predeclare v2 and use newly refreshed post-February observations as the next holdout.
+7. Only after those steps, revisit lower-priority hypotheses with predeclared features and outcomes.
+
+## Historical hypothesis backlog
+
+> **Quarantined until the forward model is validated.** The items below were written under the legacy SmoothLatch/P3/P4 interpretation. They remain useful as hypothesis prompts, but wording such as “working model,” “predicts,” “confirmed,” and “ready now” is historical. Do not use these items for medication, calorie, or discontinuation decisions.
 
 ### Receptor-dynamics frame (highest leverage)
 
