@@ -1,5 +1,7 @@
 # Recommendations
 
+> **QUARANTINED, 2026-07-30:** This is a historical exploratory document, not a safe action plan. The SmoothLatch parameters and withdrawal timing are not independently validated. Section 6's q3d click-count and pen-bridging protocol conflicts with intended fixed-dose pen use and current once-weekly labeling; do not implement it. Medication changes require the prescriber and dispensing pharmacist. See [`new_findings/00_initial_integrity_and_safety_audit.md`](new_findings/00_initial_integrity_and_safety_audit.md) and [`new_findings/01_claim_registry.md`](new_findings/01_claim_registry.md).
+
 Data-driven only. Every claim below cites a specific finding with reproducible numbers. Nothing here comes from external nutrition literature.
 
 **Current state (Mar 2026):** FM 60 lbs, set point ~61 lbs. Under the SmoothLatch model (AZ), the gap is ~1 lb and the SP has been latching onto current FM during the months of stable weight on tirzepatide. Under the EMA model (AM), the gap is similar. Both models agree the SP is nearly converged. Pressure: ~55 cal/day per lb of gap.

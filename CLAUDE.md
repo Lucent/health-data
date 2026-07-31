@@ -1,15 +1,20 @@
 # Project context for AI assistants
 
 Read these files in order:
-1. [README.md](README.md) — what this dataset is, quality case, key findings
-2. [BACKGROUND.md](BACKGROUND.md) — health history, genetics, substances, locations, weighing protocol
-3. [FINDINGS.md](FINDINGS.md) — testable hypotheses organized by data requirements
-4. [ROADMAP.md](ROADMAP.md) — completed work, next steps, known data quality notes
+1. [new_findings/README.md](new_findings/README.md) — current audit status and report index
+2. [new_findings/01_claim_registry.md](new_findings/01_claim_registry.md) — current evidence status for major claims
+3. [README.md](README.md) — legacy dataset narrative and historical findings
+4. [BACKGROUND.md](BACKGROUND.md) — health history, genetics, substances, locations, weighing protocol
+5. [FINDINGS.md](FINDINGS.md) — historical hypotheses organized by data requirements
+6. [ROADMAP.md](ROADMAP.md) — completed work, next steps, known data quality notes
+7. [prospective/README.md](prospective/README.md) — low-burden tracking templates and current refresh boundary
 
 ## Key principles
-- **The data is complete.** Every day is fully logged. A 10-calorie day is a real fasting day, not incomplete logging. Never assume missing entries.
-- **Accuracy is unusually high.** Food scale always used. ~10% consistent undercount from uncounted snacking (quantified by energy balance model, uniform across phases). Incentive structure rewards precision over undercounting.
-- **CICO is effect, not cause.** The working theory is a meandering set point controlled by an unknown homeostat. Simple calorie correlation has been tried and drifts.
+- **The intake date series is complete.** Every day is represented. A 10-calorie day is a real fasting day, not automatically an incomplete day.
+- **Logging discipline is unusually high, but absolute error remains uncertain.** Food-scale use and full date coverage are direct facts. The claimed uniform ~10% undercount is model-dependent and must not be treated as independently validated.
+- **Energy balance is an accounting identity, not a complete causal explanation.** Appetite, treatment, food environment, activity, sleep, and physiology can all affect its inputs. The repository's specific SmoothLatch/set-point mechanism is unvalidated.
+- **Raw observations are not latent states.** P2/P3/P4 fat mass, lean mass, TDEE, blood level, effective level, and set point are derived/model quantities.
+- **Current practical plan.** Read [`new_findings/10_current_action_plan.md`](new_findings/10_current_action_plan.md) before extending historical intervention recommendations.
 
 ## Documentation standard
 - Every new or revised result paragraph added to `README.md`, `FINDINGS.md`, or `ROADMAP.md` must include the exact command that emits the key numbers immediately below the prose block.
@@ -17,7 +22,9 @@ Read these files in order:
 - Prefer standalone analysis scripts in `analysis/` that print their headline numbers directly, so prose claims remain mechanically reproducible.
 
 ## Environment
-All Python scripts run in the project virtualenv: `source .venv/bin/activate`
+Use `uv` for Python dependencies and script execution. Example:
+
+`uv run --with pandas python analysis/EA_repository_audit.py`
 
 ## Extraction pipeline
 All extractors are idempotent. Re-run to regenerate CSVs from raw data.
@@ -45,18 +52,21 @@ python steps-sleep/merge_exercises.py  → steps-sleep/exercises.csv (Samsung + 
 python steps-sleep/sunlight.py         → steps-sleep/sunlight.csv (possible sunlight hours from sleep/wake + solar position)
 python workout/merge.py                → workout/strength.csv (PDFs + Chloe xlsx + MFP circuit training)
 
-# Analysis pipeline (order matters, no circular dependencies)
+# Analysis pipeline (order matters; the current version has dependency and validation leakage)
 #
-# Each component is estimated from independent raw data:
 #   P1: weight + intake(carbs, sodium) → water corrections
-#   P2: composition scans + RMR calorimetry → daily FM/FFM + fitted RMR (used as TDEE prior only;
-#       P4 no longer mean-reverts TDEE to P2's anchor)
+#   P2: composition scans + RMR calorimetry → interpolated daily FM/FFM + fitted RMR
 #   AA: composition scans + strength sessions → training delta + half-life
 #   P4: 4-state Kalman (FM, LM, BUF, TDEE) anchored to weight + composition scans only.
 #       Lean mass is now a state, not an interpolated input. TDEE drifts freely with rate
 #       caps and no anchor. BUF is a bounded transient buffer for non-glycogen
-#       water/gut variation. Calorimetry RMR observations are held out for posterior validation.
-#       See FINDINGS.md "Kalman filter appendix" for design and constants.
+#       water/gut variation.
+#
+# AUDIT WARNING: P4 initializes TDEE from P2's RMR-fitted expected_rmr, uses RMR and
+# temperature in hyperparameter scoring, and writes retrospective RTS-smoothed states
+# into the *_filtered columns. RMR/temperature are therefore not held out, and the
+# aliases are not forward-filtered predictions. Do not use P4 for predictive or causal
+# claims until the pipeline is refactored and temporally validated.
 
 python analysis/P0_tune_glycogen.py    — parameter tuning (run once to derive P1 constants)
 python analysis/P1_glycogen_smooth.py  → analysis/P1_smoothed_weight.csv
@@ -77,7 +87,7 @@ python analysis/Y_set_point_intake_tests.py  — 5 negative intake-side set poin
 python analysis/C_binge_analysis.py          — binge prediction AUC comparison
 python analysis/AD_tdee_formula_sweep.py     — TDEE formula sweep (null: no formula beats Fitmate noise)
 python analysis/AE_sleep_null.py             — sleep vs energy balance (null: r ≈ 0 for everything)
-python analysis/AF_intake_variance.py        — intake variance mildly protective, not fattening
+python analysis/AF_intake_variance.py        — legacy non-overlapping variance/future-FM test; protective interpretation invalidated
 python analysis/AG_binge_set_point.py        — binge frequency reveals set point distance (r=-0.64)
 python analysis/AH_set_point_properties.py   — inverted ratchet, dual defense, restriction prediction
 python analysis/AI_expenditure_arm_timescale.py — expenditure arm adapts faster (HL≤10d) than appetite (50d)
@@ -102,7 +112,39 @@ python analysis/BK_control_stock_model.py        — willpower-era stock model; 
 python analysis/BA_q3d_prediction.py             — preregistered q3d intake prediction from two-component drug model
 python analysis/AS_temperature_baseline.py       — empirical circadian curve (0.90°F, wake-anchored), per-reading baseline
 python analysis/AT_temperature_retest.py         — re-tests all X claims with baseline-corrected temperatures
+
+# Audit-first direct analyses (do not consume P2/P3/P4)
+python analysis/EA_repository_audit.py            — coverage, continuity, staleness, enrichment
+python analysis/EB_direct_future_intake.py        — locked future-intake tests for menu/context features
+python analysis/EC_travel_event_study.py          — paired 14-day pre/post raw-intake travel study
+python analysis/ED_tirzepatide_direct_audit.py    — raw intake/weight treatment windows + cycle confounding
+python analysis/EE_tirzepatide_composition_support.py — same-device H30 + protein/training support
+python analysis/EF_current_protein_menu.py         — final-90 foods, meal protein, calorie-neutral swaps
+python analysis/EG_observation_provenance.py       — observed/source/device flags + nearest-measurement distance
+python analysis/EI_sleep_activity_reaudit.py       — exact-date 2022+ sleep/activity tests + temporal holdout
+python analysis/EJ_hyperpalatable_food_audit.py    — Fazzino FS exposure, coverage, and ordered same/next-day tests
+python analysis/EK_temporal_semantics_audit.py      — static temporal inventory + corrected AF/AB/N checks
+python analysis/EL_long_run_trajectory_audit.py      — direct episodes, weight-gap missingness, locked quarterly warning nulls
+python analysis/EM_calendar_extreme_clustering.py    — weekday/weekend, extreme-day runs, locked calorie-momentum ranking
+python analysis/EN_energy_density_nutrient_leverage.py — exact-mass coverage, meal leverage, locked future-prediction nulls
+python analysis/P4b_forward_state_space.py          — opt-in raw-input forward filter + separate RTS smoother
+python analysis/test_P4b_forward_state_space.py     — semantic, leakage, covariance, and determinism tests
+python analysis/P4b_posthoc_baselines.py            — frozen-v1 persistence baselines; explicitly post-hoc
 ```
+
+### P4b opt-in outputs
+
+`P4b_state_daily.csv`, `P4b_covariance_daily.csv`,
+`P4b_temporal_validation.csv`, and `P4b_config_selection.csv` are separate from
+legacy P4 and are not consumed downstream. P4b reads only canonical intake,
+observed scale weight, and composition scans. Its predicted, filtered, and
+smoothed states have distinct semantics and complete uncertainty.
+
+The fixed v1 passes all semantic tests but is not decision-grade:
+later-period intervals are over-wide and the locked fat-mass forecast does not
+beat a simple weight-adjusted persistence baseline. The 2025–2026 interval has
+been opened; any tuning in response turns it into calibration, not a reusable
+locked test. See `new_findings/11_P4b_forward_model_audit.md`.
 
 ## CSV column reference
 
@@ -117,7 +159,7 @@ python analysis/AT_temperature_retest.py         — re-tests all X claims with 
 `date, calories, carbs_g, fat_g, protein_g, cholest_mg, sodium_mg, sugars_g, fiber_g`
 
 ### intake/diet_epochs.csv
-`start, end, label, detail` — manually annotated diet phases from food-level inspection. 22 epochs covering the full 2011-2026 period. Labels: `initial_restriction`, `keto_phase_1`, `weekend_fasting`, `enlightened_era`, `tirzepatide_era`, etc.
+`start, end, label, detail` — 27 manually annotated, overlapping diet phases. They do not fully partition 2011-2026. Labels include `initial_restriction`, `keto_phase_1`, `weekend_fasting`, `enlightened_era`, and `tirzepatide_era`.
 
 ### weight/weight.csv
 `date, weight_lbs, time` — first reading of day (fasted, post-sleep)
@@ -177,16 +219,17 @@ python analysis/AT_temperature_retest.py         — re-tests all X claims with 
 
 ### analysis/P4_kalman_daily.csv
 
-The Kalman filter underlies every TDEE, FM, and LM estimate cited in FINDINGS. See FINDINGS "Kalman filter appendix" for the design. Summary:
+The Kalman filter underlies many TDEE, FM, and LM estimates cited in FINDINGS. It is currently an exploratory retrospective model, not an independently validated predictive series. See `new_findings/00_initial_integrity_and_safety_audit.md`.
 
 **4 latent states.** FM (lbs), LM (lbs), BUF (lbs — bounded transient buffer for non-glycogen, non-sodium water/gut variation, ±3 lb cap, HL=5d, decays toward 0), TDEE (cal/day, free random walk with rate cap, no anchor).
 
 **Forbes-coupled energy partition.** `deficit = dFM × 3500 + dLM × 1100`, `dFM/dW = ff(FM, workouts/wk)` where `ff_base = 1 − C²/(C+FM_kg)²`, C = 10.4 kg, plus a workout modulation per CB (α = 0.084 per workout/wk). Hard daily-rate caps from physiology: FM gain ≤ +0.5 lb/day; FM loss ≤ FM × 31/3500 lb/day (Alpert ceiling); |dTDEE/dt| ≤ 100 cal/day.
 
-**Calorimetry observations are held out** — never used by the filter; they're a posterior validation channel.
+**Calorimetry is not held out in the current search.** P2 fits `expected_rmr` from RMR, P4 uses it for initialization, and the P4 composite score includes RMR and temperature statistics.
 
 `date, fat_mass_lbs_filtered, fat_mass_std_filtered, tdee_filtered, tdee_std_filtered, fat_mass_lbs, fat_mass_std, tdee, tdee_std, innovation, lm_lbs, buf_lbs`
-- `fat_mass_lbs` and `tdee` (with `_filtered` aliases) are the smoothed FM and TDEE states.
+- `fat_mass_lbs`, `tdee`, and their current `_filtered` aliases all contain retrospective RTS-smoothed states.
+- The four exported FM/TDEE standard-deviation columns are currently blank placeholders.
 - `lm_lbs` and `buf_lbs` expose the lean-mass and transient-buffer states for downstream analyses (CB, CC, etc.).
 - Innovation is the weight prediction residual (approximately white noise; current lag-1 ACF ≈ 0.08).
 
@@ -198,5 +241,8 @@ The Kalman filter underlies every TDEE, FM, and LM estimate cited in FINDINGS. S
 - OXPS `--` (unknown) nutrient values render as `0`. In the merged CSV, these are empty strings from HTML/MHTML but `0` from OXPS-only years (2013-2017). Biases cholesterol, sugars, fiber low in those years.
 - 4.9% of food items fail Atwater validation. Sugar alcohol products (expected) and alcohol (7 cal/g not tracked as any macro). A handful are bad MFP database entries.
 - Scale body fat % is unreliable. Use composition/ for body fat data.
-- Normal sleep cycle is 3am to 11am. Very little sunlight exposure.
+- The reliable sleep regime is 2022 onward (1,504/1,520 dates through 2026-02-28). Thirty-two pre-2022 rows under 2 hours are nap-like; legacy AE/BS include them and use next-record rather than exact next-date joins.
+- `steps-sleep/sunlight.csv` is possible wake-to-sunset daylight, not measured outdoor exposure or illuminance.
+- On a forward-sorted series, `shift(-1).rolling(h)` is mostly trailing, not a future window. Use explicit shifts for `t+1..t+h`, and do not call a row shift “next day” after filtering or anchoring on a sparse table.
+- Normal sleep cycle is approximately 2am to 10am in the reliable 2022+ regime.
 - Temperature mean ~97.7°F, nearly 1°F below textbook. Aug 30-31 2024 readings >101°F are COVID vaccine reaction.
