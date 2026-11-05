@@ -741,7 +741,7 @@ Nineteen set point rules run on the Kalman FM (or LM) path over the full 2011-20
 
 **Downward movement.** The drug era says the set point moved slowly if at all: frozen, trial-fit latch and EMA ≥ 2 y are tied (AIC 6121-6123), EMA 365 d costs 7, EMA 100 d costs 58. Pre-drug, the forward binge rate correlates *positively* with the frozen gap (+0.33) and *negatively* with every fast-chasing gap (−0.29 at HL 50 d) — but a frozen gap is just `100 − FM`, so that number says only "binges were commoner at lower fat mass" (2014-17 vs 2020-24), which is the frozen-set-point prediction and also plain era drift. **No chasing rule has a forward signal on this subject, and the frozen rule is unfalsifiable against the FM level.**
 
-**The price of a frozen set point is the willpower era.** A set point that did not move from 100 lb FM puts 2,850 cal/day of pressure on 2012-13 (gap 66 lb), when intake sat at 1,850-2,000 with 0-8% binges per quarter. EMA 100 d puts 410 cal/day there — sustainable willpower — but then predicts the 2014-15 regain as *un*-regulated eating above the set point (FM 7-10 lb above EMA while binging 15%), the anti-lipostat sign. Quarterly, no model's gap peaks at the eruption: frozen-max peaks 2014Q2 (85 lb) having sat at 65-78 lb through 2012-13 without a leak; EMA 100 d peaks 2011Q4. **Binges did not build with any pressure variable; they switched on in 2014Q3-Q4.** Either the restriction regime ended for reasons outside the model (see DK) or pressure is gated below some fat mass (the floor reading — but the floor-gated frozen gap peaks 2013Q2 and still does not pick out 2014Q4).
+**The price of a frozen set point is the willpower era.** A set point that did not move from 100 lb FM puts 2,850 cal/day of pressure on 2012-13 (gap 66 lb), when intake sat at 1,850-2,000 with 0-8% binges per quarter. EMA 100 d puts 410 cal/day there — sustainable willpower — but then predicts the 2014-15 regain as *un*-regulated eating above the set point (FM 7-10 lb above EMA while binging 15%), the anti-lipostat sign. Quarterly, no model's gap peaks at the eruption: frozen-max peaks 2014Q2 (85 lb) having sat at 65-78 lb through 2012-13 without a leak; EMA 100 d peaks 2011Q4. **Binges did not build with any pressure variable; they switched on in 2014Q3-Q4.** DK dates the actual regime change to October 2013 — intake stepped up first, fat mass bottomed eight months later, binges came a year later as TDEE collapsed — and finds no pressure variable with a termination-hazard signal across 29 restriction episodes. The switch was behavioral; the eruption was the floor.
 
 **Lean mass is the signal fat mass is not.** Lower lean mass at a given fat mass, controlling for the past 90 days' intake, predicts *more* intake over the next 90 days: partial r +0.56 (Kalman LM), +0.44 with scan-interpolated LM that never touches the Kalman, +0.42 / +0.28 with year fixed effects, holding in 2014-16 (+0.53) and 2017+ (+0.61), and unchanged with workout density and TDEE controlled (+0.58). No FM-based gap exceeds +0.1 on the same test. This is Dulloo's protein-stat / collateral-fattening prediction (FFM deficit drives hyperphagia until FFM is restored; the subject's LM fell 157 → 142 in 2011-14 and has never recovered), and it is also what cumulative restriction history would produce, since LM-at-given-FM integrates long deficits. On drug the LM gap is ~0 and the drug-era fit gives it the wrong sign; there the FM gap carries the intake rise. DJ tests the two readings against each other using training-induced lean mass.
 
@@ -794,6 +794,25 @@ Vectorised cohort of 400 linear responders per SURMOUNT-1 arm, frozen SP, s and 
 A mean of linear responders is linear; a floor bends it only by clipping the strongest responders, and even an implausible floor (65% of TDEE₀, 11% of the arm pinned) reaches 0.45. The concavity is pharmacological saturation, consistent with the EC50 ≈ 12-20 the subject's own data allow (DG §5).
 
 Command: `python analysis/DI_cohort_heterogeneity.py`
+
+## DK. The willpower era ended in October 2013, not at the 2014 binge eruption, and nothing predicted it
+
+Daily intake 2011-2017 (× 1.09), modelled as a hidden two-regime process with no weight, binge or annotation information:
+
+| method | restriction era ends |
+|---|---|
+| single best changepoint (binary segmentation, 10 window/transform variants) | median **2013-10-19**, spread 41 d |
+| PELT (two penalties) | **2013-10-16** (2,139 → 2,317 kcal/day) |
+| sticky HMM, K = 2, dwell ≥ 120 d, 7- and 14-day blocks | first durable exit **2013-11-21** |
+
+Era-scale regimes: restriction 2011-05-19 → 2013-11-20 (2,100 kcal/day, 1-2% binge, balance −200 to −460/day, FM 99 → 22, LM 157 → 144), one 77-day excursion in 2012Q4; free regime 2013-11-21 → 2015-01-28 (2,431 kcal/day, 6% binge, +134/day). The subject's own `maintenance_drift` annotation (2013-10-01) sits 15-51 days before every method's date. Sequence: intake stepped up 200-270 kcal/day in 2013Q4 while TDEE was still ~2,480, so FM kept falling 216 more days to its minimum (2014-06-24); binges erupted only in 2014Q4, 315 days after the switch, when the Kalman TDEE had fallen 405 kcal/day to 2,078.
+
+**Termination hazard.** With one era-scale event every slow monotone predictor separates perfectly by construction (the frozen gap reached 90% of its exit value 254 d before the exit, cumulative deficit 242 d, lean deficit 69 d; the EMA-100 gap was at its 19th percentile at exit; trailing binges were zero). Pooled over all 29 completed pre-drug restriction episodes (1,323 days), discrete-time logistic hazard for "episode ends within 30 d", β per SD with year-block bootstrap CIs: fat mass −0.27 [−1.61, +0.87]; lean deficit +0.52 [−0.13, +1.28]; days in regime −0.09; cumulative deficit −0.10; intake SD +0.33 [−0.00, +0.63]; trailing binges +0.23; TDEE/RMR +0.41; season +0.46 [−0.06, +0.82]; frozen FM gap +0.05 [−0.65, +0.74]; EMA-100 gap −0.49. No univariate CI excludes zero; the only multivariate one that does is the EMA gap at −1.38, the wrong sign for pressure. 2017-24 has only one true restriction regime longer than 120 d (2019-06 → 2019-11); keto was not restriction (2,300-2,400 kcal/day).
+
+**Verdict.** Restriction stopped as a behavioral step in October 2013, with fat mass still falling, no binges, and the fast set-point gap near its low; the slow pressures (frozen gap, lean deficit, cumulative deficit) had plateaued months earlier and the pooled hazard gives none of them a signal. The binge eruption a year later is what the expenditure collapse at the fat-mass floor looks like once intake had already moved to the free regime — the AC+BK floor reading, with the order of events corrected: intake first, then TDEE, then binges.
+
+Command: `python analysis/DK_regime_switch.py`
+Artifact: `analysis/DK_regime_daily.csv`
 
 ## DL. Hall's NIH model run forward on 15 years of logged intake
 

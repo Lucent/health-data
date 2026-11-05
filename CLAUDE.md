@@ -99,6 +99,7 @@ python analysis/DD_forward_setpoint_test.py      — forward-window set point te
 python analysis/DH_sp_dynamics_zoo.py            — 19 set point dynamics models over 2011-2026 (frozen/EMA/asymmetric/latch/attractor/lean-mass/floor-gated): forward binge, forward intake, drug-era AIC, implied 2012-13 pressure; lean-mass deficit is the strongest forward appetite signal (partial +0.4-0.6)
 python analysis/DI_cohort_heterogeneity.py       — heterogeneous linear responders + intake floor cannot produce SURMOUNT-1's concave dose-response (5/15 ratio ≤ 0.45 vs 0.71)
 python analysis/DJ_proteinstat_training.py       — lean mass → next-90d intake (−20 to −44 cal/day/lb) survives restriction-history controls and raw scans; no protein-seeking, no thermogenic arm; training instrument has no first stage
+python analysis/DK_regime_switch.py              — changepoint/HMM on intake: restriction era ends 2013-10-16..19 (not at the 2014 eruption); pooled 29-episode termination hazard: no pressure variable → analysis/DK_regime_daily.csv
 python analysis/DL_hall_model.py                 — Hall NIH model forward on logged intake (PAL 1.21): weight RMSE 11 lb, ±30 lb year errors (heavy in loss, light in regain); implied undercount ~0% loss years / ~15% regain years → analysis/DL_hall_daily.csv
 python analysis/AV_surmount_simulation.py        — preliminary SURMOUNT simulation (15mg within 2.2% of published)
 python analysis/AY_sp_from_regain.py             — derive SP adaptation from SURMOUNT-4 regain
