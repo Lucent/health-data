@@ -483,6 +483,28 @@ def main():
     print("  Gap model prediction: mean intake tracks FM only — flat while FM holds; sawtooth shrinks with q3d.")
     print("  Tachyphylaxis (BA) predicts a continued upward drift with cumulative exposure.")
 
+    # 8. control form on the subject's drug era: proportional vs integral (Tam 2009), linear vs threshold (Speakman DIP)
+    print("\n--- 8. Control form on the drug era (DF design): proportional vs integral; linear gap vs threshold ---")
+    y8, B8, fm8 = d["y"].values, d["blood_level"].values, d["fat_mass_lbs"].values
+    gf8 = fm8[0] - fm8
+    cum8 = np.cumsum(gf8) / 30.0
+    def fit8(f, x0, lb, ub):
+        r8 = least_squares(lambda p: y8 - f(p), x0, bounds=(lb, ub))
+        sse8 = np.sum((y8 - f(r8.x)) ** 2)
+        return len(y8) * np.log(sse8 / len(y8)) + 2 * len(x0), r8.x
+    aic_p, _ = fit8(lambda p: p[0] + p[1] * B8 + p[2] * gf8, [2300, -80, 30], [1000, -600, -300], [3500, 0, 300])
+    aic_pi, x_pi = fit8(lambda p: p[0] + p[1] * B8 + p[2] * gf8 + p[3] * cum8, [2300, -80, 30, 0], [1000, -600, -300, -50], [3500, 0, 300, 50])
+    aic_i, _ = fit8(lambda p: p[0] + p[1] * B8 + p[2] * cum8, [2300, -80, 0], [1000, -600, -50], [3500, 0, 50])
+    print(f"  proportional P·gap: AIC {aic_p:.1f};  PI (+ kI·∫gap dt): AIC {aic_pi:.1f} (kI = {x_pi[3]:.3f} cal/day per lb·month);  integral only: AIC {aic_i:.1f}")
+    print("  Integral control (Tam 2009 'defend below threshold with zero steady-state error') predicts intake keeps rising")
+    print("  at constant gap; it adds nothing here and over-erodes the 12.5 mg hold-out. Polidori/Hall proportional control holds.")
+    print(f"  threshold P·max(0, LIP − FM) vs linear from FM₀ = {fm8[0]:.1f}:")
+    for lip in (60, 65, 70, 75, 80, fm8[0]):
+        thr = np.maximum(0, lip - fm8)
+        a_t, x_t = fit8(lambda p, thr=thr: p[0] + p[1] * B8 + p[2] * thr, [2300, -80, 30], [1000, -600, -300], [3500, 0, 300])
+        print(f"    LIP = {lip:5.1f} lb: AIC {a_t:.1f}  P = {x_t[2]:+.1f}")
+    print("  A lower intervention point sits within ~5 lb of the pre-drug FM: no zone of indifference wider than that.")
+
     print("\n=== Scorecard: one parameter set (s, P from the subject's drug era) against everything ===")
     print("  ✓ Subject 18-month FM path from the pre-drug state: RMSE 1.2 lb, every dose era within ~1 lb (section 1).")
     print("  ✓ Withdrawal regain fraction in all four trials is ~2/3 of the loss regardless of loss speed. Most of it is")

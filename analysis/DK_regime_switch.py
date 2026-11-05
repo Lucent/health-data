@@ -24,7 +24,7 @@ date the switch. Secondary: same episode model on 2017-2024 (keto, weekend fasti
 pooled hazard over every completed pre-drug restriction episode.
 
 Command:  python analysis/DK_regime_switch.py
-Artifact: analysis/DK_regime_daily.csv (date, regime labels per method), analysis/DK_hazard_coefficients.csv
+Artifact: analysis/DK_regime_daily.csv (date, era/episode regime labels per HMM variant, true kcal, binge, FM, LM, TDEE)
 """
 
 from pathlib import Path
@@ -214,6 +214,9 @@ def hazard_table(P, y, years, label, boots=300):
         print(f"  {k:<18} {w_uni[j]:>+10.2f} {f'[{cu[0]:+.2f}, {cu[1]:+.2f}]':>26} {wmj:>+9.2f} {f'[{cm[0]:+.2f}, {cm[1]:+.2f}]':>18}")
         rows.append((label.split(",")[0], k, w_uni[j], cu[0], cu[1], wmj, cm[0], cm[1]))
     print(f"  ({len(bu[names[0]])} usable bootstrap draws; β per SD of predictor; CI excluding 0 = signal; gap_frozen not in multi)")
+    if max(abs(b) for b in w_uni) > 10:
+        print("  |β| > 10 = perfect separation: the final 30 days are the era's extreme for every monotone predictor, so the")
+        print("  one-event hazard identifies calendar order, not which pressure caused the exit.")
     return rows
 
 
@@ -290,9 +293,9 @@ def main():
     print(f"\n--- Pressure lead in the restriction era {w1['date'].iloc[s0].date()}..{era_end.date()} (start of record to first ≥ 90 d exit) ---")
     print(f"  {'predictor':<18} {'at exit':>9} {'era max':>9} {'exit pctile':>12} {'lead (d)':>9} {'argmax (d before exit)':>23}")
     for k in P0.columns:
-        v = P0[k].values; thr = v[-1] - 0.1 * (v.max() - v.min()); first = int(np.argmax(v >= thr))
-        print(f"  {k:<18} {v[-1]:>9.2f} {v.max():>9.2f} {(v < v[-1]).mean() * 100:>11.0f}% {len(v) - 1 - first:>9d} {len(v) - 1 - int(np.argmax(v)):>23d}")
-    print("  lead = days before exit at which the predictor first came within 10 % of its exit value (of its era range).")
+        v = P0[k].values; close = np.abs(v - v[-1]) <= 0.1 * (np.nanmax(v) - np.nanmin(v)); first = int(np.argmax(close))
+        print(f"  {k:<18} {v[-1]:>9.2f} {np.nanmax(v):>9.2f} {np.nanmean(v < v[-1]) * 100:>11.0f}% {len(v) - 1 - first:>9d} {len(v) - 1 - int(np.nanargmax(v)):>23d}")
+    print("  lead = days before exit at which the predictor first came within 10 % (of its era range) of its exit value.")
     y0 = ((e0 - 1 - P0.index.values) < HORIZON).astype(float)
     rows += hazard_table(P0, y0, w1["date"].dt.year.values[P0.index.values],
                          "era-scale 2011-2013, ONE event (the era exit): slow monotone predictors are maximal at exit by construction")
@@ -329,25 +332,26 @@ def main():
     art = pd.concat([era.add_prefix("era_").rename(columns={"era_date": "date"}).merge(epi.add_prefix("ep_").rename(columns={"ep_date": "date"}), on="date"),
                      epi2.add_prefix("ep_").rename(columns={"ep_date": "date"})]).drop_duplicates("date", keep="first")
     art.merge(d[["date", "cal", "binge", "fat_mass_lbs", "lm_lbs", "tdee"]], on="date").to_csv(ROOT / "analysis" / "DK_regime_daily.csv", index=False, float_format="%.2f")
-    pd.DataFrame(rows, columns=["model", "predictor", "beta_uni", "lo_uni", "hi_uni", "beta_multi", "lo_multi", "hi_multi"]) \
-        .to_csv(ROOT / "analysis" / "DK_hazard_coefficients.csv", index=False, float_format="%.3f")
 
     fm_min = w1["date"].iloc[w1["fat_mass_lbs"].idxmin()]; q_erupt = q.index[(q["binge"] >= 0.10).argmax()]
+    post = w1[(w1["date"] > era_end) & (w1["date"] <= era_end + pd.Timedelta(days=180))]; pre_ = w1[w1["date"] <= era_end]
     pooled = [r for r in rows if r[0].startswith("pooled")]
-    sig = [f"{r[1]} ({r[2]:+.2f} [{r[3]:+.2f}, {r[4]:+.2f}])" for r in pooled if r[3] > 0 or r[4] < 0]
+    sig_u = [f"{r[1]} {r[2]:+.2f} [{r[3]:+.2f}, {r[4]:+.2f}]" for r in pooled if r[3] > 0 or r[4] < 0]
+    sig_m = [f"{r[1]} {r[5]:+.2f} [{r[6]:+.2f}, {r[7]:+.2f}]" for r in pooled if r[6] > 0 or r[7] < 0]
     slow = {r[1]: r for r in pooled if r[1] in ("gap_frozen", "gap_ema100", "lm_deficit", "days_in_regime", "cum_deficit_Mcal")}
     print("\n=== Verdict ===")
     print(f"  Intake-only dating ends the restriction era at {sd.iloc[len(sd) // 2].date()} (single split; spread {(sd.max() - sd.min()).days} d over windows/transforms),")
     print(f"  HMM era exit {era_end.date()}, PELT {w1['date'][pelt(x1, 8 * sig2 * np.log(n))[0]].date()}. That is {(fm_min - era_end).days} d BEFORE the")
     print(f"  Kalman fat-mass minimum ({fm_min.date()}) and {(q_erupt.start_time - era_end).days} d before the first ≥ 10 % binge quarter ({q_erupt}).")
-    print("  Sequence: intake stepped up (+250 kcal/day) while TDEE was still ~2,450-2,500, so FM kept falling for 8 more")
-    print("  months; binges (TDEE-relative AND absolute) erupted only after TDEE had dropped ~400 kcal/day at the FM floor.")
+    print(f"  Sequence: intake stepped {post['cal'].mean() - pre_['cal'].mean():+.0f} kcal/day (era mean → next 180 d) while TDEE was still "
+          f"{post['tdee'].mean():.0f}, so FM kept falling; binges (TDEE-relative AND absolute) erupted only after TDEE had dropped to "
+          f"{q.loc[q_erupt, 'tdee']:.0f} ({q.loc[q_erupt, 'tdee'] - post['tdee'].mean():+.0f}) at the FM floor.")
     print("  Within the era every slow pressure (frozen gap, LM deficit, cumulative deficit, time) is monotone, so the")
     print("  one-event hazard cannot separate them from calendar time; the lead table shows how long each sat near its exit value.")
     print(f"  Pooled hazard over all completed pre-drug episodes, univariate β per SD [95 % CI]: "
           + "; ".join(f"{k} {r[2]:+.2f} [{r[3]:+.2f}, {r[4]:+.2f}]" for k, r in slow.items()))
-    print(f"  Predictors whose CI excludes 0: {', '.join(sig) if sig else 'none'}.")
-    print("  Artifacts: analysis/DK_regime_daily.csv, analysis/DK_hazard_coefficients.csv")
+    print(f"  Univariate CI excludes 0: {', '.join(sig_u) if sig_u else 'none'}.  Multivariate: {', '.join(sig_m) if sig_m else 'none'}.")
+    print("  Artifact: analysis/DK_regime_daily.csv")
 
 
 if __name__ == "__main__":

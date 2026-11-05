@@ -5,6 +5,7 @@ Read these files in order:
 2. [BACKGROUND.md](BACKGROUND.md) — health history, genetics, substances, locations, weighing protocol
 3. [FINDINGS.md](FINDINGS.md) — testable hypotheses organized by data requirements
 4. [ROADMAP.md](ROADMAP.md) — completed work, next steps, known data quality notes
+5. [MODELS.md](MODELS.md) — survey of published quantitative set point / appetite models with equations, parameters, DOIs, and the test each one implies for this dataset
 
 ## Key principles
 - **The data is complete.** Every day is fully logged. A 10-calorie day is a real fasting day, not incomplete logging. Never assume missing entries.

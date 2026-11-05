@@ -53,6 +53,8 @@ I am [mostly](https://ptable.com) [retired](https://flightaware.com), 43, no pre
 
 Steps don't predict weight change at any timescale. Sleep hours, protein, fat, and fiber have no independent signal after controlling for calories, carbs, and sodium. The week-scale intake invariance claim was falsified.
 
+The drug-era pressure constant is not new to the literature: Polidori and Hall's 2016 appetite-feedback fit from a canagliflozin trial is 95 kcal/day per kg, 43 per lb, the same number; Hall's 2024 GLP-1 plateau model is the same equation with the set point frozen at baseline. [MODELS.md](MODELS.md) surveys the published quantitative models and what each predicts here.
+
 Every finding with numbers is reproduced by a standalone script in [FINDINGS.md](FINDINGS.md). Omega-6:3 ratios, circadian misalignment, and other untested theories are also documented there.
 
 ## Setup
