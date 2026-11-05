@@ -249,7 +249,10 @@ def regain_from_leadin(baseline_kg, stop_kg, lead_weeks, fm_frac, fat_frac_loss,
         if day % 7 == 0:
             weekly.append((bw - bw1) / bw1 * 100)
         sp = latch.update(fm)
-        surplus = P_true * (sp - fm) - k_tdee * (bw - bw1)
+        # Off drug, intake returns to the habitual pre-trial level I₀ = TDEE₀ while TDEE
+        # is lower at the lower weight: surplus = k·(BW₀ − BW) even with P = 0 (pure CICO
+        # return to habit). Set point pressure adds P·(SP − FM) on top.
+        surplus = k_tdee * (bw0 - bw) + P_true * (sp - fm)
         dfm, dlm = partition(max(surplus, 0.0), fm, regain_fat_frac)
         fm, bw = fm + dfm, bw + dfm + dlm
     weekly = np.array(weekly)
@@ -388,16 +391,69 @@ def main():
         print(f"  SURMOUNT-1 {dz:>2} mg       {a:>+7.1f} {b:>+7.1f} {pub:>+10.1f}")
     p4e = simulate_trial(**S4, target_mg=15, weeks_on=36, weeks_off=52, s_true=s_true, P_true=P_true, m=m_e, ec50=ec_e)[0]
     print(f"  SURMOUNT-4 under Emax: lead-in {p4e[36]:+.1f}% (pub −20.9); regain +52 wk {(p4e[88] - p4e[36]) / (1 + p4e[36] / 100):+.1f}% of stop weight (pub +14.0)")
-    print(f"  Subject check: at EC50 = {ec_e:.1f} the within-week exposure swing at 12.5 mg (6.2→12.2) should produce "
-          f"{(12.2 / (1 + 12.2 / ec_e) - 6.2 / (1 + 6.2 / ec_e)) / (6.8 / (1 + 6.8 / ec_e) - 3.5 / (1 + 3.5 / ec_e)):.2f}× the 5 mg swing (3.5→6.8); observed sawtooth ratio ≈ 1.7, linear predicts 1.8.")
+    # Subject-side check of saturation: refit the drug era with an Emax term at fixed EC50
+    # (plus the latch gap), and bootstrap the sawtooth-amplitude ratio 12.5 mg / 5 mg.
+    y_s, B_s = d["y"].values, d["blood_level"].values
+    fm_s = d["fat_mass_lbs"].values
+    lt = Latch(fm_s[0]); gap_s = np.array([lt.update(f) for f in fm_s]) - fm_s
+    print(f"\n  Subject drug era refit with Emax at fixed EC50 (+ latch gap), AIC relative to linear:")
+    aics = {}
+    for ec in (3, 5, 8, 12, 20, 50, np.inf):
+        Be = B_s / (1 + B_s / ec) if np.isfinite(ec) else B_s
+        fe = lambda p: p[0] + p[1] * Be + p[2] * gap_s
+        re = least_squares(lambda p: y_s - fe(p), [2300, -80, 30], bounds=([1000, -3000, -300], [3500, 0, 300]))
+        sse = np.sum((y_s - fe(re.x)) ** 2)
+        aics[ec] = len(y_s) * np.log(sse / len(y_s)) + 6
+    for ec in aics:
+        print(f"    EC50 = {ec if np.isfinite(ec) else 'linear':>7}: ΔAIC {aics[ec] - aics[np.inf]:+6.1f}")
+    wk_s = ((d["date"] - d["date"].min()).dt.days // 7).values
+    dfw = pd.DataFrame({"wk": wk_s, "y": y_s, "dsi": d["days_since_injection"].values, "dose": d["dose_mg"].values})
+    pk_ = dfw[dfw["dsi"].isin([1, 2])].groupby("wk")["y"].mean()
+    tr_ = dfw[dfw["dsi"].isin([5, 6])].groupby("wk")["y"].mean()
+    amp = (tr_ - pk_).dropna()
+    dose_w = dfw.groupby("wk")["dose"].max().reindex(amp.index)
+    a5, a12 = amp[dose_w == 5.0].values, amp[dose_w == 12.5].values
+    rng = np.random.default_rng(0)
+    ratios = [rng.choice(a12, len(a12)).mean() / rng.choice(a5, len(a5)).mean() for _ in range(5000)]
+    lo_r, hi_r = np.percentile(ratios, [2.5, 97.5])
+    print(f"  Sawtooth amplitude 12.5 mg / 5 mg: {a12.mean() / a5.mean():.2f} (bootstrap 95% [{lo_r:.2f}, {hi_r:.2f}]); "
+          f"predicted by EC50 = 5: 0.95, 12: 1.20, 20: 1.36, linear: 1.82.")
+    print(f"  → The subject tolerates mild saturation (EC50 ≳ 12) but not the cohort's EC50 ≈ {ec_e:.0f}.")
+    for ec_fixed in (12.0, 20.0):
+        m_f = minimize_scalar(lambda m_: sum((simulate_trial(**S1, target_mg=dz, weeks_on=72, weeks_off=0, s_true=s_true,
+                                                             P_true=P_true, m=m_, ec50=ec_fixed)[0][72] - pub) ** 2 for dz, pub in arms1),
+                              bounds=(0.3, 6.0), method="bounded").x
+        arms_f = [simulate_trial(**S1, target_mg=dz, weeks_on=72, weeks_off=0, s_true=s_true, P_true=P_true, m=m_f, ec50=ec_fixed)[0][72] for dz, _ in arms1]
+        print(f"  SURMOUNT-1 at subject-compatible EC50 = {ec_fixed:.0f} (m = {m_f:.2f}): "
+              + ", ".join(f"{dz} mg {a:+.1f}" for (dz, _), a in zip(arms1, arms_f)) + "  (pub −16.0 / −21.4 / −22.5)")
+
+    # 5b. joint cohort model: subject-compatible EC50, cohort P from regain, m from SURMOUNT-1
+    print("\n--- 5b. Joint cohort model: EC50 ∈ {12, 20}, cohort P ∈ {5, 15, 43}, frozen SP, m from SURMOUNT-1 ---")
+    print(f"  {'EC50':>5} {'P_c':>5} {'m':>5} {'5 mg':>7} {'10 mg':>7} {'15 mg':>7} {'S4 lead-in':>11} {'S4 regain +12/24/36/52 wk':>28}")
+    frozen = (0.0, 30, 0.0)
+    for ec_fixed in (12.0, 20.0):
+        for p_c in (5.0, 15.0, 43.0):
+            m_f = minimize_scalar(lambda m_: sum((simulate_trial(**S1, target_mg=dz, weeks_on=72, weeks_off=0, s_true=s_true,
+                                                                 P_true=p_c, m=m_, ec50=ec_fixed, latch_params=frozen)[0][72] - pub) ** 2
+                                                for dz, pub in arms1), bounds=(0.3, 8.0), method="bounded").x
+            arms_f = [simulate_trial(**S1, target_mg=dz, weeks_on=72, weeks_off=0, s_true=s_true, P_true=p_c, m=m_f,
+                                     ec50=ec_fixed, latch_params=frozen)[0][72] for dz, _ in arms1]
+            p4 = simulate_trial(**S4, target_mg=15, weeks_on=36, weeks_off=52, s_true=s_true, P_true=p_c, m=m_f,
+                                ec50=ec_fixed, latch_params=frozen)[0]
+            st_ = p4[36]
+            rg = [(p4[36 + w] - st_) / (1 + st_ / 100) for w in (12, 24, 36, 52)]
+            print(f"  {ec_fixed:>5.0f} {p_c:>5.0f} {m_f:>5.2f} {arms_f[0]:>+7.1f} {arms_f[1]:>+7.1f} {arms_f[2]:>+7.1f} {st_:>+11.1f} "
+                  + " / ".join(f"{r_:+.1f}" for r_ in rg))
+    print("  published:            −16.0   −21.4   −22.5       −20.9   +7.0 / +11.0 / +13.0 / +14.0")
 
     # 6. withdrawal arms with a frozen SP at several P
     print("\n--- 6. Withdrawal arms, frozen SP (no latch), % of loss regained at +52 wk, by cohort P ---")
+    print("  P = 0 is pure CICO: intake returns to the pre-trial habit, TDEE is lower at the lower weight (6.4 cal/lb).")
     arms_w = [("SURMOUNT-4", 107.3, 85.8, 36, 0.455, 0.75, 67),
               ("STEP-1 ext sema", 105.6, 87.5, 68, 0.434, 0.56, 65),
               ("STEP-4 sema (+48 wk)", 107.2, 96.1, 20, 0.434, 0.56, 66),
               ("SCALE lira 3 mg", 105.2, 96.7, 56, 0.434, 0.65, 80)]
-    Ps = [P_true, 25.0, 15.0, 10.0]
+    Ps = [P_true, 25.0, 15.0, 5.0, 0.0]
     print(f"  {'trial':<22} " + " ".join(f"{'P=' + format(p, '.0f'):>8}" for p in Ps) + f" {'published':>10}")
     for name, b0, b1, lead, ff_, fl, pub in arms_w:
         vals = []
@@ -405,9 +461,10 @@ def main():
             wk, frac = regain_from_leadin(b0, b1, lead, ff_, fl, p_, latch_params=(0.0, 30, 0.0))
             vals.append(frac[48] if "48" in name else frac[52])
         print(f"  {name:<22} " + " ".join(f"{v:>7.0f}%" for v in vals) + f" {pub:>9}%")
-    print("  SURMOUNT-4 trajectory (frozen SP) at P = 15 vs published, % of stop weight:")
-    wk, frac = regain_from_leadin(107.3, 85.8, 36, 0.455, 0.75, 15.0, latch_params=(0.0, 30, 0.0))
-    print("    weeks off: " + "  ".join(f"{w}: sim {wk[w]:+.1f} / pub {pub_regain[w]:+.1f}" for w in (12, 24, 36, 52)))
+    for p_ in (15.0, 5.0, 0.0):
+        wk, frac = regain_from_leadin(107.3, 85.8, 36, 0.455, 0.75, p_, latch_params=(0.0, 30, 0.0))
+        print(f"  SURMOUNT-4 trajectory (frozen SP) at P = {p_:.0f}, % of stop weight — weeks off: " +
+              "  ".join(f"{w}: sim {wk[w]:+.1f} / pub {pub_regain[w]:+.1f}" for w in (12, 24, 36, 52)))
 
     # 4. q3d forecast
     print("\n--- 7. Preregistered q3d forecast (gap model, FM held at plateau 60.5 lb, SP from latch) ---")
@@ -428,9 +485,9 @@ def main():
 
     print("\n=== Scorecard: one parameter set (s, P from the subject's drug era) against everything ===")
     print("  ✓ Subject 18-month FM path from the pre-drug state: RMSE 1.2 lb, every dose era within ~1 lb (section 1).")
-    print("  ✓ SURMOUNT-4 regain shape with a frozen SP (section 6): P ≈ 15 reproduces +7/+11/+13/+14% at 12/24/36/52 wk.")
-    print("  ✓ Withdrawal regain fraction in all four trials is ~2/3 of the loss regardless of loss speed; a frozen SP")
-    print("    at cohort P ≈ 25-43 lands within 10-15 points of each. The latch's speed-of-loss prediction is NOT in the data.")
+    print("  ✓ Withdrawal regain fraction in all four trials is ~2/3 of the loss regardless of loss speed. Most of it is")
+    print("    CICO: intake returning to habit with TDEE lower at the lower weight (P = 0) already regains ~half; a frozen")
+    print("    SP with small cohort P (≈5-15) closes the rest. The latch's speed-of-loss prediction is NOT in the data.")
     print("  ✗ Cohort dose-response is concave (5 mg → 71% of the 15 mg loss at 1/3 the exposure). A linear drug term cannot")
     print("    do it at any m (SSE 51); an Emax with EC50 ≈ 5 units fits exactly (SSE 0.4) but predicts a flat sawtooth")
     print("    across the subject's doses, which his data contradict (1.7× growth). Cohort heterogeneity/tolerability, open.")
