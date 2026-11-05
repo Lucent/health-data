@@ -113,13 +113,22 @@ def sp_velocity_gated_ema(fm, hl=45, vel_thresh=0.08, vel_scale=VEL_SCALE):
     return sp
 
 
-def simulate_regain_from_path(fm_treat, sp_treat, update_fn, weeks=52):
+def simulate_regain_from_path(fm_treat, sp_treat, update_fn, weeks=52, stop_weight_lbs=None):
+    """Regain after cessation. Returns % of BODY WEIGHT AT CESSATION regained.
+
+    Earlier versions divided by `fm[0] / 0.40`, i.e. assumed the subject still
+    carried 40% body fat at the END of treatment. For the SURMOUNT-4 setup
+    (FM 90 → 48 lb) that denominator is 120 lb — a body weight no trial subject
+    has — and inflated every regain percentage ~1.6×. The README/FINDINGS claim
+    "+14.1% vs published +14.0%" came from that denominator. Pass the real
+    weight at cessation instead (SURMOUNT-4 week-36 ≈ 187 lb, STEP-1 week-68 ≈ 197 lb).
+    """
     days = weeks * 7
     fm = np.empty(days)
     sp = np.empty(days)
     fm[0] = fm_treat[-1]
     sp[0] = sp_treat[-1]
-    total_weight_start = fm[0] / 0.40
+    total_weight_start = stop_weight_lbs if stop_weight_lbs else fm[0] / 0.40
 
     full_fm = list(fm_treat)
     full_sp = list(sp_treat)
@@ -132,7 +141,7 @@ def simulate_regain_from_path(fm_treat, sp_treat, update_fn, weeks=52):
         sp[d] = next_sp[-1]
         full_sp.append(sp[d])
 
-    regain_lbs = fm[-1] - fm[0]
+    regain_lbs = (fm[-1] - fm[0]) / FAT_FRACTION   # body weight regained (fat + lean)
     regain_pct = regain_lbs / total_weight_start * 100
     return regain_pct, fm, sp
 
@@ -217,11 +226,20 @@ def fit_initial_treatment_sp(fm_treat, sp0, updater):
     return sp
 
 
-def run_trial_transfer(kind, params, loss_lbs, treatment_days, regain_weeks=52, sp_original=90.0, fm_start=90.0):
+# Trial anchors. SURMOUNT-4 (Aronne JAMA 2024): 107.3 kg baseline, 36 wk lead-in to
+# 85.8 kg (≈187 lb), placebo arm +14.0% of week-36 weight by week 88. STEP-1 extension
+# (Wilding 2022): 105.3 kg baseline, 68 wk to ≈89.6 kg (≈197 lb), ≈+11.6% by week 120.
+SURMOUNT4_STOP_LBS = 187.1
+STEP1_STOP_LBS = 197.5
+
+
+def run_trial_transfer(kind, params, loss_lbs, treatment_days, regain_weeks=52,
+                       sp_original=90.0, fm_start=90.0, stop_weight_lbs=SURMOUNT4_STOP_LBS):
     updater = make_recursive_updater(kind, params)
     fm_treat, _ = treatment_path(sp_original, fm_start, loss_lbs, treatment_days)
     sp_treat = updater(fm_treat, np.zeros(len(fm_treat)))
-    return simulate_regain_from_path(fm_treat, sp_treat, updater, weeks=regain_weeks)[0]
+    return simulate_regain_from_path(fm_treat, sp_treat, updater, weeks=regain_weeks,
+                                     stop_weight_lbs=stop_weight_lbs)[0]
 
 
 def main():
@@ -257,7 +275,7 @@ def main():
             "subject_r90": fits.get(("2014+ pre-tirz", "90d"), np.nan),
             "subject_r180": fits.get(("2014+ pre-tirz", "180d"), np.nan),
             "surmount4": run_trial_transfer("ema", {"hl": hl}, loss_lbs=42, treatment_days=252),
-            "step1": run_trial_transfer("ema", {"hl": hl}, loss_lbs=32, treatment_days=476, sp_original=92.0, fm_start=92.0),
+            "step1": run_trial_transfer("ema", {"hl": hl}, loss_lbs=32, treatment_days=476, sp_original=92.0, fm_start=92.0, stop_weight_lbs=STEP1_STOP_LBS),
         })
 
     for hl_up, hl_down in ASYM_GRID:
@@ -269,7 +287,7 @@ def main():
             "subject_r90": fits.get(("2014+ pre-tirz", "90d"), np.nan),
             "subject_r180": fits.get(("2014+ pre-tirz", "180d"), np.nan),
             "surmount4": run_trial_transfer("asym", {"hl_up": hl_up, "hl_down": hl_down}, loss_lbs=42, treatment_days=252),
-            "step1": run_trial_transfer("asym", {"hl_up": hl_up, "hl_down": hl_down}, loss_lbs=32, treatment_days=476, sp_original=92.0, fm_start=92.0),
+            "step1": run_trial_transfer("asym", {"hl_up": hl_up, "hl_down": hl_down}, loss_lbs=32, treatment_days=476, sp_original=92.0, fm_start=92.0, stop_weight_lbs=STEP1_STOP_LBS),
         })
 
     for rate in RATE_GRID:
@@ -286,7 +304,7 @@ def main():
                 "subject_r90": fits.get(("2014+ pre-tirz", "90d"), np.nan),
                 "subject_r180": fits.get(("2014+ pre-tirz", "180d"), np.nan),
                 "surmount4": run_trial_transfer(kind, {"rate": rate}, loss_lbs=42, treatment_days=252),
-                "step1": run_trial_transfer(kind, {"rate": rate}, loss_lbs=32, treatment_days=476, sp_original=92.0, fm_start=92.0),
+                "step1": run_trial_transfer(kind, {"rate": rate}, loss_lbs=32, treatment_days=476, sp_original=92.0, fm_start=92.0, stop_weight_lbs=STEP1_STOP_LBS),
             })
 
     for hl in [45, 60, 80]:
@@ -299,7 +317,7 @@ def main():
                 "subject_r90": fits.get(("2014+ pre-tirz", "90d"), np.nan),
                 "subject_r180": fits.get(("2014+ pre-tirz", "180d"), np.nan),
                 "surmount4": run_trial_transfer("vel_ema", {"hl": hl, "vel_thresh": vel_thresh}, loss_lbs=42, treatment_days=252),
-                "step1": run_trial_transfer("vel_ema", {"hl": hl, "vel_thresh": vel_thresh}, loss_lbs=32, treatment_days=476, sp_original=92.0, fm_start=92.0),
+                "step1": run_trial_transfer("vel_ema", {"hl": hl, "vel_thresh": vel_thresh}, loss_lbs=32, treatment_days=476, sp_original=92.0, fm_start=92.0, stop_weight_lbs=STEP1_STOP_LBS),
             })
 
     out = pd.DataFrame(candidates)
@@ -324,9 +342,11 @@ def main():
         print(sub[["model", "params", "subject_r90", "subject_r180", "surmount4", "step1"]]
               .to_string(index=False, float_format=lambda x: f"{x:.3f}"))
 
-    print("\nReference:")
-    print("  SURMOUNT-4 published regain: +14.0%")
-    print("  STEP-1 published regain: ~+10.0%")
+    print("\nReference (regain as % of body weight at cessation, lean+fat, 52 wk):")
+    print("  SURMOUNT-4 published regain: +14.0% of week-36 weight (≈67% of the 20.9% lost)")
+    print("  STEP-1 published regain: ~+10-12% of week-68 weight (≈2/3 of the loss)")
+    print("  Denominators are the real cessation weights (187 / 197 lb). With the old")
+    print("  fm/0.40 denominator every figure above would read ~1.6× larger.")
     print("  Better simple models should keep subject fit high while pushing both trial regains upward.")
 
 

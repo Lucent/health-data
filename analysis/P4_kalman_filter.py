@@ -341,14 +341,25 @@ def diagnostics(dates, x_smooth, innovations, fm_scan, lm_scan, calories, rmr_df
     out["tdee_rmr_max"] = float(np.max(ratios))
     out["tdee_rmr_in_band"] = float(np.mean([(0.95 <= r <= 1.30) for r in ratios]))
 
-    # 5. Cumulative energy balance closure
+    # 5. Cumulative energy balance closure.
+    #    Σ(intake − TDEE) must equal ΔFM·E_FAT + ΔLM·E_LEAN (the filter's own
+    #    partition). The residual is the net energy injected by observation
+    #    updates (weight / scan innovations pulling FM and LM directly) rather
+    #    than through intake − TDEE. Expressed in lb of fat.
+    #    Note (DH): this residual is NOT an identification of INTAKE_MULTIPLIER.
+    #    TDEE is a free random walk and absorbs ~99% of any uniform intake
+    #    rescaling; over 15 years a 1% multiplier change moves this number by
+    #    ~0.25 lb while injecting ~115,000 cal. An earlier version omitted the
+    #    ΔLM·E_LEAN term (−14.6 lb of lean over the record ≈ +4.6 lb of fat-
+    #    equivalent), which is why "EB closes at m = 1.09" appeared exact.
     valid_cal = ~np.isnan(calories) & ~np.isnan(x_smooth[:, 3])
+    idx = np.where(valid_cal)[0]
     cum_deficit = np.cumsum((calories - x_smooth[:, 3])[valid_cal])
-    fm_first = x_smooth[np.where(valid_cal)[0][0], 0]
-    fm_last = x_smooth[np.where(valid_cal)[0][-1], 0]
-    fm_change_observed = fm_last - fm_first
-    fm_change_implied = cum_deficit[-1] / E_FAT
+    fm_change_observed = x_smooth[idx[-1], 0] - x_smooth[idx[0], 0]
+    lm_change_observed = x_smooth[idx[-1], 1] - x_smooth[idx[0], 1]
+    fm_change_implied = (cum_deficit[-1] - lm_change_observed * E_LEAN) / E_FAT
     out["eb_residual_lb"] = float(fm_change_implied - fm_change_observed)
+    out["eb_residual_fm_only_lb"] = float(cum_deficit[-1] / E_FAT - fm_change_observed)
 
     # 6. BUF behavior
     buf = x_smooth[:, 2]

@@ -8,6 +8,16 @@ Outputs two files:
 XLSX columns: Date, Drug, Dose (mg), Clicks, Location, Lot, Expiry, Serial,
 Subjective strength.
 
+Exposure timing (DE). Injections carry a clock time in the XLSX (noon early on,
+drifting to ~23:00 by 2026). `blood_level` is therefore the MEAN concentration
+over the day's eating window (11:00 through 03:00 next day, the subject's waking
+hours) computed from the exact injection timestamps, not a point sample. An
+earlier version sampled the concentration at the first injection's clock time
+and labelled `days_since_injection` from the timestamp, which put the injection
+day at -1 for 61 of 76 weekly cycles. `days_since_injection` is now calendar
+days since the most recent injection date, so day 0 is the injection day and
+day 1 (Tmax ≈ 24 h) is the peak-exposure day.
+
 For tirzepatide injections, dose is determined by:
 - Autoinjector pens (pre-clickpen): Dose (mg) column, Clicks is empty.
 - KwikPen clickpen: Clicks column × pen_strength_mg / 60. Dose (mg) column
@@ -62,6 +72,31 @@ TIRZ_HALF_LIFE_DAYS = 5.0
 TIRZ_KE = math.log(2) / TIRZ_HALF_LIFE_DAYS  # 0.1386/day
 TIRZ_KA = 3.3122  # absorption rate, gives Tmax = 1.0 day
 # Steady state reached ~week 5, accumulation ~1.6x (FDA: 1.4x Cmax, 2x AUC)
+
+# Eating window for the daily-mean exposure: hourly samples from 11:00 to 02:00
+# next day (BACKGROUND.md: sleep 03:00-11:00). Mean over these 16 samples.
+EXPOSURE_WINDOW_HOURS = list(range(11, 27))
+
+
+def daily_mean_exposure(day, injections):
+    """Mean PK concentration over the eating window of calendar day `day`.
+
+    `injections` is a list of (timestamp, dose_mg) sorted by time. Each sample
+    sums the PK curve from every injection given before that clock time.
+    """
+    total = 0.0
+    for h in EXPOSURE_WINDOW_HOURS:
+        sample_time = day + timedelta(hours=h)
+        level = 0.0
+        for inj_time, dose in injections:
+            t = (sample_time - inj_time).total_seconds() / 86400
+            if t < 0:
+                break
+            if t > 30:
+                continue
+            level += pk_curve(dose, t)
+        total += level
+    return total / len(EXPOSURE_WINDOW_HOURS)
 
 
 def dose_from_row(dose_val, clicks_val, pen_strength_mg):
@@ -134,8 +169,11 @@ def extract():
         all_records.append(rec)
 
         if is_tirz:
+            inj_time = date_val if hasattr(date_val, "strftime") else None
             tirz_injections.append({
-                "date": date_val if hasattr(date_val, "strftime") else None,
+                "time": inj_time,                       # exact timestamp (clock time)
+                "date": inj_time.replace(hour=0, minute=0, second=0, microsecond=0)
+                if inj_time is not None else None,      # calendar date
                 "date_str": date_str,
                 "dose_mg": dose_mg,
             })
@@ -150,10 +188,12 @@ def extract():
 
     # Build daily tirzepatide table with pharmacokinetic blood level
     if tirz_injections:
-        tirz_injections.sort(key=lambda r: r["date_str"])
+        tirz_injections.sort(key=lambda r: r["time"])
         first = tirz_injections[0]["date"]
         last = tirz_injections[-1]["date"]
         drug_start = first  # cumulative tachyphylaxis reference
+        timed = [(inj["time"], inj["dose_mg"]) for inj in tirz_injections
+                 if inj["time"] is not None]
 
         daily_tirz = []
         current_dose = 0
@@ -164,24 +204,15 @@ def extract():
         while day <= last + timedelta(days=6):
             date_str = day.strftime("%Y-%m-%d")
 
-            # Track most recent injection for dose/days_since columns
+            # Track most recent injection (by calendar date) for dose/days_since columns
             while (inj_idx_track < len(tirz_injections)
                    and tirz_injections[inj_idx_track]["date_str"] <= date_str):
                 current_dose = tirz_injections[inj_idx_track]["dose_mg"]
                 current_injection_date = tirz_injections[inj_idx_track]["date"]
                 inj_idx_track += 1
 
-            # Compute blood level: sum of PK curves from ALL past injections
-            blood_level = 0.0
-            for inj in tirz_injections:
-                if inj["date"] is None:
-                    continue
-                t = (day - inj["date"]).total_seconds() / 86400  # days since injection
-                if t < 0:
-                    break  # future injections
-                if t > 30:
-                    continue  # negligible after ~6 half-lives
-                blood_level += pk_curve(inj["dose_mg"], t)
+            # Daily-mean exposure over the eating window from exact timestamps
+            blood_level = daily_mean_exposure(day, timed)
 
             if current_injection_date:
                 days_since = (day - current_injection_date).days
@@ -219,6 +250,14 @@ def extract():
             ss_trough = sum(pk_curve(dose, 6.5 + w * 7) for w in range(8))
             ss_peak = sum(pk_curve(dose, 1.5 + w * 7) for w in range(8))
             print(f"    {dose:5.1f}mg weekly: trough={ss_trough:.1f}  peak={ss_peak:.1f}")
+
+        # Mean daily exposure by day of the weekly cycle (weekly-dosing rows only)
+        weekly_rows = [r for r in daily_tirz if r["date"] < "2026-04-01"]
+        print(f"\n  Mean daily exposure by days_since_injection (weekly dosing, day 0 = injection day):")
+        for dsi in range(7):
+            vals = [r["blood_level"] for r in weekly_rows if r["days_since_injection"] == dsi]
+            if vals:
+                print(f"    day {dsi}: n={len(vals):3d}  mean={sum(vals) / len(vals):.2f}")
 
 
 if __name__ == "__main__":

@@ -90,8 +90,10 @@ python analysis/AO_tirz_asymmetric_defense.py    — tirz suppresses below-SP ex
 python analysis/AP_overshoot_shape.py            — 90d mean surplus (r=-0.94) beats all binary thresholds
 python analysis/AQ_tirz_set_point_coverage.py    — drug coverage in lbs/cal per arm, tachyphylaxis erosion
 python analysis/AU_noncircular_set_point.py      — non-circular SP test from observed weigh-ins only (HL 35-50d)
-python analysis/AX_drug_model.py                 — clean drug model: -74.5 cal/unit within-week, 35wk cumulative tachy
-python analysis/BZ_drug_twocomponent.py          — two-component drug model: acute (-126/unit) + tonic (-63/unit) with AUC-based tachyphylaxis (K_AUC ≈ 0.0034/unit-wk)
+python analysis/AX_drug_model.py                 — clean drug model: -90 cal/unit within-week (daily-mean exposure), 30wk cumulative tachy
+python analysis/BZ_drug_twocomponent.py          — two-component drug model: acute + tonic with AUC-based tachyphylaxis (unconstrained acute:tonic ≈ 1:1 after the exposure-timing fix)
+python analysis/DF_drug_erosion_identification.py — drug-era erosion: frozen-SP gap (30-40 cal/lb) beats AUC-tachyphylaxis (ΔAIC −38) and is the only form that extrapolates to the 12.5 mg era
+python analysis/DD_forward_setpoint_test.py      — forward-window set point test: AG's binge-rate signal is reverse causation; forward CCF inside an intake-only AR null; +12 cal/lb residual at 90 d
 python analysis/AV_surmount_simulation.py        — preliminary SURMOUNT simulation (15mg within 2.2% of published)
 python analysis/AY_sp_from_regain.py             — derive SP adaptation from SURMOUNT-4 regain
 python analysis/AZ_sp_model_search.py            — exhaustive search: SmoothLatch fits subject + SURMOUNT + STEP-1
@@ -158,7 +160,8 @@ python analysis/AT_temperature_retest.py         — re-tests all X claims with 
 
 ### drugs/tirzepatide.csv
 `date, dose_mg, days_since_injection, injection_date, blood_level, effective_level`
-- `blood_level`: PK model (FDA: t½=5d, Tmax=24h, ka=3.31/day), sums all prior injections
+- `blood_level`: PK model (FDA: t½=5d, Tmax=24h, ka=3.31/day), sums all prior injections. **Daily MEAN concentration over the eating window (11:00–03:00) computed from the exact injection timestamps in `medicine.xlsx`** (injections drift from noon to ~23:00 across the record). Not a point sample.
+- `days_since_injection`: calendar days since the most recent injection date. Day 0 = injection day (mostly pre-injection exposure), day 1 = peak-exposure day (Tmax ≈ 24 h). Before the DE fix the label came from the timestamp and put the injection day at −1 for 61 of 76 weekly cycles; any "day 0 / day 5" figures in older prose are "day 1 / day 6" under the current labeling.
 - `effective_level`: `blood_level × exp(-0.0217 × weeks_on_current_dose)` — tachyphylaxis-adjusted
 
 ### analysis/P1_smoothed_weight.csv

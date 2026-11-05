@@ -18,6 +18,14 @@
 ### Findings
 [FINDINGS.md](FINDINGS.md) — reorganized 2026-04-25. The Set Point section is now identified trial-first (SmoothLatch on SURMOUNT-4 / STEP-1, BG trial-only fit) with three subject-side independent confirmations (AG binge rate, P3 intake-free FM, AU non-circular); the autocorrelated mean-surplus regression (AM/AP) is demoted to consistent supporting evidence with the BR identifiability ridge made explicit. 2013 inflection and BK control-stock attempt reframed under a leptin-floor / receptor-recalibration reading. New asymptote section under Tirzepatide explains why GLP-1 weight loss flattens. 21 dead-end search scripts and ~18 MB of intermediate artifacts removed; nothing referenced in docs was deleted.
 
+### Audit 2026-11 (DD, DE, DF, BD, P4 fixes)
+- **DD** — AG's binge-rate set point signal is trailing-window reverse causation (r −0.64 → −0.12 forward, anti-lipostat residual); forward CCF inside an intake-only AR null; +12 cal/day/lb residual at 90 d only.
+- **DE** — `drugs/extract.py` now uses injection timestamps: daily-mean exposure over the eating window, calendar-day cycle labels (day 1 = peak). AX coefficient −74.5 → −89.9 cal/unit; BZ acute:tonic 2:1 → 1:1.
+- **DF** — drug-era intake rise is frozen-set-point pressure (30-40 cal/lb, ΔAIC −38 vs AUC-tachyphylaxis; only form that transfers to the 12.5 mg era). Subject-fit latch rejected by the drug era; trial-fit latch supported.
+- **BD** — regain denominator fixed (was `FM_end/0.40` ≈ 120 lb). "+14.1% vs +14.0%" withdrawn; subject-fit latch gives +5.5%.
+- **P4** — energy-balance closure now includes lean-mass energy (+4.5 lb, not ~0) and is documented as non-identifying for the intake multiplier.
+- Known stale: `tests/test_steps_sleep_extract.py` (2 tests) references functions that no longer exist in `steps-sleep/extract.py`.
+
 ### Narrative-driven hypotheses (tested)
 - **Expenditure arm timescale** → finding AI. HL ≤10 days, faster than appetite (50d).
 - **Tirzepatide and expenditure defense** → finding AJ. Drug suppresses 63% of falling-phase TDEE bonus.
@@ -30,11 +38,19 @@
 
 ## Untested hypotheses
 
-### Receptor-dynamics frame (highest leverage)
+### Frozen-set-point frame (highest leverage after DF)
 
-The trial-first reorganization makes the SmoothLatch + leptin-floor reading the working model. These tests would confirm, refute, or sharpen it.
+DF makes the working model: drug suppression linear in exposure (~−85 cal/unit, no erosion) against eating pressure P·(SP₀ − FM) with P ≈ 30-40 cal/day/lb and SP₀ frozen at the pre-drug fat mass (equivalently the trial-fit SmoothLatch). These tests would confirm, refute, or sharpen it.
 
-**Latch firing during the drug era.** The on-drug set-point HL is currently bracketed at 40-120 d (AQ surface is flat). The SmoothLatch says it should be much faster *during stable holds* and zero *during active loss*. Mark every drug-era day by whether FM had been within ±3 lbs of any reference for 14+ consecutive days. Estimate SP movement separately on latched vs unlatched days. The model predicts an order-of-magnitude difference. Distinguishes stability-gated latch from a generic slow EMA on-drug.
+**q3d era (from 2026-04-01) as the decisive test.** Switching to 5.2 mg every 3 days roughly halves the sawtooth while keeping mean exposure near 12 units. Tachyphylaxis (AUC-driven) and the frozen-SP gap make different predictions for the *mean*: the gap model says mean intake tracks FM only (flat if FM stays at 61), tachyphylaxis says it keeps drifting up with AUC. BA's preregistered q3d prediction uses the tachyphylaxis form; add a gap-form prediction before the q3d intake data are merged, then score both.
+
+**Pressure constant across fat mass.** P is estimated at FM 61-85 lb. The leptin-floor reading (AC+BK) says it should fall toward zero below ~18 lb FM. Not testable on-drug; the 2012-14 willpower era is the only low-FM window and has no identifiable gap (DD). Leave as a prediction.
+
+**Discontinuation forecast, gap form.** At FM 61 and SP₀ 85, pressure ≈ 35 × 24 ≈ 850 cal/day at drug stop, decaying as FM returns. Forward-integrate with Forbes partition and this subject's TDEE: predicts the time to recover half the loss. Becomes testable if the drug stops; write the forecast down now.
+
+**Rebuild BZ/CE/AV on the gap form.** BZ's trial simulator carries AUC-tachyphylaxis and a 2:1 acute:tonic lock that the corrected exposure series no longer supports (1:1 unconstrained). Re-derive SURMOUNT-1/2/4 and the asymptote section with `s·B − P·(SP₀ − FM)` and the trial-fit latch; CE's dampening factor `m` will shift.
+
+**Latch firing during the drug era.** Partly answered by DF: the subject-fit latch (tol 3, hold 14) adds nothing, the trial-fit latch (tol 1, hold 30) matches the frozen SP. What remains is whether tol/hold can be pinned more tightly: FM held within ±1.5 lb for 106 days at the plateau, which under the trial-fit latch moves SP ~5 lb toward FM; whether the plateau's intake drift (−185 cal/day across the window, the opposite of tachyphylaxis) is consistent with that much SP descent is a direct test.
 
 **Conservation-mode signature in 2012-13 composition.** The leptin-floor reading predicts BOD POD scans during deep restriction (FM ≲ 18 lb) should show water-compartment / FFM-preservation patterns characteristic of starvation-mode regulation, not uniform fat partitioning. Extract ECW/ICW and segmental data from `composition.csv`'s extended columns for 2012-14. If the floor is real, the composition signatures should switch on near FM ≈ 18 lb.
 
@@ -54,7 +70,7 @@ The trial-first reorganization makes the SmoothLatch + leptin-floor reading the 
 
 **Set point movement during restriction runs.** AH shows runs ending above SP stick, below SP rebound. At 50-day HL, a 7-day run moves SP ~0.45 lbs. Do some archetypes move the SP faster? Under the SmoothLatch the answer is bounded: only stable-tail runs should move the SP at all.
 
-**Discontinuation forecast.** Apply the SmoothLatch with current SP/FM. The on-drug SP has had ~6 mo of FM-stable holds at 60 lb to latch onto, so the gap at hypothetical discontinuation is small and predicted regain is single-digit %. Becomes testable if/when drug stops.
+**Discontinuation forecast.** Superseded by the gap-form forecast above: DF shows the on-drug SP did *not* latch onto the 61-lb plateau (the subject-fit latch that would have is rejected), so the gap at discontinuation is ~20-25 lb and predicted regain is large, not single-digit.
 
 **Weekend fasting × set point.** B showed 7 weekend fasts (Oct-Nov 2019) where deficit vanished through expenditure. SP distance during those weeks would say whether expenditure defense (B, 9d HL) and the slow eating-pressure SP (50d HL) are decoupled at that timescale.
 
