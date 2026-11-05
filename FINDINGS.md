@@ -686,25 +686,90 @@ B is the timestamp-aware daily-mean exposure (DE). s, P and I₀ are fit **once*
 
 SURMOUNT-4 regain at m = 1 (latch running): +8.2 / +11.1 / +11.9 / +12.2% of stop weight at +12/24/36/52 wk vs published +7.0 / +11.0 / +13.0 / +14.0 — the *shape* is right from the subject's own P, before any cohort scaling. Solving a cohort multiplier on s: m = 1.56 for SURMOUNT-1 (non-diabetic), 0.81 for SURMOUNT-2 (T2D; ratio 0.52 vs CE's 0.69). But at m = 1.56 the dose-response is too steep (−10.7 / −19.8 / −27.0 vs −16.0 / −21.4 / −22.5) and SURMOUNT-4 regains +21.9%.
 
-**5. The cohort dose-response is concave and the subject's is not.** 5 mg reaches 71% of the 15 mg loss at one-third the exposure. A linear drug term cannot reproduce that at any m (best SSE 51). An Emax term `s·B/(1 + B/EC50)` fits the three arms essentially exactly (SSE 0.4) with EC50 = 5.3 units — about the steady-state exposure at 5 mg weekly — and a large initial slope (m = 4.7), and gives SURMOUNT-4 lead-in −15.4% / regain +15.7% (published −20.9 / +14.0). But that EC50 predicts the subject's within-week sawtooth should be the *same size* at 12.5 mg as at 5 mg (ratio 0.96); his grew 1.7× (linear predicts 1.8×). Within one person the response is linear from 3 to 13 units; across a cohort the mean response saturates by 5 mg. Cohort heterogeneity in s and P, dose reductions for tolerability (treatment-regimen estimand), or genuine receptor saturation that this subject's receptors do not show — unresolved, and the single largest gap in the model.
+**5. The cohort dose-response is concave; the subject tolerates mild saturation, not the cohort's.** 5 mg reaches 71% of the 15 mg loss at one-third the exposure. A linear drug term cannot reproduce that at any m (best SSE 51). An Emax term `s·B/(1 + B/EC50)` fits the three arms essentially exactly (SSE 0.4) at EC50 = 5.3 units — the steady-state exposure at 5 mg weekly. Refitting the subject's own drug era with an Emax term plus the latch gap: EC50 = 5 is rejected (ΔAIC +11.6 vs linear), EC50 = 12-50 is mildly *preferred* (ΔAIC −3 to −5), and the 12.5 mg / 5 mg sawtooth-amplitude ratio is 1.68 [bootstrap 95% 1.10, 2.86], which EC50 = 5 predicts at 0.95 (excluded) and EC50 = 12-20 at 1.20-1.36 (allowed). At the subject-compatible EC50 = 12 the SURMOUNT-1 arms land at −14.2 / −20.7 / −24.2 (published −16.0 / −21.4 / −22.5) with m = 3.0. **DI** shows cohort heterogeneity cannot do this instead: with every individual linear and s, P log-normal (CV up to 1.0) plus an intake floor, the 5/15 ratio never exceeds 0.45 (published 0.71) even with 11% of the 15 mg arm pinned at the floor; a mean of linear responders is linear. So the saturation is pharmacological, EC50 ≈ 12-20 exposure units (≈ 12-20 mg-weekly-equivalents of steady-state concentration), and the cohort's initial-slope response is 2-3× this subject's.
 
-**6. Withdrawal regain does not depend on speed of loss.** Fraction of the lost weight regained one year off drug: SURMOUNT-4 (fast, 36 wk) 67%; STEP-1 extension (slow, 68 wk) 65%; STEP-4 (fast, 20 wk) 66% at 48 wk; SCALE liraglutide (slow, 56 wk) ~80%. The SmoothLatch predicted faster loss → more regain (CF: r = +0.86 between loss rate and asymptote); the published arms are flat. With the latch running, the model under-predicts the slow trials badly (STEP-1 32%, SCALE 37%). With a **frozen SP** (no latching at all during treatment) and a cohort P:
+**5b. Joint cohort model.** Frozen SP, subject s, EC50 ∈ {12, 20}, cohort P from regain, m solved on SURMOUNT-1:
 
-| trial | P = 43 (subject) | P = 25 | P = 15 | P = 10 | published |
+| EC50 | P_cohort | m | 5 / 10 / 15 mg at 72 wk | SURMOUNT-4 lead-in | regain +12 / 24 / 36 / 52 wk |
 |---|---|---|---|---|---|
-| SURMOUNT-4 | 83% | 71% | 57% | 45% | 67% |
-| STEP-1 ext | 62% | 53% | 42% | 33% | 65% |
-| STEP-4 (+48 wk) | 62% | 53% | 41% | 32% | 66% |
-| SCALE lira 3 mg | 72% | 62% | 49% | 39% | ~80% |
+| 12 | 5 | 1.37 | −13.6 / −20.5 / −24.6 | −15.1 | +3.9 / +7.4 / +10.0 / +12.5 |
+| 12 | 15 | 2.03 | −13.4 / −20.4 / −24.7 | −17.9 | +7.9 / +13.5 / +16.8 / +19.3 |
+| 12 | 43 | 4.18 | −13.2 / −20.4 / −24.8 | −22.3 | +18.3 / +25.3 / +27.6 / +28.4 |
+| 20 | 5 | 1.10 | −12.4 / −20.1 / −25.3 | −15.2 | +4.0 / +7.5 / +10.2 / +12.7 |
+| published | | | −16.0 / −21.4 / −22.5 | −20.9 | +7.0 / +11.0 / +13.0 / +14.0 |
 
-P ≈ 25-43 with a frozen SP lands within 10-15 points of all four; the SURMOUNT-4 *trajectory* is matched best at P ≈ 15 (+6.4 / +10.2 / +12.5 / +14.2 vs +7 / +11 / +13 / +14), i.e. cohort regain is slower than this subject's pressure would make it. One reading: P is the individual's defense gain, this subject (FTO homozygous, MC4R) sits 2-3× above the cohort mean, and the set point does not move at all while a GLP-1 agonist is on board — the latch is unnecessary for the trials; what it was doing was letting the SP descend during slow trials, which the regain data say does not happen.
+No row fits SURMOUNT-1's three arms, SURMOUNT-4's lead-in and its regain at once: the lead-in wants a large P or m, the regain wants P ≈ 5-10. The 36-week SURMOUNT-4 lead-in (−20.9%) is also faster than any SURMOUNT-1 arm at week 36 (≈ −17% at 15 mg), so part of the mismatch is between the trials, not with the model.
+
+**6. Withdrawal regain is mostly CICO; the set point adds little, and speed of loss does not matter.** Fraction of the lost weight regained one year off drug: SURMOUNT-4 (fast, 36 wk) 67%; STEP-1 extension (slow, 68 wk) 65%; STEP-4 (fast, 20 wk) 66% at 48 wk; SCALE liraglutide (slow, 56 wk) ~80%. The SmoothLatch predicted faster loss → more regain (CF: r = +0.86); the published arms are flat. An earlier version of this table omitted the habit term: off drug, intake returns to the pre-trial level I₀ while TDEE is 6.4 cal/lb lower at the lower weight, so weight returns toward baseline with P = 0 (pure CICO). With that term in and a frozen SP:
+
+| trial | P = 43 (subject) | P = 25 | P = 15 | P = 5 | **P = 0 (CICO)** | published |
+|---|---|---|---|---|---|---|
+| SURMOUNT-4 | 99% | 96% | 89% | 72% | 55% | 67% |
+| STEP-1 ext | 78% | 78% | 75% | 65% | 55% | 65% |
+| STEP-4 (+48 wk) | 78% | 77% | 73% | 63% | 52% | 66% |
+| SCALE lira 3 mg | 88% | 86% | 82% | 69% | 55% | ~80% |
+
+SURMOUNT-4 trajectory, % of stop weight at +12 / 24 / 36 / 52 wk: P = 0 gives +4.2 / +7.8 / +10.7 / +13.8; P = 5 gives +6.4 / +11.2 / +14.7 / +18.1; published +7.0 / +11.0 / +13.0 / +14.0. **Returning to habitual intake accounts for 80-90% of published regain; P ≈ 0-5 cal/day per lb closes the rest.** The cohort's defended-state pressure, if any, is an order of magnitude below this subject's drug-era 43. The set point did not need to move during any trial, and the latch is unnecessary for the trial data.
 
 **7. Preregistered q3d forecast** (`analysis/DG_q3d_forecast.csv`). With FM held at the 60.5-lb plateau and the latch running on it, the gap model predicts 4-week mean logged intake of ~1716 → 1800 → 1883 cal/day from late April to July 2026 under 6.25 mg every 3 days (mean exposure 13.7 → 10.5 as the subject's injection clock drifts), with a daily range of ~500-575 cal vs ~840 at weekly 12.5 mg. BA's tachyphylaxis form predicts a continued upward drift with cumulative exposure independent of FM. Score both once the 2026 intake is merged.
 
-**What the model does and does not explain.** It explains the subject's 18-month loss and plateau from intake alone, the SURMOUNT-4 regain curve, and the ~2/3 regain in every withdrawal arm; it does not explain the cohort's saturating dose-response with the subject's linear one, and it has nothing to say about the pre-drug decade (DD: no identifiable gap) or the 2011-13 era, where a frozen SP at P ≈ 40 would have put 1,500+ cal/day of pressure against an intake that stayed at 1,850.
+**What the model does and does not explain.** It explains the subject's 18-month loss and plateau from intake alone, and the ~2/3 regain in every withdrawal arm (mostly as CICO return-to-habit, P ≈ 0-5). The cohort dose-response needs an Emax with EC50 ≈ 12-20 units, which the subject's data allow, and a cohort initial slope 2-3× the subject's. It cannot fit SURMOUNT-1, the SURMOUNT-4 lead-in and the SURMOUNT-4 regain with one (m, P). It has nothing to say about the pre-drug decade (DD: no identifiable FM gap; DH: lean mass does carry a signal) or the 2011-13 era, where a frozen SP at P ≈ 43 would have put 2,850 cal/day of pressure (DH) against an intake that stayed at 1,850.
 
-Command: `python analysis/DG_gap_model.py`
+Command: `python analysis/DG_gap_model.py`, `python analysis/DI_cohort_heterogeneity.py`
 Artifact: `analysis/DG_q3d_forecast.csv`
+
+## DH. Set point dynamics zoo: does the set point move down, and what moved in 2014?
+
+Nineteen set point rules run on the Kalman FM (or LM) path over the full 2011-2026 record — frozen at the 2011 value, frozen at the running max (Lowe's reference), EMA at half-lives 30-730 d, asymmetric EMAs, the subject-fit and trial-fit latches, a two-timescale attractor toward a genetic value, a lean-mass deficit (Dulloo), and leptin-floor-gated versions — each scored on strictly forward outcomes (gap = SP − FM, positive = below SP):
+
+| model | next-90d binge r | | partial next-90d intake | drug-era AIC | drug P | implied 2012-13 pressure (cal/day at 43/lb) |
+|---|---|---|---|---|---|---|
+| frozen (2011 / running max) | +0.33 | | 0 (collinear with FM) | 6121 | +30 | 2,850 |
+| EMA 50 d | −0.29 | | +0.07 | 6200 | +16 | 170 |
+| EMA 100 d | −0.27 | | +0.01 | 6179 | +43 | 410 |
+| EMA 365 d | −0.10 | | −0.07 | 6128 | +37 | 1,380 |
+| EMA 730 d | +0.06 | | −0.10 | 6123 | +31 | 1,930 |
+| latch subject-fit (3, 14, 0.01) | −0.29 | | +0.04 | 6193 | +30 | 275 |
+| latch trial-fit (1, 30, 0.0025) | 0.00 | | −0.11 | 6122 | +34 | 2,170 |
+| attractor (100 d → FM, 2 y → 2011 value) | −0.12 | | +0.02 | 6166 | +52 | 650 |
+| **lean-mass deficit (max LM − LM)** | +0.21 | | **+0.56** | 6185 | −76 (wrong sign) | — |
+| floor-gated frozen max | +0.34 | | −0.24 | 6122 | +41 | 1,820 |
+
+**Downward movement.** The drug era says the set point moved slowly if at all: frozen, trial-fit latch and EMA ≥ 2 y are tied (AIC 6121-6123), EMA 365 d costs 7, EMA 100 d costs 58. Pre-drug, the forward binge rate correlates *positively* with the frozen gap (+0.33) and *negatively* with every fast-chasing gap (−0.29 at HL 50 d) — but a frozen gap is just `100 − FM`, so that number says only "binges were commoner at lower fat mass" (2014-17 vs 2020-24), which is the frozen-set-point prediction and also plain era drift. **No chasing rule has a forward signal on this subject, and the frozen rule is unfalsifiable against the FM level.**
+
+**The price of a frozen set point is the willpower era.** A set point that did not move from 100 lb FM puts 2,850 cal/day of pressure on 2012-13 (gap 66 lb), when intake sat at 1,850-2,000 with 0-8% binges per quarter. EMA 100 d puts 410 cal/day there — sustainable willpower — but then predicts the 2014-15 regain as *un*-regulated eating above the set point (FM 7-10 lb above EMA while binging 15%), the anti-lipostat sign. Quarterly, no model's gap peaks at the eruption: frozen-max peaks 2014Q2 (85 lb) having sat at 65-78 lb through 2012-13 without a leak; EMA 100 d peaks 2011Q4. **Binges did not build with any pressure variable; they switched on in 2014Q3-Q4.** Either the restriction regime ended for reasons outside the model (see DK) or pressure is gated below some fat mass (the floor reading — but the floor-gated frozen gap peaks 2013Q2 and still does not pick out 2014Q4).
+
+**Lean mass is the signal fat mass is not.** Lower lean mass at a given fat mass, controlling for the past 90 days' intake, predicts *more* intake over the next 90 days: partial r +0.56 (Kalman LM), +0.44 with scan-interpolated LM that never touches the Kalman, +0.42 / +0.28 with year fixed effects, holding in 2014-16 (+0.53) and 2017+ (+0.61), and unchanged with workout density and TDEE controlled (+0.58). No FM-based gap exceeds +0.1 on the same test. This is Dulloo's protein-stat / collateral-fattening prediction (FFM deficit drives hyperphagia until FFM is restored; the subject's LM fell 157 → 142 in 2011-14 and has never recovered), and it is also what cumulative restriction history would produce, since LM-at-given-FM integrates long deficits. On drug the LM gap is ~0 and the drug-era fit gives it the wrong sign; there the FM gap carries the intake rise. DJ tests the two readings against each other using training-induced lean mass.
+
+**Appendix.** Flatt glycogenostat: yesterday's P1 glycogen state vs today's intake, partial of yesterday's and the past week's intake, r = +0.09 (predicted < 0): null. Seasonality: pre-drug 2014+ binge rate runs 1.0% (Feb) to 8.1% (Oct), an 8× range with a clean autumn peak — unmodelled anywhere in the project and larger than most effects it reports.
+
+Command: `python analysis/DH_sp_dynamics_zoo.py`
+
+## DI. Heterogeneous linear responders cannot bend the cohort dose-response
+
+Vectorised cohort of 400 linear responders per SURMOUNT-1 arm, frozen SP, s and P log-normal, optional intake floor, m solved so 15 mg hits −22.5%:
+
+| scenario | m | 5 mg | 10 mg | 15 mg | 5/15 | floored at 15 mg |
+|---|---|---|---|---|---|---|
+| homogeneous | 1.61 | −7.5 | −15.0 | −22.5 | 0.33 | 0% |
+| s, P CV 0.5 | 1.47 | −7.6 | −15.1 | −22.5 | 0.34 | 0% |
+| + floor 50% TDEE₀ | 1.52 | −7.9 | −15.5 | −22.5 | 0.35 | 0% |
+| + corr(s, P) = −0.7 | 1.44 | −8.2 | −16.0 | −22.5 | 0.37 | 1% |
+| s CV 1.0, floor 65% | 2.14 | −10.1 | −17.5 | −22.5 | 0.45 | 11% |
+| published | | −16.0 | −21.4 | −22.5 | 0.71 | |
+
+A mean of linear responders is linear; a floor bends it only by clipping the strongest responders, and even an implausible floor (65% of TDEE₀, 11% of the arm pinned) reaches 0.45. The concavity is pharmacological saturation, consistent with the EC50 ≈ 12-20 the subject's own data allow (DG §5).
+
+Command: `python analysis/DI_cohort_heterogeneity.py`
+
+## Theories the project circles but has not engaged
+
+- **Settling point / return-to-habit CICO.** DG §6: intake returning to its pre-trial level with TDEE lower at the lower weight regains 55% of the loss in a year with no set point at all; the published 65-80% needs only P ≈ 0-5. The trials are nearly silent on active defense. On the subject side, DD finds no forward FM feedback pre-drug. The one place active defense is measurable is the drug era (DF/DG), and even there a behavioral time trend (L2) is within 8 AIC of the gap.
+- **Protein-stat / collateral fattening (Dulloo).** The strongest forward appetite signal in the record is a lean-mass deficit (DH); never tested before because every set point in the project was a function of fat mass.
+- **Behavioral habituation to the drug vs receptor tachyphylaxis.** DF's time-trend model (learning to eat around nausea, meal-size re-normalisation) is a different mechanism from AUC-tachyphylaxis with nearly the same fit; only the FM-plateau test separates them from the gap.
+- **Thermostatic appetite (Brobeck).** BACKGROUND reports cold intolerance scaling with intake and body temperature < 97°F when eating below RMR; X found rising phases +0.3°F; nobody has asked whether temperature *predicts* next-day intake.
+- **Seasonality.** 8× October-to-February range in binge rate (DH appendix), in a dataset where every analysis pools months.
+- **Flatt's glycogenostat.** Tested in DH appendix: null.
 
 ## BZ. Two-component drug effect model with AUC-based tachyphylaxis
 
