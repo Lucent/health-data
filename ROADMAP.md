@@ -24,6 +24,7 @@
 - **DF** — drug-era intake rise is frozen-set-point pressure (30-40 cal/lb, ΔAIC −38 vs AUC-tachyphylaxis; only form that transfers to the 12.5 mg era). Subject-fit latch rejected by the drug era; trial-fit latch supported.
 - **BD** — regain denominator fixed (was `FM_end/0.40` ≈ 120 lb). "+14.1% vs +14.0%" withdrawn; subject-fit latch gives +5.5%.
 - **P4** — energy-balance closure now includes lean-mass energy (+4.5 lb, not ~0) and is documented as non-identifying for the intake multiplier.
+- **DG** — canonical gap-form model (supersedes BZ/CE/AV): fit once on the drug era, subject FM path to 1.2 lb RMSE, SURMOUNT-4 regain shape at m = 1, withdrawal regain ~2/3 in all arms with a frozen SP; cohort dose-response concavity unresolved; q3d forecast written to `analysis/DG_q3d_forecast.csv`.
 - Known stale: `tests/test_steps_sleep_extract.py` (2 tests) references functions that no longer exist in `steps-sleep/extract.py`.
 
 ### Narrative-driven hypotheses (tested)
@@ -48,7 +49,11 @@ DF makes the working model: drug suppression linear in exposure (~−85 cal/unit
 
 **Discontinuation forecast, gap form.** At FM 61 and SP₀ 85, pressure ≈ 35 × 24 ≈ 850 cal/day at drug stop, decaying as FM returns. Forward-integrate with Forbes partition and this subject's TDEE: predicts the time to recover half the loss. Becomes testable if the drug stops; write the forecast down now.
 
-**Rebuild BZ/CE/AV on the gap form.** BZ's trial simulator carries AUC-tachyphylaxis and a 2:1 acute:tonic lock that the corrected exposure series no longer supports (1:1 unconstrained). Re-derive SURMOUNT-1/2/4 and the asymptote section with `s·B − P·(SP₀ − FM)` and the trial-fit latch; CE's dampening factor `m` will shift.
+**Rebuild BZ/CE/AV on the gap form — done (DG).** Subject FM path reproduced to 1.2 lb RMSE; SURMOUNT-4 regain shape reproduced at m = 1; cohort m = 1.56 (SURMOUNT-1) / 0.81 (SURMOUNT-2). Two things DG leaves open:
+
+**Cohort dose-response concavity vs the subject's linearity.** SURMOUNT-1's three arms need an Emax term (EC50 ≈ 5 units, i.e. ~5 mg weekly) that the subject's own sawtooth growth (1.7× from 5 to 12.5 mg) rules out for him. Candidates: (a) heterogeneity — simulate a cohort with log-normal s and P and see whether the mean response bends; (b) tolerability — the 15 mg arm's treatment-regimen estimand includes dose reductions and discontinuations; (c) the subject is genuinely non-saturating (GLP1R rs6923761 GG). A within-subject test exists: the q3d era at 6.25 mg/3 d holds mean exposure near 12 units with a smaller swing — if the drug term is linear, mean intake should match the 12.5 mg weekly era at equal mean exposure.
+
+**Cohort P from regain timing.** The SURMOUNT-4 trajectory wants P ≈ 15 with a frozen SP; the subject's drug era says 43. Re-fit P per withdrawal trial from the published regain curves (AY's digitised SURMOUNT-4 curve; STEP-1 extension and STEP-4 curves need digitising) and test whether P correlates with baseline BMI or trial drug. The set point does not need to move on-drug to fit any of them; drop the latch from the trial model unless something requires it.
 
 **Latch firing during the drug era.** Partly answered by DF: the subject-fit latch (tol 3, hold 14) adds nothing, the trial-fit latch (tol 1, hold 30) matches the frozen SP. What remains is whether tol/hold can be pinned more tightly: FM held within ±1.5 lb for 106 days at the plateau, which under the trial-fit latch moves SP ~5 lb toward FM; whether the plateau's intake drift (−185 cal/day across the window, the opposite of tachyphylaxis) is consistent with that much SP descent is a direct test.
 

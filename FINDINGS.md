@@ -503,7 +503,7 @@ Artifact: `analysis/BW_walk_live_hr_sessions.csv`, `analysis/BW_walk_live_hr_yea
 
 > **Status: exposure series and erosion mechanism revised (DE/DF, 2026-11).**
 > - **Exposure timing.** `drugs/tirzepatide.csv` now carries the *daily-mean* PK concentration over the eating window computed from the exact injection timestamps (injections drifted from noon to ~23:00 across the record). The old series sampled the concentration at one clock time and labelled the injection day as "−1" for 61 of 76 weekly cycles. Under the corrected labels **day 1 is the peak-suppression day (1595 cal) and day 6 the trough (2219 cal)**; older prose saying "day 0 … day 5" means "day 1 … day 6". The within-week drug coefficient rises from −74.5 to **−89.9 cal per unit** (r = −0.57), and to −80 after removing the pre-drug weekday pattern (every injection is a Tuesday, so day-of-cycle is collinear with day-of-week; the pre-drug Wednesday dip is −95 cal, Saturday +130).
-> - **Acute:tonic ratio.** BZ's unconstrained two-component fit now returns acute ≈ tonic (1.01:1, both ≈ −101 cal/unit); the 2:1 lock was a product of the mislabelled days. BZ's trial simulations still use the 2:1 lock and are left as-is pending a rebuild (ROADMAP).
+> - **Acute:tonic ratio.** BZ's unconstrained two-component fit now returns acute ≈ tonic (1.01:1, both ≈ −101 cal/unit); the 2:1 lock was a product of the mislabelled days. **BZ, CE and AV are superseded by DG** (gap-form model, below); they are kept as historical reproducers of the tachyphylaxis framing.
 > - **Erosion mechanism (DF).** The rise of mean intake across the drug era is fit better by pressure proportional to fat lost below the pre-drug level (frozen set point, 30-40 cal/day per lb; ΔAIC −38 vs AUC-tachyphylaxis) and only that form predicts the 12.5 mg era out of sample (bias −41 vs −343 cal/day for tachyphylaxis). The tachyphylaxis half-lives quoted in F/AX/AQ/BZ below are what a monotone-in-time fit returns when the real driver is the FM gap; treat them as descriptive, not mechanistic.
 
 The set point (AG) and metabolic rate adjustment (K) describe the body's endogenous weight regulation. Tirzepatide intervenes pharmacologically. How does it interact with the system described above?
@@ -660,6 +660,52 @@ Weekday-adjusted intake (pre-drug 2022+ weekday profile removed), daily-mean exp
 
 Command: `python analysis/DF_drug_erosion_identification.py`
 
+## DG. One gap-form model, fit once, run against everything
+
+The canonical drug + set point model, replacing BZ/CE/AV's tachyphylaxis structure:
+
+    intake(t) = I₀ + m·s·B(t) + P·(SP(t) − FM(t))
+    TDEE(t)   = TDEE₀ + k·ΔBW        (k = 6.4 cal/lb from Mifflin × 1.4 for cohorts; Kalman TDEE path for the subject)
+    SP(t)     = SmoothLatch(tol 1, hold 30, rate 0.0025) on FM, SP₀ = FM at drug start   (trial-fit latch; DF selects it too)
+    partition = Forbes (subject) / 75% fat (cohorts, DXA)
+
+B is the timestamp-aware daily-mean exposure (DE). s, P and I₀ are fit **once**, on the subject's 528 weekly-dosing days (weekday-adjusted logged intake; DF model L8), then nothing else is fit except an explicitly reported cohort multiplier m.
+
+**Subject fit.** I₀ = 2175 logged cal/day; s = −73.5 cal/unit [week-block bootstrap 95% −84, −63]; P = +39.4 cal/day per lb [+29, +49]; RMSE 329. In true calories (×1.09): s = −80, P = +43. SP − FM at the end of the record: +16.7 lb.
+
+**1. Subject forward simulation.** Starting from the pre-drug state (FM 85.7) and feeding only the actual exposure series through the intake model (FM was never a fit target), the simulated FM path lands at 58.6 lb on 2026-02-28 (Kalman 60.5), RMSE 1.2 lb over 18 months, every dose era within ~1 lb (5 mg: 78.6 vs 78.7; 7.5: 73.3 vs 72.1; 10: 69.9 vs 70.2; 12.5: 62.0 vs 63.2). This uses the Kalman TDEE path; with a bare TDEE₀ + 6.4·ΔBW model it over-shoots to 52.9, because the subject's TDEE fell ~450 cal across the era (calorimetry confirms −206 of that as RMR suppression). The intake side of the model is right; the expenditure side needs the on-drug RMR suppression (AJ) to be modelled, not assumed away.
+
+**2. Tirzepatide trials at m = 1 (nothing fit to trials).**
+
+| arm | wk 24 | wk 48 | wk 72 | published wk 72 | SP − FM at 72 |
+|---|---|---|---|---|---|
+| SURMOUNT-1 5 mg | −4.2 | −5.8 | −7.0 | −16.0 | +5.9 lb |
+| SURMOUNT-1 10 mg | −7.2 | −10.5 | −13.1 | −21.4 | +12.1 |
+| SURMOUNT-1 15 mg | −8.9 | −14.4 | −18.4 | −22.5 | +18.6 |
+| SURMOUNT-4 15 mg lead-in (36 wk) | | | −12.0 | −20.9 | +19.8 |
+
+SURMOUNT-4 regain at m = 1 (latch running): +8.2 / +11.1 / +11.9 / +12.2% of stop weight at +12/24/36/52 wk vs published +7.0 / +11.0 / +13.0 / +14.0 — the *shape* is right from the subject's own P, before any cohort scaling. Solving a cohort multiplier on s: m = 1.56 for SURMOUNT-1 (non-diabetic), 0.81 for SURMOUNT-2 (T2D; ratio 0.52 vs CE's 0.69). But at m = 1.56 the dose-response is too steep (−10.7 / −19.8 / −27.0 vs −16.0 / −21.4 / −22.5) and SURMOUNT-4 regains +21.9%.
+
+**5. The cohort dose-response is concave and the subject's is not.** 5 mg reaches 71% of the 15 mg loss at one-third the exposure. A linear drug term cannot reproduce that at any m (best SSE 51). An Emax term `s·B/(1 + B/EC50)` fits the three arms essentially exactly (SSE 0.4) with EC50 = 5.3 units — about the steady-state exposure at 5 mg weekly — and a large initial slope (m = 4.7), and gives SURMOUNT-4 lead-in −15.4% / regain +15.7% (published −20.9 / +14.0). But that EC50 predicts the subject's within-week sawtooth should be the *same size* at 12.5 mg as at 5 mg (ratio 0.96); his grew 1.7× (linear predicts 1.8×). Within one person the response is linear from 3 to 13 units; across a cohort the mean response saturates by 5 mg. Cohort heterogeneity in s and P, dose reductions for tolerability (treatment-regimen estimand), or genuine receptor saturation that this subject's receptors do not show — unresolved, and the single largest gap in the model.
+
+**6. Withdrawal regain does not depend on speed of loss.** Fraction of the lost weight regained one year off drug: SURMOUNT-4 (fast, 36 wk) 67%; STEP-1 extension (slow, 68 wk) 65%; STEP-4 (fast, 20 wk) 66% at 48 wk; SCALE liraglutide (slow, 56 wk) ~80%. The SmoothLatch predicted faster loss → more regain (CF: r = +0.86 between loss rate and asymptote); the published arms are flat. With the latch running, the model under-predicts the slow trials badly (STEP-1 32%, SCALE 37%). With a **frozen SP** (no latching at all during treatment) and a cohort P:
+
+| trial | P = 43 (subject) | P = 25 | P = 15 | P = 10 | published |
+|---|---|---|---|---|---|
+| SURMOUNT-4 | 83% | 71% | 57% | 45% | 67% |
+| STEP-1 ext | 62% | 53% | 42% | 33% | 65% |
+| STEP-4 (+48 wk) | 62% | 53% | 41% | 32% | 66% |
+| SCALE lira 3 mg | 72% | 62% | 49% | 39% | ~80% |
+
+P ≈ 25-43 with a frozen SP lands within 10-15 points of all four; the SURMOUNT-4 *trajectory* is matched best at P ≈ 15 (+6.4 / +10.2 / +12.5 / +14.2 vs +7 / +11 / +13 / +14), i.e. cohort regain is slower than this subject's pressure would make it. One reading: P is the individual's defense gain, this subject (FTO homozygous, MC4R) sits 2-3× above the cohort mean, and the set point does not move at all while a GLP-1 agonist is on board — the latch is unnecessary for the trials; what it was doing was letting the SP descend during slow trials, which the regain data say does not happen.
+
+**7. Preregistered q3d forecast** (`analysis/DG_q3d_forecast.csv`). With FM held at the 60.5-lb plateau and the latch running on it, the gap model predicts 4-week mean logged intake of ~1716 → 1800 → 1883 cal/day from late April to July 2026 under 6.25 mg every 3 days (mean exposure 13.7 → 10.5 as the subject's injection clock drifts), with a daily range of ~500-575 cal vs ~840 at weekly 12.5 mg. BA's tachyphylaxis form predicts a continued upward drift with cumulative exposure independent of FM. Score both once the 2026 intake is merged.
+
+**What the model does and does not explain.** It explains the subject's 18-month loss and plateau from intake alone, the SURMOUNT-4 regain curve, and the ~2/3 regain in every withdrawal arm; it does not explain the cohort's saturating dose-response with the subject's linear one, and it has nothing to say about the pre-drug decade (DD: no identifiable gap) or the 2011-13 era, where a frozen SP at P ≈ 40 would have put 1,500+ cal/day of pressure against an intake that stayed at 1,850.
+
+Command: `python analysis/DG_gap_model.py`
+Artifact: `analysis/DG_q3d_forecast.csv`
+
 ## BZ. Two-component drug effect model with AUC-based tachyphylaxis
 
 The drug effect on intake decomposes into an acute response to blood-level change plus a tonic suppression that erodes with cumulative receptor exposure (AUC), not with calendar weeks.
@@ -762,7 +808,7 @@ The equation gives the *residual gap held by the drug at equilibrium*, not the t
 
 **Why discontinuation produces large regain.** The latch only fired during the brief stable equilibrium near the asymptote; for the bulk of the loss, FM was changing fast enough to keep the latch open. So at discontinuation D drops to zero immediately, but SP is anchored not far below the pre-treatment level. Pressure = P × (SP − FM) reactivates at full strength against an un-recalibrated baseline. SURMOUNT-4 +14% of cessation weight in 52 weeks (≈67% of the loss). STEP-1 ~+10-12%. **Units caution:** CF reports regain as a *fraction of the weight lost*; its subject-fit SmoothLatch lands at 18.2% of the loss for SURMOUNT-4 and 8.9% for STEP-1 (≈ +4% and +2% of body weight), against published ≈67% and ≈65% — a 3-4× under-prediction, not the "within 1-4 points" an earlier reading of these numbers as % body weight suggested. The *qualitative* prediction that faster-loss trials regain more is preserved (rate→A: r = +0.86). The subject's own drug era (DF) says the latch must be tight enough to stay open at 0.04 lb/day of loss, which is the trial-fit latch; under it, CF's trial mean reaches the published 60%.
 
-**Revision (DF).** The tachyphylaxis term in the equation above is not needed to produce the plateau. In this subject the plateau at FM ≈ 61 lb is fit by `s·B ≈ 90 × 12.6 ≈ 1100 cal/day` of suppression against `P × (SP₀ − FM) ≈ 35 × 25 ≈ 900 cal/day` of frozen-set-point pressure, with no AUC erosion (K_AUC → 0 once the gap term is present), and intake *fell* 185 cal/day across the plateau while cumulative exposure rose 95 unit-weeks. "Why GLP-1 loss asymptotes" is then simply: suppression is bounded by dose, pressure grows with every pound lost, and they meet.
+**Revision (DF, DG).** The tachyphylaxis term in the equation above is not needed to produce the plateau, and DG is now the canonical forward model for this section. In this subject the plateau at FM ≈ 61 lb is fit by `s·B ≈ 90 × 12.6 ≈ 1100 cal/day` of suppression against `P × (SP₀ − FM) ≈ 35 × 25 ≈ 900 cal/day` of frozen-set-point pressure, with no AUC erosion (K_AUC → 0 once the gap term is present), and intake *fell* 185 cal/day across the plateau while cumulative exposure rose 95 unit-weeks. "Why GLP-1 loss asymptotes" is then simply: suppression is bounded by dose, pressure grows with every pound lost, and they meet.
 
 **The asymptote is the receptor-equilibrium gap that the drug can hold open, against a set point that's barely moved.** The patient is not "stuck"; the patient is at the dynamic equilibrium between exogenous satiety and endogenous defence of an un-recalibrated baseline. This makes three concrete, falsifiable predictions that distinguish this account from "metabolic adaptation":
 

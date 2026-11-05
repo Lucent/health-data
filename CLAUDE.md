@@ -93,6 +93,7 @@ python analysis/AU_noncircular_set_point.py      — non-circular SP test from o
 python analysis/AX_drug_model.py                 — clean drug model: -90 cal/unit within-week (daily-mean exposure), 30wk cumulative tachy
 python analysis/BZ_drug_twocomponent.py          — two-component drug model: acute + tonic with AUC-based tachyphylaxis (unconstrained acute:tonic ≈ 1:1 after the exposure-timing fix)
 python analysis/DF_drug_erosion_identification.py — drug-era erosion: frozen-SP gap (30-40 cal/lb) beats AUC-tachyphylaxis (ΔAIC −38) and is the only form that extrapolates to the 12.5 mg era
+python analysis/DG_gap_model.py                  — CANONICAL drug/set-point model (supersedes BZ/CE/AV): intake = I₀ + s·B + P·(SP−FM), fit once on the drug era (s −80, P +43 true cal), forward on subject (FM RMSE 1.2 lb), SURMOUNT-1/2/4, STEP/SCALE regain, q3d forecast → analysis/DG_q3d_forecast.csv
 python analysis/DD_forward_setpoint_test.py      — forward-window set point test: AG's binge-rate signal is reverse causation; forward CCF inside an intake-only AR null; +12 cal/lb residual at 90 d
 python analysis/AV_surmount_simulation.py        — preliminary SURMOUNT simulation (15mg within 2.2% of published)
 python analysis/AY_sp_from_regain.py             — derive SP adaptation from SURMOUNT-4 regain
