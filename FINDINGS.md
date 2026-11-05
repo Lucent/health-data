@@ -10,6 +10,8 @@ Does the intake data close against weight and calorimetry?
 
 Cumulative energy balance residual: ±5.9 lbs over 15 years (per-year drift ≈ 0). Residual undercount after the canonical 1.09 intake multiplier (composition-aware model, 25 calorimetry × 70 composition measurements): gaining 3.0%, losing 1.6%, stable 1.3% — approximately uniform across phases.
 
+> **Caveat (DL).** "Uniform" is measured against the Kalman's own free-drift TDEE, which absorbs any era-dependent bias. Hall's constant-PAL model inverted on the weigh-ins gives implied/logged ≈ 1.00 in the 2012-16 loss years and 1.12-1.19 in 2017-21. Whether that is an era-dependent undercount or era-dependent expenditure cannot be settled from intake and weight; see DL.
+
 Command: `python analysis/A_energy_balance_quality.py`
 
 ## Z. TDEE by year
@@ -792,6 +794,19 @@ Vectorised cohort of 400 linear responders per SURMOUNT-1 arm, frozen SP, s and 
 A mean of linear responders is linear; a floor bends it only by clipping the strongest responders, and even an implausible floor (65% of TDEE₀, 11% of the arm pinned) reaches 0.45. The concavity is pharmacological saturation, consistent with the EC50 ≈ 12-20 the subject's own data allow (DG §5).
 
 Command: `python analysis/DI_cohort_heterogeneity.py`
+
+## DL. Hall's NIH model run forward on 15 years of logged intake
+
+A physiologically constrained alternative to the free-drift Kalman TDEE: Hall's 2010/2011 model (RMR = K + 3.2·FM + 22·FFM kcal/kg, physical activity ∝ body weight, TEF 0.1·EI, adaptive thermogenesis β = 0.14 with τ = 14 d, Forbes partition, glycogen and extracellular-water dynamics), run forward from the 2011-04-28 scan on logged intake × 1.09 with nothing assimilated afterwards. One free parameter fit to the 1,541 raw weigh-ins (scans and calorimetry held out): PAL = 1.21 (Hall's default 1.5 ends 56 lb too light). Weight RMSE 11.1 lb; FM MAE at the 70 scans 9.4 lb (Kalman 1.08); FFM MAE 5.2 lb (Kalman 1.78); RMR MAE at the 25 calorimetry dates 153 kcal; TDEE/measured RMR 1.20 (Kalman 1.28). β is unidentifiable from the weight path (a ridge against PAL).
+
+**Year-mean error (sim − observed), lb:** +13 (2011), +30, +31 (2012-13), +24, +22, +18 (2015-17), −4, −18, −14, −12 (2018-21), −6 … +6 (2022-26). Constant-PAL Hall cannot swing as far as the subject did: too heavy during the 2011-14 loss, too light during the 2018-21 regain. **Inverted on the observed weights, the implied intake / logged intake ratio is ≈ 1.00 in the 2012-16 loss years and 1.12-1.19 in 2017-21** (sd across years 0.09 at any PAL). Hall's model does not support a uniform 9% undercount; it reads as ~0% while losing and ~15% while regaining — or, equivalently, expenditure 200-300 kcal/day above Hall's structure during the loss and below it during the regain. That is the same direction-dependent signal the Kalman absorbs as TDEE drift (K, CY) and finding A reports as a "uniform" undercount after its own 1.09 scaling.
+
+Three readings, not separable from intake and weight alone: (1) the undercount varies by era (less uncounted eating under strict restriction), which finding A's phase-wise 8-14% range already hints at; (2) real expenditure hysteresis (K); (3) activity. The step record says activity is part of it: 5,500-6,200 steps/day in 2011-16 (hospital shifts, then running) vs 3,100-3,600 in 2018-19 — but 2,000 steps is ~80-100 kcal/day, a third of the gap — and 2022-24 has the highest Kalman activity factor (1.25-1.29) at only 3,300-4,300 steps with 170-240 logged walks a year (AD's walk-session channel). The 2012 and 2016 calorimetry residuals (−173, −252 vs composition) say the loss-era surplus expenditure was not resting metabolism.
+
+**On-drug plateau is an intake fact.** Restarted from the 2025-10-17 scan on logged intake alone, Hall reproduces the late-2025 trajectory (slope −0.65 vs observed −0.88 lb/30 d, end weight 200.6 vs 203.0) with ordinary AT of −70 kcal/day; the Kalman TDEE sits −68 below Hall's structural expenditure there. Neither needs the −150 to −200 kcal/day the three on-drug calorimetry points show, and neither can rule it out.
+
+Command: `python analysis/DL_hall_model.py`
+Artifact: `analysis/DL_hall_daily.csv`
 
 ## Theories the project circles but has not engaged
 
