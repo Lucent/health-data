@@ -233,6 +233,32 @@ def main():
     print("  protein-stat / collateral-fattening model predicts; it is also what cumulative restriction history would")
     print("  look like, since LM-at-given-FM integrates past deficits. On-drug the LM gap is ~0 and the FM gap drives intake.")
 
+    # Lean vs fat vs total weight as the level variable (DJ's caveat: LM | FM ≡ weight | FM)
+    print("\n--- Which level carries the forward signal: lean, fat, or total weight? (next-90d intake ~ past-90d intake + level) ---")
+    comp_fm = d[["date"]].merge(comp[["date", "fm_lbs"]], on="date", how="left")["fm_lbs"].values
+    rng = np.random.default_rng(0)
+    for src, fm_v, lm_v in (("Kalman", fm, lm), ("scan-interpolated (P2)", comp_fm, lm_p2)):
+        ok = pre & ~np.isnan(fwd_cal) & ~np.isnan(bwd_cal) & ~np.isnan(fm_v) & ~np.isnan(lm_v)
+        y, P_ = fwd_cal[ok], bwd_cal[ok]
+        w_v = fm_v + lm_v
+        yrs_ok = yr[ok]
+        print(f"  {src} (n={ok.sum()}):")
+        for label, cols in (("FM + LM, free", [fm_v[ok], lm_v[ok]]), ("weight only", [w_v[ok]]),
+                            ("FM only", [fm_v[ok]]), ("LM only", [lm_v[ok]])):
+            X = np.column_stack([np.ones(ok.sum()), P_] + cols)
+            b = lstsq(X, y, rcond=None)[0]
+            r2 = 1 - np.var(y - X @ b) / np.var(y)
+            boots = []
+            for _ in range(200):
+                pick = rng.choice(np.unique(yrs_ok), len(np.unique(yrs_ok)))
+                idx = np.concatenate([np.where(yrs_ok == p_)[0] for p_ in pick])
+                boots.append(lstsq(X[idx], y[idx], rcond=None)[0][2:])
+            lo, hi = np.percentile(boots, [2.5, 97.5], axis=0)
+            coefs = "  ".join(f"{v:+.1f} [{l:+.0f},{h:+.0f}]" for v, l, h in zip(b[2:], lo, hi))
+            print(f"    {label:16s} R² = {r2:.3f}   cal/day per lb: {coefs}")
+    print("  Lean mass alone nearly doubles the R² of past intake; weight and fat mass add nothing; in the free fit")
+    print("  the fat-mass coefficient is ~0 and the lean-mass coefficient is −20 to −36 cal/day per lb. It is lean mass.")
+
     # Appendix A: glycogenostat
     print("\n--- Appendix A. Flatt glycogenostat: yesterday's glycogen state → today's intake ---")
     gly = p1[["date", "glycogen_g"]].copy()

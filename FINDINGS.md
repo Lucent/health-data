@@ -741,9 +741,38 @@ Nineteen set point rules run on the Kalman FM (or LM) path over the full 2011-20
 
 **Lean mass is the signal fat mass is not.** Lower lean mass at a given fat mass, controlling for the past 90 days' intake, predicts *more* intake over the next 90 days: partial r +0.56 (Kalman LM), +0.44 with scan-interpolated LM that never touches the Kalman, +0.42 / +0.28 with year fixed effects, holding in 2014-16 (+0.53) and 2017+ (+0.61), and unchanged with workout density and TDEE controlled (+0.58). No FM-based gap exceeds +0.1 on the same test. This is Dulloo's protein-stat / collateral-fattening prediction (FFM deficit drives hyperphagia until FFM is restored; the subject's LM fell 157 → 142 in 2011-14 and has never recovered), and it is also what cumulative restriction history would produce, since LM-at-given-FM integrates long deficits. On drug the LM gap is ~0 and the drug-era fit gives it the wrong sign; there the FM gap carries the intake rise. DJ tests the two readings against each other using training-induced lean mass.
 
-**Appendix.** Flatt glycogenostat: yesterday's P1 glycogen state vs today's intake, partial of yesterday's and the past week's intake, r = +0.09 (predicted < 0): null. Seasonality: pre-drug 2014+ binge rate runs 1.0% (Feb) to 8.1% (Oct), an 8× range with a clean autumn peak — unmodelled anywhere in the project and larger than most effects it reports.
+**It is lean mass, not total weight and not fat mass.** Because lean = weight − fat, "low lean at given fat" is also "low weight at given fat" (a slow gravitostat). Fitting the next 90 days' intake on past-90-day intake plus each level separately (pre-drug, year-block bootstrap CIs):
+
+| level variable | R² (Kalman) | cal/day per lb (Kalman) | R² (scan-interpolated) | cal/day per lb (scan-interp.) |
+|---|---|---|---|---|
+| past intake only | 0.26 | | 0.26 | |
+| + total weight | 0.26 | +0.1 [−2, +3] | 0.26 | −1.1 [−3, +2] |
+| + fat mass | 0.26 | +0.8 [−1, +4] | 0.26 | +0.2 [−3, +4] |
+| **+ lean mass** | **0.47** | **−32.8 [−59, −24]** | **0.41** | **−18.4 [−26, −13]** |
+| + FM and LM free | 0.50 | FM +2.1 [0, +4], LM −36.1 [−61, −27] | 0.45 | FM +3.3 [0, +6], LM −23.4 [−33, −14] |
+
+Lean mass alone nearly doubles the explained variance of past intake; weight and fat mass add nothing; in the free fit the fat coefficient is nil and the lean coefficient is −20 to −36 cal/day per lb. The gravitostat is rejected at this horizon as it was at next-day (N); the defended quantity pre-drug is lean mass.
+
+**Appendix.** Flatt glycogenostat: yesterday's P1 glycogen state vs today's intake, partial of yesterday's and the past week's intake, r = +0.09 (predicted < 0): null. Brobeck thermostat: baseline-corrected temperature vs next-day intake, partial of today's and the past week's intake and FM, r = +0.11 (predicted < 0): wrong sign (358 days). Seasonality: pre-drug 2014+ binge rate runs 1.0% (Feb) to 8.1% (Oct), an 8× range with a clean autumn peak — unmodelled anywhere in the project and larger than most effects it reports.
 
 Command: `python analysis/DH_sp_dynamics_zoo.py`
+
+## DJ. Lean mass predicts intake: not restriction history, not quite Dulloo either
+
+Tests to separate "the body defends lean mass" (protein-stat) from "low lean mass at a given fat mass is a record of long restriction, and the eating that follows is rebound". Pre-drug, forward 90-day windows, year-block bootstrap 95% CIs; slope is cal/day of next-90-day intake per lb of lean mass (protein-stat predicts negative).
+
+**Restriction history does not explain it.** Slope with past-90-day intake and FM controlled: −44 [−70, −33] (Kalman LM), −21 [−29, −15] (scan-interpolated), −13 [−20, −5] (last scan carried forward). Adding past-180 and past-365-day intake, the past year's cumulative energy balance, 90-day workout count and TDEE leaves it at −44 / −21 / −12. Year fixed effects: −70 / −22 / −13. Split by whether lean mass has been falling or rising over the prior 90 days: partial r −0.51 falling vs **−0.78 rising** (Kalman), −0.50 vs −0.48 (scan-interpolated) — a rebound-after-dieting story predicts the effect to live in the falling half; it is at least as strong when lean has been rising. In the 48 raw pre-drug composition scans with no interpolation and no Kalman (2016-2022), next-90-day intake on scan lean, scan fat and past intake: −19 cal/day per lb [−25, −1], partial r −0.54.
+
+**Timescale.** A fixed lean reference beats every EMA reference (HL 180-730 d) at every horizon, and the partial r grows with horizon: scan-interpolated +0.37 / +0.44 / +0.49 / +0.61 at 30 / 90 / 180 / 365 d (Kalman values are higher but Forbes-coupled to intake). It is a slow level signal, not a recent-change signal.
+
+**Dulloo's specific signatures are absent.** Thermogenesis: Kalman TDEE − expected RMR on lean | FM, past intake: partial r −0.22 [−0.55, +0.03] (suppression with *higher* lean, the wrong sign); calorimetry RMR residual at 22 pre-drug dates: −0.03. Protein seeking: next-90-day protein share of calories vs lean: +0.24 [+0.04, +0.41] (low lean → *lower* protein share); protein grams move only through total intake. The hyperphagia is non-selective. On drug, lean mass moved 141.6 → 142.5 while the FM gap did the work (frozen-FM gap ΔAIC −78 vs a noise-level lean term).
+
+**The decisive test is unavailable.** The plan was to use training-built lean mass as an instrument (lean gained by lifting, not by eating, should lower intake if the level is what matters). There is no first stage: trailing workout count → lean mass is −0.003 to +0.009 lb per session, CIs span zero, consistent with CC's finding that each session's +30-40 g lasts a day. Two-stage slopes are ±300-1000 wide. Nothing in this record builds a chronic lean stock to test with.
+
+**Verdict.** Lean mass is a genuine, slow, forward predictor of this subject's intake (R² 0.41-0.47 against 0.26 for past intake alone; DH), robust to every restriction-history control; it is not a protein-stat in Dulloo's full sense (no protein selectivity, no thermogenic arm) and it is silent on drug. What the body appears to defend pre-drug is lean tissue, through the amount eaten rather than what is eaten.
+
+Command: `python analysis/DJ_proteinstat_training.py`
+Artifact: `analysis/DJ_proteinstat_sweep.csv`
 
 ## DI. Heterogeneous linear responders cannot bend the cohort dose-response
 

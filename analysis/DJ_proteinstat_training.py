@@ -252,7 +252,8 @@ def main():
     tr, te = np.where(g["date"] < TRAIN_END)[0], np.where(g["date"] >= TRAIN_END)[0]
     print(f"  n={len(y)}; FM {g['fat_mass_lbs'].iloc[0]:.1f}→{g['fat_mass_lbs'].iloc[-1]:.1f}, LM Kalman {g['lm_lbs'].iloc[0]:.1f}→{g['lm_lbs'].iloc[-1]:.1f}, "
           f"P2 {g['ffm_lbs'].iloc[0]:.1f}→{g['ffm_lbs'].iloc[-1]:.1f} lb")
-    print(f"  {'gap term':<20} {'P cal/day/lb':>13} {'s':>7} {'AIC':>8} {'ΔAIC vs none':>13} {'OOS RMSE 12.5mg':>16} {'OOS bias':>9}")
+    print(f"  {'gap term':<20} {'P cal/day/lb':>13} {'s':>7} {'gap sd lb':>9} {'P×sd cal':>9} {'AIC':>8} {'ΔAIC vs none':>13} "
+          f"{'OOS RMSE 12.5mg':>16} {'OOS bias':>9}")
     for lab, gp in gaps.items():
         k = 2 if lab == "none" else 3
         f = (lambda p, gp=gp: p[0] + p[1] * B + (p[2] * gp if len(p) > 2 else 0))
@@ -260,14 +261,18 @@ def main():
         fit = lambda idx: least_squares(lambda p: y[idx] - f(p)[idx], x0, bounds=(lb, ub)).x
         pa = fit(np.arange(len(y))); sse = np.sum((y - f(pa)) ** 2); aic = len(y) * np.log(sse / len(y)) + 2 * k
         if lab == "none": aic0 = aic
-        pt = fit(tr); pred = f(pt)
-        print(f"  {lab:<20} {(pa[2] if k == 3 else 0):>+13.1f} {pa[1]:>+7.1f} {aic:>8.1f} {aic - aic0:>+13.1f} "
+        pt = fit(tr); pred = f(pt); P = pa[2] if k == 3 else 0.0
+        print(f"  {lab:<20} {P:>+13.1f} {pa[1]:>+7.1f} {gp.std():>9.2f} {P * gp.std():>+9.0f} {aic:>8.1f} {aic - aic0:>+13.1f} "
               f"{np.sqrt(np.mean((y[te] - pred[te]) ** 2)):>16.0f} {np.mean(y[te] - pred[te]):>+9.0f}")
+    e = g.groupby("dose_mg").agg(days=("cal_adj", "size"), intake=("cal_adj", "mean"), B=("blood_level", "mean"),
+                                 FM=("fat_mass_lbs", "mean"), LM=("lm_lbs", "mean")).round(1)
+    print("  dose-era means:\n" + "\n".join("    " + ln for ln in e.to_string().splitlines()))
     b_lm = base["kalman"][0]
-    first8, last8 = g.iloc[:56]["cal_adj"].mean(), g.iloc[-56:]["cal_adj"].mean()
-    print(f"  Pre-drug LM slope {b_lm:+.1f} cal/day/lb × drug-era ΔLM {g['lm_lbs'].iloc[-1] - g['lm_lbs'].iloc[0]:+.1f} lb ⇒ "
-          f"{b_lm * (g['lm_lbs'].iloc[-1] - g['lm_lbs'].iloc[0]):+.0f} cal/day predicted; observed first-8-wk → last-8-wk {first8:.0f} → {last8:.0f} ({last8 - first8:+.0f})")
-    print("  The LM deficit has no room to move on-drug; whatever drives the on-drug intake rise is not lean mass.")
+    print(f"  5 → 12.5 mg: exposure ×2.5, intake {e.loc[5.0, 'intake']:.0f} → {e.loc[12.5, 'intake']:.0f} cal/day "
+          f"({e.loc[12.5, 'intake'] - e.loc[5.0, 'intake']:+.0f}); FM {e.loc[5.0, 'FM']:.1f} → {e.loc[12.5, 'FM']:.1f}, LM {e.loc[5.0, 'LM']:.1f} → {e.loc[12.5, 'LM']:.1f}.")
+    print(f"  Pre-drug LM slope {b_lm:+.1f} cal/day/lb × ΔLM {e.loc[12.5, 'LM'] - e.loc[5.0, 'LM']:+.1f} lb ⇒ "
+          f"{b_lm * (e.loc[12.5, 'LM'] - e.loc[5.0, 'LM']):+.0f} cal/day from lean mass; frozen-FM gap at DF's P ⇒ "
+          f"{30.3 * (e.loc[5.0, 'FM'] - e.loc[12.5, 'FM']):+.0f} cal/day. Lean mass cannot explain the on-drug erosion.")
 
     # ---- 8. Scan-level ------------------------------------------------------------------------
     print("\n--- 8. Raw composition scans: next-90-d intake ~ scan LM + scan FM + past-90 intake (no Kalman, no interpolation) ---")
@@ -284,9 +289,17 @@ def main():
     print(f"  thinned to ≥30 d apart: n={len(thin)}, partial r {r_t:+.3f}")
 
     print("\n=== Verdict ===")
-    print("  Read sections 1, 2 and 8 together: if the LM slope survives restriction-history controls, the 2SLS")
-    print("  (training-built LM) slope is negative and comparable to OLS, and raw scans reproduce it, the protein-stat")
-    print("  reading stands. If the slope dies under past-365 controls or 2SLS ≈ 0, it is cumulative restriction.")
+    print("  AGAINST the cumulative-restriction confound: the LM slope is unchanged by past-180/365-d intake and past-365-d")
+    print("  energy-balance controls (§1), is at least as strong when LM has been RISING for 90 d (§1b, so it is not post-diet")
+    print("  rebound), and raw scans with no Kalman or interpolation reproduce it (§8). A fixed reference beats every EMA and")
+    print("  the signal grows with horizon (§3): a slow level signal, not a transient.")
+    print("  AGAINST a Dulloo protein-stat specifically: no protein seeking (protein share moves the WRONG way, §5), no")
+    print("  thermogenic suppression (TDEE residual and calorimetry residual ≤ 0 with LM, §4), and on-drug the LM term is")
+    print("  inert while the FM gap carries the erosion (§7). The training instrument has no first stage (§2) — workouts do")
+    print("  not build a chronic LM stock in this record — so the decisive diet-built vs training-built LM test is unavailable.")
+    print("  CAVEAT: with FM partialled out, LM ≡ body weight − FM, so 'low LM | FM' is also 'low weight | FM'. A gravitostat")
+    print("  or any slow weight-level set point predicts the same forward correlation; this design cannot separate them.")
+    print("  Daily overlapping windows inflate r (effective n ≈ years × 365/H); trust the year-block CIs, not the point r.")
 
 
 if __name__ == "__main__":

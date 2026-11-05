@@ -97,6 +97,7 @@ python analysis/DG_gap_model.py                  — CANONICAL drug/set-point mo
 python analysis/DD_forward_setpoint_test.py      — forward-window set point test: AG's binge-rate signal is reverse causation; forward CCF inside an intake-only AR null; +12 cal/lb residual at 90 d
 python analysis/DH_sp_dynamics_zoo.py            — 19 set point dynamics models over 2011-2026 (frozen/EMA/asymmetric/latch/attractor/lean-mass/floor-gated): forward binge, forward intake, drug-era AIC, implied 2012-13 pressure; lean-mass deficit is the strongest forward appetite signal (partial +0.4-0.6)
 python analysis/DI_cohort_heterogeneity.py       — heterogeneous linear responders + intake floor cannot produce SURMOUNT-1's concave dose-response (5/15 ratio ≤ 0.45 vs 0.71)
+python analysis/DJ_proteinstat_training.py       — lean mass → next-90d intake (−20 to −44 cal/day/lb) survives restriction-history controls and raw scans; no protein-seeking, no thermogenic arm; training instrument has no first stage
 python analysis/AV_surmount_simulation.py        — preliminary SURMOUNT simulation (15mg within 2.2% of published)
 python analysis/AY_sp_from_regain.py             — derive SP adaptation from SURMOUNT-4 regain
 python analysis/AZ_sp_model_search.py            — exhaustive search: SmoothLatch fits subject + SURMOUNT + STEP-1
