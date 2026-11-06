@@ -34,6 +34,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "analysis"))
 
 import P4_kalman_filter as P4
+from intake_model import INTAKE_MULTIPLIER  # single source of truth
 from P4_kalman_filter import (
     forbes_fat_fraction, build_inputs, load_data,
     E_FAT, E_LEAN, BUF_DECAY, BUF_CAP,
@@ -156,10 +157,10 @@ def make_anchor(expected_rmr, steps_arr, c, d):
 
 def run_config(intake_mult, c, d, sigma, cap, R_anchor):
     """Run one config and return SMOOTHED outputs."""
-    P4.INTAKE_MULTIPLIER = intake_mult
     smooth, intake_daily, strength, comp_scans, rmr_df, p2, temp_df = load_data()
     dates, calories, weight_obs, fm_scan, lm_scan, expected_rmr, workouts_per_wk = \
-        build_inputs(smooth, intake_daily, strength, comp_scans, p2)
+        build_inputs(smooth, intake_daily, strength, comp_scans, p2,
+                     calories_true=intake_daily["calories"].values * intake_mult)
     steps_arr = load_steps_arr(dates)
     fm_start = fm_scan[~np.isnan(fm_scan)][0]
     lm_start = lm_scan[~np.isnan(lm_scan)][0]
@@ -185,7 +186,8 @@ def eb_residual(calories, x_smooth):
     return float(cum_def[-1] / E_FAT - (fm_last - fm_first))
 
 
-def find_eb_closing_m(c, d, sigma, cap, R_anchor, m_init=1.09, tol=0.5):
+def find_eb_closing_m(c, d, sigma, cap, R_anchor, m_init=None, tol=0.5):
+    m_init = INTAKE_MULTIPLIER if m_init is None else m_init
     def eb_at(m):
         _, calories, _, _, x_filt, _ = run_config(m, c, d, sigma, cap, R_anchor)
         return eb_residual(calories, x_filt)
@@ -265,7 +267,7 @@ def main():
     results = []
     for label, c, d, sigma, cap, R in configs:
         try:
-            m, eb_after = find_eb_closing_m(c, d, sigma, cap, R, m_init=1.09)
+            m, eb_after = find_eb_closing_m(c, d, sigma, cap, R)
             dates, calories, fm_scan, lm_scan, x_filt, rmr_df = run_config(
                 m, c, d, sigma, cap, R)
             v = metrics(label, dates, calories, fm_scan, lm_scan, x_filt, rmr_df,

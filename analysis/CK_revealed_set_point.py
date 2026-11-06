@@ -6,8 +6,8 @@
 
 For each day t in the pre-tirz era:
 
-    baseline_TDEE_t  = expected_RMR_t × 1.2          (sedentary reference, NOT Kalman TDEE)
-    naive_surplus_t  = intake_t − baseline_TDEE_t    (canonical 1.09× already in intake)
+    baseline_TDEE_t  = expected_RMR_t × BASELINE_AF  (sedentary reference, NOT Kalman TDEE)
+    naive_surplus_t  = intake_t − baseline_TDEE_t    (canonical intake multiplier already applied)
     cal_per_lb_FM_t  = 3500 + 1100 × (1 − ff)/ff     (Forbes correction)
     predicted_ΔFM_t  = naive_surplus_t / cal_per_lb_FM_t
     actual_ΔFM_t     = Kalman FM trajectory diff
@@ -54,6 +54,7 @@ inherit the BR autocorrelation because it doesn't reference FM history.
   reading takes precedence; CK becomes a registered negative result.
 """
 from pathlib import Path
+import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -63,6 +64,12 @@ ROOT = Path(__file__).resolve().parent.parent
 
 LBS_TO_KG = 0.45359237
 FORBES_C_KG = 10.4
+
+# Activity factor for the non-Kalman baseline TDEE reference. Was hardcoded 1.2.
+# CQ/CR put the subject's calorimetry-day TDEE/RMR near 1.34 at the current
+# multiplier, so 1.2 is not neutral. Overridable so the sensitivity of the
+# headline result to this choice is visible rather than buried.
+BASELINE_AF = float(os.environ.get("CK_BASELINE_AF", 1.34))
 
 def cal_per_lb_FM(fm_lbs):
     fm_kg = max(float(fm_lbs) * LBS_TO_KG, 5.0)
@@ -132,7 +139,7 @@ def main():
     comp = pd.read_csv(ROOT / "analysis" / "P2_daily_composition.csv", parse_dates=["date"])
     tirz = pd.read_csv(ROOT / "drugs" / "tirzepatide.csv", parse_dates=["date"])
 
-    INTAKE_MULTIPLIER = 1.09
+    from intake_model import INTAKE_MULTIPLIER  # single source of truth: analysis/intake_model.py (was hardcoded 1.09)
     intake = intake.copy()
     intake["calories"] = intake["calories"] * INTAKE_MULTIPLIER
 
@@ -147,7 +154,12 @@ def main():
     # Keep only pre-tirz days for the SP fit
     pre = df[df["effective_level"] == 0].copy().reset_index(drop=True)
 
-    pre["baseline_tdee"] = pre["expected_rmr"] * 1.2
+    # BASELINE_AF was hardcoded at 1.2 — a stipulated activity factor standing in
+    # for the quantity CQ/CR now estimate. It is not a measurement, so it is
+    # exposed here and swept below rather than asserted. Note that a change in AF
+    # shifts naive_surplus by a constant, which is absorbed by the intercept α;
+    # β (the set-point interaction, the actual claim) is the term to watch.
+    pre["baseline_tdee"] = pre["expected_rmr"] * BASELINE_AF
     pre["naive_surplus"] = pre["calories"] - pre["baseline_tdee"]
     pre["cal_per_lb"] = pre["fm"].apply(cal_per_lb_FM)
     pre["predicted_dfm_daily"] = pre["naive_surplus"] / pre["cal_per_lb"]

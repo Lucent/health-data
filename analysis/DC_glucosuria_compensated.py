@@ -2,7 +2,7 @@
 
 Why this exists (vs CG): CG clipped sugar above a threshold and subtracted
 those calories from logged intake, then ran the Kalman filter with the
-canonical INTAKE_MULTIPLIER = 1.09. But 1.09 was calibrated to close
+canonical intake multiplier (now from analysis/intake_model.py; historically 1.09, calibrated to close
 cumulative EB residual to ~0 on the *unclipped* intake — so any clipping
 adds to that 9 % undercount and the model gets driven away from the data
 purely from magnitude loss. The MAE/EB metrics then drifted in a way that
@@ -10,12 +10,12 @@ told us nothing about whether the *shape* of the clipping was right.
 
 Fix: after each clipping scheme, rescale the clipped intake so that
 cumulative consumed calories match the baseline. Concretely, replace the
-fixed 1.09 multiplier with
+fixed multiplier with
 
-    m_clip = 1.09 × Σ(intake_original) / Σ(intake_clipped)
+    m_clip = m × Σ(intake_original) / Σ(intake_clipped)
 
 so that `m_clip × intake_clipped` integrates to the same total over the
-record as `1.09 × intake_original`. Now the Kalman comparison reflects only
+record as `m × intake_original`. Now the Kalman comparison reflects only
 the *timing* benefit of clipping: do the over-threshold sugar spikes line
 up with composition residuals such that removing them and redistributing
 the calories tightens the fit?
@@ -66,8 +66,8 @@ def clipped_intake(clip_mode, threshold, intake_daily, foods):
 def run_one(label, intake_clipped, total_discarded, total_original,
             smooth, strength, comp_scans, p2, rmr_df, temp_df):
     """Build inputs, override the multiplier via pre-scaling, run Kalman, report."""
-    # Compensation factor: scale clipped calories so 1.09 × scaled equals
-    # 1.09 × original on the 15-year sum.
+    # Compensation factor: scale clipped calories so m × scaled equals
+    # m × original on the 15-year sum (m = the canonical intake model, applied by build_inputs).
     if total_discarded > 0:
         compensation = total_original / (total_original - total_discarded)
         intake_for_kalman = intake_clipped.copy()

@@ -80,8 +80,11 @@ def _run_with_training_term(dates, calories, weight_obs, fm_scan, lm_scan, expec
     q_tdee = sigma_tdee ** 2
 
     first_scan = np.where(~np.isnan(fm_scan))[0][0]
-    init_tdee = (expected_rmr[first_scan] * 1.15
-                 if not np.isnan(expected_rmr[first_scan]) else 2100.0)
+    # Data-driven init, matching P4: the old expected_rmr * 1.15 form embedded an
+    # assumed activity factor.
+    _iw = calories[first_scan:first_scan + 60]
+    _iw = _iw[~np.isnan(_iw)]
+    init_tdee = float(np.mean(_iw)) if len(_iw) else 2100.0
 
     x = np.array([fm_scan[first_scan], lm_scan[first_scan], 0.0, init_tdee])
     P = np.diag([4.0, 4.0, 1.0, 200.0 ** 2])

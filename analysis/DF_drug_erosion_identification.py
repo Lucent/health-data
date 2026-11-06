@@ -163,6 +163,12 @@ def fit_models(d):
         print(f"  {name:34s} {np.array2string(np.round(p, 4), max_line_width=200):48s} {rmse:6.0f} {aic:8.1f}")
     best = min(full.items(), key=lambda kv: kv[1][1])
     print(f"\n  Lowest AIC: {best[0]}   (ΔAIC vs L1 tachyphylaxis = {best[1][1] - full['L1 linear × exp(−K·AUC)'][1]:+.1f})")
+    import sys as _sys; _sys.path.insert(0, str(ROOT / "analysis"))
+    from results import save as _save
+    _save("DF_drug_erosion_identification", best_model=best[0],
+          d_aic_vs_tachyphylaxis=float(best[1][1] - full['L1 linear × exp(−K·AUC)'][1]),
+          full_record={k: dict(params=[float(x) for x in np.atleast_1d(v[0])], aic=float(v[1])) for k, v in full.items()})
+    print("  Wrote analysis/results/DF_drug_erosion_identification.json")
 
     print("\n" + "=" * 96)
     print(f"B. Fit through the 10 mg era (n={len(train)}), score on the 12.5 mg era (n={len(test)})")

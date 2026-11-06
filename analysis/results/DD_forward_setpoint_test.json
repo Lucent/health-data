@@ -1,0 +1,67 @@
+{
+  "_source": "analysis/DD_forward_setpoint_test.py",
+  "_written": "2026-11-06",
+  "ccf_leads_outside_null": 1,
+  "forecast": {
+    "30d_past intake + sp_dist": {
+      "coef": 15.259332,
+      "folds": 9,
+      "folds_pos": 9,
+      "r": 0.08292,
+      "rmse": 227.35383
+    },
+    "30d_past intake + sp_dist + FM": {
+      "coef": 9.975749,
+      "folds": 9,
+      "folds_pos": 5,
+      "r": 0.120816,
+      "rmse": 245.343307
+    },
+    "30d_past intake only": {
+      "coef": null,
+      "folds": 0,
+      "folds_pos": null,
+      "r": 0.14715,
+      "rmse": 220.002013
+    },
+    "30d_sp_dist only": {
+      "coef": 0.700082,
+      "folds": 9,
+      "folds_pos": 3,
+      "r": -0.158675,
+      "rmse": 238.293295
+    },
+    "90d_past intake + sp_dist": {
+      "coef": 41.677114,
+      "folds": 9,
+      "folds_pos": 9,
+      "r": 0.338208,
+      "rmse": 159.809382
+    },
+    "90d_past intake + sp_dist + FM": {
+      "coef": 30.188979,
+      "folds": 9,
+      "folds_pos": 9,
+      "r": 0.477221,
+      "rmse": 165.722179
+    },
+    "90d_past intake only": {
+      "coef": null,
+      "folds": 0,
+      "folds_pos": null,
+      "r": 0.056181,
+      "rmse": 168.093851
+    },
+    "90d_sp_dist only": {
+      "coef": 8.613831,
+      "folds": 9,
+      "folds_pos": 8,
+      "r": -0.13025,
+      "rmse": 181.819111
+    }
+  },
+  "r_forward": -0.125837,
+  "r_trailing": -0.568039,
+  "rmse_gain_pct_30d": -3.341704,
+  "rmse_gain_pct_90d": 4.928478
+}

@@ -34,7 +34,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 ROOT = Path(__file__).resolve().parent.parent
-INTAKE_MULTIPLIER = 1.09
+from intake_model import INTAKE_MULTIPLIER  # single source of truth: analysis/intake_model.py (was hardcoded 1.09)
 
 
 def piecewise_constant_dp(signal, max_k=12, min_size=60):

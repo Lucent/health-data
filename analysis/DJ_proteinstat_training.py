@@ -28,7 +28,11 @@ from numpy.linalg import lstsq
 from scipy.optimize import least_squares
 
 ROOT = Path(__file__).resolve().parent.parent
-MULT = 1.09
+import sys
+sys.path.insert(0, str(ROOT / "analysis"))
+from intake_model import INTAKE_MULTIPLIER, describe as describe_intake_model  # single source of truth
+from results import save as save_result, load as load_result
+MULT = INTAKE_MULTIPLIER   # effective; d['cal'] below uses P4's exact series
 DRUG_START = pd.Timestamp("2024-09-17")
 WEEKLY_END = "2026-03-31"
 TRAIN_END = "2025-08-19"
@@ -86,7 +90,7 @@ def load():
     comp["lm_scan"] = comp["weight_lbs"] - comp["fat_mass_lbs"]
     comp = comp.groupby("date", as_index=False)[["lm_scan", "fat_mass_lbs"]].mean()
     strength = pd.read_csv(ROOT / "workout" / "strength.csv", parse_dates=["date"])
-    d = intake.merge(kal[["date", "fat_mass_lbs", "lm_lbs", "tdee"]], on="date")
+    d = intake.merge(kal[["date", "fat_mass_lbs", "lm_lbs", "tdee", "intake_true"]], on="date")
     d = d.merge(p2[["date", "ffm_lbs", "expected_rmr"]], on="date", how="left")
     d = d.merge(tirz[["date", "blood_level", "days_since_injection", "dose_mg"]], on="date", how="left")
     d = d.merge(comp[["date", "lm_scan"]], on="date", how="left")
@@ -97,7 +101,7 @@ def load():
     pre = intake[(intake["date"] >= "2022-01-01") & (intake["date"] < DRUG_START)].copy()
     dow_adj = pre.groupby(pre["date"].dt.day_of_week)["calories"].mean() - pre["calories"].mean()
     d["cal_adj"] = d["calories"] - d["date"].dt.day_of_week.map(dow_adj)
-    d["cal"] = d["calories"] * MULT
+    d["cal"] = d["intake_true"]      # consumed calories as used by P4
     d["binge"] = (d["calories"] > d["tdee"] + 1000).astype(float)
     return d, comp
 

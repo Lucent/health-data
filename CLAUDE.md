@@ -9,7 +9,8 @@ Read these files in order:
 
 ## Key principles
 - **The data is complete.** Every day is fully logged. A 10-calorie day is a real fasting day, not incomplete logging. Never assume missing entries.
-- **Accuracy is unusually high.** Food scale always used. ~10% consistent undercount from uncounted snacking (quantified by energy balance model, uniform across phases). Incentive structure rewards precision over undercounting.
+- **Accuracy is unusually high.** Food scale always used. Logged intake is a consistent undercount (uncounted snacking); the correction is calibrated, not assumed. **One source of truth:** `analysis/intake_model.py` reads `analysis/results/DM_intake_calibration.json`, written by `analysis/DM_intake_calibration.py`, which selects the correction *form* (uniform multiplier vs affine / intake-level / macro-specific / calendar-era / FM-direction) and the filter's noise hyperparameters by one likelihood over every assimilated observation. P4 consumes `true_intake()` and writes the series it used to `P4_kalman_daily.csv` as `intake_true`; downstream scripts use that column (or `intake_model.true_intake`), never a typed number. The absolute level is weakly identified (the likelihood is flat over a wide range and Hall's structural model has the same ridge against PAL); era *differences* are sharp. See FINDINGS "DM" for the current numbers and intervals.
+- **Beware stipulated activity factors.** The historical 1.09 multiplier and the "~10% undercount" claim both traced to hardcoded constants (`expected_rmr × 1.2`, a `|TDEE/RMR − 1.15|` term in P4's tuning score) rather than measurements. These have been removed. Do not reintroduce an assumed TDEE/RMR ratio anywhere — it is a quantity to estimate, not to assert. Likewise do not hardcode any fitted number in a second script: write it with `results.save(...)` and read it with `results.load(...)` (`analysis/results/*.json`). Incentive structure rewards precision over undercounting.
 - **CICO is effect, not cause.** The working theory is a meandering set point controlled by an unknown homeostat. Simple calorie correlation has been tried and drifts.
 
 ## Documentation standard
@@ -39,6 +40,7 @@ python drugs/extract.py             → drugs/medicine.csv + drugs/tirzepatide.c
 python intake/atwater_check.py      — Atwater factor validation (per-item and per-day)
 python intake/compare_extractors.py — cross-validates OXPS vs HTML extractors
 python temperature/merge.py        → temperature/temperature.csv (body_temperature + body_temperature2, TZ-corrected)
+python cycling/extract.py           → cycling/rides.csv (raw GPS Cycle Computer .gcc tracks, Jul–Aug 2010)
 
 # Merge pipeline (runs after extraction; each merges source-specific CSVs into canonical files)
 python steps-sleep/merge_steps.py      → steps-sleep/steps.csv (Samsung + MFP/calendar hospital+walk+run backfill)
@@ -58,17 +60,23 @@ python workout/merge.py                → workout/strength.csv (PDFs + Chloe xl
 #       caps and no anchor. BUF is a bounded transient buffer for non-glycogen
 #       water/gut variation. Calorimetry RMR observations are held out for posterior validation.
 #       See FINDINGS.md "Kalman filter appendix" for design and constants.
+#   DM: calibrates the intake correction AND P4's noise hyperparameters (σ_TDEE, Q_BUF, R_WEIGHT)
+#       by one prediction-error likelihood → analysis/results/DM_intake_calibration.json, which
+#       analysis/intake_model.py serves to P4 and to every downstream script. Re-run DM after any
+#       change to P1/P2 inputs or to the filter's structure; then re-run P4.
+#   Results chain: analysis/results.py (save/load JSON) — fitted numbers flow script → script.
 
 python analysis/P0_tune_glycogen.py    — parameter tuning (run once to derive P1 constants)
 python analysis/P1_glycogen_smooth.py  → analysis/P1_smoothed_weight.csv
 python analysis/P2_rmr_model.py        → analysis/P2_daily_composition.csv
 python analysis/P3_interpolate_weight.py → analysis/P3_daily_weight.csv
-python analysis/P4_kalman_filter.py    → analysis/P4_kalman_daily.csv + analysis/P4_kalman_sweep.csv
+python analysis/DM_intake_calibration.py → analysis/results/DM_intake_calibration.json + analysis/DM_profiles.csv (intake model + filter tuning)
+python analysis/P4_kalman_filter.py    → analysis/P4_kalman_daily.csv + analysis/P4_kalman_sweep.csv + analysis/results/P4_kalman_filter.json
 python analysis/P5_plot_models.py      → P5_plot_*.png diagnostic plots
 
 # Standalone claim reproducers (each prints the numbers cited in README/THEORIES)
-python analysis/A_energy_balance_quality.py  — ±5 lbs cumulative, undercount %
-python analysis/Z_tdee_by_year.py            — TDEE by year table
+python analysis/A_energy_balance_quality.py  — EB closure (not an undercount measure), TDEE/RMR uniform across phases
+python analysis/Z_tdee_by_year.py            — TDEE by year table (consumed-calorie units; net of undercount)
 python analysis/F_tirzepatide_pk.py          — r=-0.50, sawtooth, tachyphylaxis, lean mass
 python analysis/B_weekend_fasting.py         — fasting microcosm (deficit recovery)
 python analysis/D_food_noise_variance.py     — CV reduction, distance→intake, rebound
@@ -91,16 +99,16 @@ python analysis/AO_tirz_asymmetric_defense.py    — tirz suppresses below-SP ex
 python analysis/AP_overshoot_shape.py            — 90d mean surplus (r=-0.94) beats all binary thresholds
 python analysis/AQ_tirz_set_point_coverage.py    — drug coverage in lbs/cal per arm, tachyphylaxis erosion
 python analysis/AU_noncircular_set_point.py      — non-circular SP test from observed weigh-ins only (HL 35-50d)
-python analysis/AX_drug_model.py                 — clean drug model: -90 cal/unit within-week (daily-mean exposure), 30wk cumulative tachy
+python analysis/AX_drug_model.py                 — clean drug model: -90 cal/unit within-week (daily-mean exposure), 27wk cumulative tachy (superseded by DF/DG: the slow rise is set-point pressure)
 python analysis/BZ_drug_twocomponent.py          — two-component drug model: acute + tonic with AUC-based tachyphylaxis (unconstrained acute:tonic ≈ 1:1 after the exposure-timing fix)
-python analysis/DF_drug_erosion_identification.py — drug-era erosion: frozen-SP gap (30-40 cal/lb) beats AUC-tachyphylaxis (ΔAIC −38) and is the only form that extrapolates to the 12.5 mg era
-python analysis/DG_gap_model.py                  — CANONICAL drug/set-point model (supersedes BZ/CE/AV): intake = I₀ + s·B + P·(SP−FM), fit once on the drug era (s −80, P +43 true cal), forward on subject (FM RMSE 1.2 lb), SURMOUNT-1/2/4, STEP/SCALE regain, q3d forecast → analysis/DG_q3d_forecast.csv
-python analysis/DD_forward_setpoint_test.py      — forward-window set point test: AG's binge-rate signal is reverse causation; forward CCF inside an intake-only AR null; +12 cal/lb residual at 90 d
+python analysis/DF_drug_erosion_identification.py — drug-era erosion: frozen-SP gap (30-40 cal/lb) beats AUC-tachyphylaxis (ΔAIC −35) and is the only form that extrapolates to the 12.5 mg era
+python analysis/DG_gap_model.py                  — CANONICAL drug/set-point model (supersedes BZ/CE/AV): intake = I₀ + s·B + P·(SP−FM), fit once on the drug era (s −71, P +38, consumed cal), forward on subject (FM RMSE 1.3 lb), SURMOUNT-1/2/4, STEP/SCALE regain, q3d forecast → analysis/DG_q3d_forecast.csv
+python analysis/DD_forward_setpoint_test.py      — forward-window set point test: AG's binge-rate signal is reverse causation; forward CCF inside an intake-only AR null; +42 cal/lb residual at 90 d
 python analysis/DH_sp_dynamics_zoo.py            — 19 set point dynamics models over 2011-2026 (frozen/EMA/asymmetric/latch/attractor/lean-mass/floor-gated): forward binge, forward intake, drug-era AIC, implied 2012-13 pressure; lean-mass deficit is the strongest forward appetite signal (partial +0.4-0.6)
 python analysis/DI_cohort_heterogeneity.py       — heterogeneous linear responders + intake floor cannot produce SURMOUNT-1's concave dose-response (5/15 ratio ≤ 0.45 vs 0.71)
-python analysis/DJ_proteinstat_training.py       — lean mass → next-90d intake (−20 to −44 cal/day/lb) survives restriction-history controls and raw scans; no protein-seeking, no thermogenic arm; training instrument has no first stage
-python analysis/DK_regime_switch.py              — changepoint/HMM on intake: restriction era ends 2013-10-16..19 (not at the 2014 eruption); pooled 29-episode termination hazard: no pressure variable → analysis/DK_regime_daily.csv
-python analysis/DL_hall_model.py                 — Hall NIH model forward on logged intake (PAL 1.21): weight RMSE 11 lb, ±30 lb year errors (heavy in loss, light in regain); implied undercount ~0% loss years / ~15% regain years → analysis/DL_hall_daily.csv
+python analysis/DJ_proteinstat_training.py       — lean mass → next-90d intake (−18 to −42 cal/day/lb) survives restriction-history controls and raw scans; no protein-seeking, no thermogenic arm; training instrument has no first stage
+python analysis/DK_regime_switch.py              — changepoint/HMM on intake: restriction era ends 2013-10-16..19 (not at the 2014 eruption); pooled 19-episode termination hazard: no robust pressure variable; TDEE flat through 2013-14 under the calibrated filter → analysis/DK_regime_daily.csv
+python analysis/DL_hall_model.py                 — Hall NIH model forward on consumed intake (PAL 1.08 at m=1): weight RMSE 12 lb, ±35 lb year errors (heavy in loss, light in regain); per-era multiplier fit (regain/loss 1.14) is era-dependent EXPENDITURE per DM, not logging; absolute level rides a PAL ridge → analysis/DL_hall_daily.csv
 python analysis/AV_surmount_simulation.py        — preliminary SURMOUNT simulation (15mg within 2.2% of published)
 python analysis/AY_sp_from_regain.py             — derive SP adaptation from SURMOUNT-4 regain
 python analysis/AZ_sp_model_search.py            — exhaustive search: SmoothLatch fits subject + SURMOUNT + STEP-1
@@ -111,6 +119,8 @@ python analysis/BK_control_stock_model.py        — willpower-era stock model; 
 python analysis/BA_q3d_prediction.py             — preregistered q3d intake prediction from two-component drug model
 python analysis/AS_temperature_baseline.py       — empirical circadian curve (0.90°F, wake-anchored), per-reading baseline
 python analysis/AT_temperature_retest.py         — re-tests all X claims with baseline-corrected temperatures
+python analysis/CQ_intake_scale_response.py      — Kalman-free weight-response regression for the intake scale by window length (water-inflated < 2 wk; ≈1.1 at 3-4 wk)
+python analysis/CR_multiplier_likelihood.py      — one-step innovation-likelihood profile of a uniform multiplier by filter tuning (historical criterion; superseded by DM's multi-week criterion)
 ```
 
 ## CSV column reference
@@ -148,6 +158,9 @@ python analysis/AT_temperature_retest.py         — re-tests all X claims with 
 
 ### steps-sleep/exercises.csv
 `date, type, duration_min, distance, calorie, source` — canonical merged cardio exercises (Samsung + pre-Samsung MFP runs). Types: walking, running, bike, hiking, indoor_bike, pilates, yoga, other.
+
+### cycling/rides.csv
+`date, start_time, elapsed_min, distance_mi, max_alt_m, min_alt_m, note, file` — 7 GPS Cycle Computer sessions, 2010-07-01 to 2010-08-08 (before the 2011 data window; not merged into exercises.csv). Clear rides: 07-01 16:38, 07-01 18:36, 08-08 19:53; the rest are short or slow.
 
 ### workout/strength.csv
 `date, duration_min, source` — canonical strength training dates. All 30 min. Sources: pdf (ActivTrax), chloe (personal trainer), mfp (circuit training).
@@ -195,9 +208,10 @@ The Kalman filter underlies every TDEE, FM, and LM estimate cited in FINDINGS. S
 
 **Calorimetry observations are held out** — never used by the filter; they're a posterior validation channel.
 
-`date, fat_mass_lbs_filtered, fat_mass_std_filtered, tdee_filtered, tdee_std_filtered, fat_mass_lbs, fat_mass_std, tdee, tdee_std, innovation, lm_lbs, buf_lbs`
+`date, fat_mass_lbs_filtered, fat_mass_std_filtered, tdee_filtered, tdee_std_filtered, fat_mass_lbs, fat_mass_std, tdee, tdee_std, innovation, lm_lbs, buf_lbs, intake_logged, intake_true`
 - `fat_mass_lbs` and `tdee` (with `_filtered` aliases) are the smoothed FM and TDEE states.
 - `lm_lbs` and `buf_lbs` expose the lean-mass and transient-buffer states for downstream analyses (CB, CC, etc.).
+- `intake_logged` is the diary total; `intake_true` is the consumed-calorie series the filter used (intake model applied). **Compare `intake_true` with `tdee`, never `intake_logged`** — they are in the same units.
 - Innovation is the weight prediction residual (approximately white noise; current lag-1 ACF ≈ 0.08).
 
 ## Known pitfalls

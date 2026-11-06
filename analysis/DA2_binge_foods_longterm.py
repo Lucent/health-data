@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parent.parent
-INTAKE_MULTIPLIER = 1.09
+from intake_model import INTAKE_MULTIPLIER  # single source of truth: analysis/intake_model.py (was hardcoded 1.09)
 
 
 def main():

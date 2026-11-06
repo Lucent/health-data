@@ -1,0 +1,28 @@
+{
+  "I0": 2172.097355,
+  "P": 37.880277,
+  "P_ci": [
+    27.427421,
+    47.575804
+  ],
+  "_source": "analysis/DG_gap_model.py",
+  "_written": "2026-11-06",
+  "gap_end": 16.259988,
+  "intake_model": "multiplicative (m=0.9891); effective multiplier 0.989",
+  "latch": {
+    "hold": 30,
+    "rate": 0.0025,
+    "tol": 1.0
+  },
+  "rmse_fit": 327.352116,
+  "s": -70.731871,
+  "s_ci": [
+    -81.568053,
+    -60.783868
+  ],
+  "sim_fm_rmse": {
+    "kalman": 1.283586,
+    "model": 3.343976
+  },
+  "units": "consumed calories (P4 intake_true)"
+}

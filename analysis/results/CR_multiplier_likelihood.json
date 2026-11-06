@@ -1,0 +1,63 @@
+{
+  "_source": "analysis/CR_multiplier_likelihood.py",
+  "_written": "2026-11-06",
+  "by_tuning": [
+    {
+      "ci_hi": 1.44,
+      "ci_lo": 1.1,
+      "fm_scan_mae": 1.093567,
+      "interior": true,
+      "m_hat": 1.32,
+      "max_dtdee": 100,
+      "q_buf": 0.32,
+      "sigma_tdee": 50,
+      "tdee": 2854.906695,
+      "tdee_rmr": 1.532194,
+      "tuning": "canonical"
+    },
+    {
+      "ci_hi": 1.44,
+      "ci_lo": 1.16,
+      "fm_scan_mae": 1.295653,
+      "interior": true,
+      "m_hat": 1.32,
+      "max_dtdee": 100,
+      "q_buf": 0.02,
+      "sigma_tdee": 50,
+      "tdee": 2855.297495,
+      "tdee_rmr": 1.5493,
+      "tuning": "tight BUF"
+    },
+    {
+      "ci_hi": 1.42,
+      "ci_lo": 1.14,
+      "fm_scan_mae": 1.464476,
+      "interior": true,
+      "m_hat": 1.28,
+      "max_dtdee": 20,
+      "q_buf": 0.32,
+      "sigma_tdee": 10,
+      "tdee": 2776.816552,
+      "tdee_rmr": 1.467736,
+      "tuning": "tight TDEE"
+    },
+    {
+      "ci_hi": 1.32,
+      "ci_lo": 1.16,
+      "fm_scan_mae": 1.527199,
+      "interior": true,
+      "m_hat": 1.24,
+      "max_dtdee": 20,
+      "q_buf": 0.02,
+      "sigma_tdee": 10,
+      "tdee": 2692.327735,
+      "tdee_rmr": 1.4263,
+      "tuning": "tight both"
+    }
+  ],
+  "canonical_ci": [
+    1.1,
+    1.44
+  ],
+  "canonical_m": 1.32
+}

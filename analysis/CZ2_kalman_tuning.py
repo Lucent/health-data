@@ -23,6 +23,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "analysis"))
 
 import P4_kalman_filter as P4
+from intake_model import INTAKE_MULTIPLIER  # single source of truth
 from P4_kalman_filter import (
     build_inputs, load_data, kalman_v4_forward, rts_smoother_v4, E_FAT,
 )
@@ -30,10 +31,10 @@ from P4_kalman_filter import (
 
 def run_filter_with_multiplier(intake_multiplier, sig, cap):
     """Run baseline P4 with a specified intake multiplier and TDEE constraint."""
-    P4.INTAKE_MULTIPLIER = intake_multiplier
     smooth, intake_daily, strength, comp_scans, rmr_df, p2, temp_df = load_data()
     dates, calories, weight_obs, fm_scan, lm_scan, expected_rmr, workouts_per_wk = \
-        build_inputs(smooth, intake_daily, strength, comp_scans, p2)
+        build_inputs(smooth, intake_daily, strength, comp_scans, p2,
+                     calories_true=intake_daily["calories"].values * intake_multiplier)
     fm_start = fm_scan[~np.isnan(fm_scan)][0]
     lm_start = lm_scan[~np.isnan(lm_scan)][0]
     x_filt, P_filt, x_pred, P_pred, innov, fs = kalman_v4_forward(
@@ -43,7 +44,8 @@ def run_filter_with_multiplier(intake_multiplier, sig, cap):
     return dates, calories, fm_scan, lm_scan, x_smooth, rmr_df
 
 
-def find_eb_closing_multiplier(sig, cap, m_init=1.09, tol=0.5):
+def find_eb_closing_multiplier(sig, cap, m_init=None, tol=0.5):
+    m_init = INTAKE_MULTIPLIER if m_init is None else m_init
     """Bisect intake multiplier so EB residual ≈ 0."""
     def eb_at(m):
         dates, calories, fm_scan, lm_scan, x_smooth, rmr_df = run_filter_with_multiplier(
@@ -114,7 +116,7 @@ def main():
     print("=" * 110)
 
     configs = [
-        (50, 100, 1.09),  # baseline anchor
+        (50, 100, INTAKE_MULTIPLIER),  # baseline anchor
         (35, 70, None),
         (25, 50, None),
         (15, 25, None),
@@ -127,7 +129,7 @@ def main():
     results = []
     for sig, cap, m_init in configs:
         if m_init is None:
-            m, eb_after = find_eb_closing_multiplier(sig, cap, m_init=1.09)
+            m, eb_after = find_eb_closing_multiplier(sig, cap)
         else:
             m = m_init
             _, eb_after = find_eb_closing_multiplier(sig, cap, m_init=m_init, tol=0.1)

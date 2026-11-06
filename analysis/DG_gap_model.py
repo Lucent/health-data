@@ -49,7 +49,10 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "drugs"))
 from extract import daily_mean_exposure  # noqa: E402  (timestamp-aware PK)
 
-INTAKE_MULTIPLIER = 1.09
+import sys
+sys.path.insert(0, str(ROOT / "analysis"))
+from intake_model import INTAKE_MULTIPLIER, describe as describe_intake_model  # single source of truth
+from results import save as save_result, load as load_result
 LATCH_TOL, LATCH_HOLD, LATCH_RATE = 1.0, 30, 0.0025     # trial-fit latch (CF/BG, DF L8)
 E_FAT, E_LEAN = 3500.0, 1100.0
 FORBES_C_KG, LBS_TO_KG, KG_TO_LBS = 10.4, 0.453592, 2.20462
@@ -103,6 +106,11 @@ def load_subject():
     intake = pd.read_csv(ROOT / "intake" / "intake_daily.csv", parse_dates=["date"])
     kalman = pd.read_csv(ROOT / "analysis" / "P4_kalman_daily.csv", parse_dates=["date"])
     tirz = pd.read_csv(ROOT / "drugs" / "tirzepatide.csv", parse_dates=["date"])
+    # Work in consumed ("true") calories throughout: P4 writes the corrected
+    # intake it consumed as `intake_true`, so s and P come out in the same units
+    # as TDEE with no conversion factor in this file.
+    intake = intake[["date"]].merge(kalman[["date", "intake_true"]], on="date")
+    intake = intake.rename(columns={"intake_true": "calories"})
     pre = intake[(intake["date"] >= "2022-01-01") & (intake["date"] < "2024-09-17")].copy()
     pre["dow"] = pre["date"].dt.day_of_week
     dow_adj = pre.groupby("dow")["calories"].mean() - pre["calories"].mean()
@@ -156,8 +164,8 @@ def simulate_subject(d, kalman, fit, tdee_mode="kalman", k_tdee=6.4):
     out = []
     for i, row in d.iterrows():
         sp = latch.update(fm)
-        intake_logged = fit["a"] + fit["s"] * row["blood_level"] + fit["P"] * (sp - fm)
-        intake_true = intake_logged * INTAKE_MULTIPLIER
+        intake_true = fit["a"] + fit["s"] * row["blood_level"] + fit["P"] * (sp - fm)
+        intake_logged = intake_true          # model is fit in consumed calories
         tdee = row["tdee"] if tdee_mode == "kalman" else tdee0 + k_tdee * ((fm + lm) - bw0)
         dfm, dlm = partition(intake_true - tdee, fm)
         out.append((row["date"], fm, sp, intake_logged, tdee))
@@ -270,27 +278,29 @@ def q3d_forecast(tirz, fit, fm_last, sp_last, dow_adj):
         sp = latch.update(fm)
         intake_logged = fit["a"] + fit["s"] * r["blood_level"] + fit["P"] * (sp - fm)
         out.append((r["date"], r["dose_mg"], r["blood_level"], intake_logged + dow_adj.get(r["date"].day_of_week, 0)))
-    return pd.DataFrame(out, columns=["date", "dose_mg", "B", "intake_pred"])
+    return pd.DataFrame(out, columns=["date", "dose_mg", "B", "intake_pred_true"])   # consumed calories (compare with intake_model.true_intake of the diary, not the raw diary)
 
 
 # ── main ──────────────────────────────────────────────────────────────
 def main():
     d, kalman, tirz, dow_adj = load_subject()
     fit = fit_subject(d)
-    s_true, P_true = fit["s"] * INTAKE_MULTIPLIER, fit["P"] * INTAKE_MULTIPLIER
+    s_true, P_true = fit["s"], fit["P"]      # already in consumed calories
     print("=" * 92)
     print("DG. Gap-form model — fit once on the subject's drug era, then forward everywhere")
     print("=" * 92)
     print(f"  n = {len(d)} weekly-dosing days, trial-fit latch (tol {LATCH_TOL}, hold {LATCH_HOLD}, rate {LATCH_RATE})")
     print(f"  I₀ = {fit['a']:.0f} logged cal/day   s = {fit['s']:+.1f} cal/unit  [95% {fit['s_ci'][0]:+.0f}, {fit['s_ci'][1]:+.0f}]"
           f"   P = {fit['P']:+.1f} cal/day/lb  [95% {fit['P_ci'][0]:+.0f}, {fit['P_ci'][1]:+.0f}]   RMSE {fit['rmse']:.0f}")
-    print(f"  true-calorie units (×{INTAKE_MULTIPLIER}): s = {s_true:+.1f}, P = {P_true:+.1f};  SP − FM at end of record = {fit['gap_end']:+.1f} lb")
+    print(f"  (consumed-calorie units throughout; intake model: {describe_intake_model()});  SP − FM at end of record = {fit['gap_end']:+.1f} lb")
 
     # 1. subject forward sim
     print("\n--- 1. Subject forward simulation from the pre-drug state (intake model only; FM never fit) ---")
+    sim_stats = {}
     for mode in ("kalman", "model"):
         sim = simulate_subject(d, kalman, fit, tdee_mode=mode)
         err = sim["fm_sim"] - sim["fm_kalman"]
+        sim_stats[mode] = float(np.sqrt(np.mean(err ** 2)))
         plateau = sim[sim["date"] >= "2025-11-15"]
         print(f"  TDEE = {mode:6s}: FM {sim['fm_sim'].iloc[0]:.1f} → {sim['fm_sim'].iloc[-1]:.1f} lb (Kalman {sim['fm_kalman'].iloc[-1]:.1f});"
               f" RMSE vs Kalman FM {np.sqrt(np.mean(err ** 2)):.1f} lb, max |err| {err.abs().max():.1f};"
@@ -472,8 +482,8 @@ def main():
     fc = q3d_forecast(tirz, fit, fm_last, fit["sp"][-1], dow_adj)
     fc["blk"] = ((fc["date"] - pd.Timestamp("2026-03-01")).dt.days // 28)
     g = fc.groupby("blk").agg(start=("date", "min"), dose=("dose_mg", "max"), B=("B", "mean"),
-                              mean_intake=("intake_pred", "mean"),
-                              sawtooth=("intake_pred", lambda x: x.max() - x.min()))
+                              mean_intake=("intake_pred_true", "mean"),
+                              sawtooth=("intake_pred_true", lambda x: x.max() - x.min()))
     print(f"  {'from':>12} {'dose':>6} {'mean B':>7} {'pred mean intake':>17} {'pred max−min':>13}")
     for _, r in g.iterrows():
         print(f"  {r['start'].date()!s:>12} {r['dose']:>6.2f} {r['B']:>7.1f} {r['mean_intake']:>17.0f} {r['sawtooth']:>13.0f}")
@@ -506,7 +516,12 @@ def main():
     print("  A lower intervention point sits within ~5 lb of the pre-drug FM: no zone of indifference wider than that.")
 
     print("\n=== Scorecard: one parameter set (s, P from the subject's drug era) against everything ===")
-    print("  ✓ Subject 18-month FM path from the pre-drug state: RMSE 1.2 lb, every dose era within ~1 lb (section 1).")
+    print(f"  ✓ Subject 18-month FM path from the pre-drug state: RMSE {sim_stats.get('kalman', float('nan')):.1f} lb (section 1).")
+    save_result("DG_gap_model", I0=fit["a"], s=fit["s"], s_ci=list(fit["s_ci"]), P=fit["P"], P_ci=list(fit["P_ci"]),
+                rmse_fit=fit["rmse"], gap_end=fit["gap_end"], sim_fm_rmse=sim_stats,
+                latch=dict(tol=LATCH_TOL, hold=LATCH_HOLD, rate=LATCH_RATE), units="consumed calories (P4 intake_true)",
+                intake_model=describe_intake_model())
+    print("Wrote analysis/results/DG_gap_model.json")
     print("  ✓ Withdrawal regain fraction in all four trials is ~2/3 of the loss regardless of loss speed. Most of it is")
     print("    CICO: intake returning to habit with TDEE lower at the lower weight (P = 0) already regains ~half; a frozen")
     print("    SP with small cohort P (≈5-15) closes the rest. The latch's speed-of-loss prediction is NOT in the data.")

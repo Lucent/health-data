@@ -1,8 +1,16 @@
 """DL: Kevin Hall's NIH body-weight dynamic model, run FORWARD on 15 years of logged intake.
 
 A physiologically constrained alternative to P4's free-drift Kalman TDEE. The model is
-driven by logged intake only (x intake multiplier) from the first composition scan
-(2011-04-28, FM 99.9 lb, lean 159.3 lb); nothing after day 0 is assimilated.
+driven by consumed intake only (logged × the canonical intake model from
+analysis/intake_model.py) from the first composition scan (2011-04-28, FM 99.9 lb,
+lean 159.3 lb); nothing after day 0 is assimilated.
+
+Because Hall's expenditure is STRUCTURAL (RMR from composition, activity ∝ weight, fixed
+PAL), it does not have the Kalman's degeneracy between intake level and TDEE drift. That
+makes it a third, differently-conditioned estimate of the intake multiplier: here `m` is a
+free factor RELATIVE to the canonical intake model (m = 1 means "the canonical correction
+is what Hall needs"), fit globally and per calendar era (loss / regain / plateau / drug).
+The per-era fit is the direct test of "0% undercount while losing, ~15% while regaining".
 
 Model (Hall 2010 AJP-Endo 298:E449 "Predicting metabolic adaptation, body weight change,
 and energy intake in humans"; Hall et al. 2011 Lancet 378:826 web appendix; NIH Body
@@ -30,6 +38,10 @@ import pandas as pd
 from scipy.optimize import least_squares
 
 ROOT = Path(__file__).resolve().parent.parent
+import sys
+sys.path.insert(0, str(ROOT / "analysis"))
+from intake_model import true_intake, INTAKE_MULTIPLIER, ERA_BOUNDS, era_of, describe as describe_intake_model  # noqa: E402
+from results import save as save_result  # noqa: E402
 KG = 0.45359237
 RHO_F, RHO_L, RHO_G = 9440.0, 1807.0, 4180.0
 GAM_F, GAM_L = 3.2, 22.0
@@ -39,7 +51,7 @@ FORBES_C = 10.4 * RHO_L / RHO_F
 G_B, GLY_WATER = 0.5, 2.7
 NA_CONC, XI_NA, XI_CI = 3220.0, 3000.0, 4000.0
 SUBSTEPS = 4
-PAL_DEFAULT, BETA_DEFAULT, M_CANON = 1.5, 0.14, 1.09
+PAL_DEFAULT, BETA_DEFAULT, M_CANON = 1.5, 0.14, 1.0   # M_CANON is RELATIVE to the canonical intake model
 HEIGHT_CM, BIRTH = 182.25, pd.Timestamp("1982-10-15")
 START = pd.Timestamp("2011-04-28")
 F0_LB, L0_LB = 99.9, 159.3
@@ -56,8 +68,13 @@ def load():
     it = pd.read_csv(ROOT / "intake/intake_daily.csv", parse_dates=["date"])
     d["dates"] = it["date"].values
     d["idx"] = {pd.Timestamp(x): i for i, x in enumerate(d["dates"])}
-    d["cal"], d["carb"], d["na"] = (it["calories"].values.astype(float),
-                                    it["carbs_g"].values * 4.0, it["sodium_mg"].values.astype(float))
+    # consumed calories via the canonical intake model; carbs/sodium scaled by the same
+    # day-wise factor so glycogen/ECW dynamics see consistent inputs
+    d["logged"] = it["calories"].values.astype(float)
+    d["cal"] = true_intake(it)
+    fac = np.where(d["logged"] > 0, d["cal"] / np.maximum(d["logged"], 1.0), 1.0)
+    d["carb"], d["na"] = it["carbs_g"].values * 4.0 * fac, it["sodium_mg"].values.astype(float) * fac
+    d["era"] = era_of(d["dates"])
     d["i0"] = d["idx"][START]
     w = pd.read_csv(ROOT / "weight/weight.csv", parse_dates=["date"])
     w = w[(w["date"] >= START) & (w["date"] <= it["date"].iloc[-1])]
@@ -106,11 +123,12 @@ def water_step(G, W, ci, dna, b):
 def simulate(pal, beta, m, d, i0=None, F_init=None, L_init=None, at_init=0.0):
     """Forward Euler run. Arrays indexed by date; state at index t = morning of date t,
     intake of day t moves the state to t+1 (project convention)."""
-    b = baseline(pal, m, d)
+    mm = np.broadcast_to(np.asarray(m, dtype=float), d["cal"].shape)
+    b = baseline(pal, float(np.mean(mm)), d)
     n = len(d["cal"]); i0 = d["i0"] if i0 is None else i0
     F = b["F0"] if F_init is None else F_init; L = b["L0"] if L_init is None else L_init
     G, W, AT = G_B, 0.0, at_init
-    cal, carb, na = d["cal"], d["carb"], d["na"]
+    cal, carb, na = mm * d["cal"], mm * d["carb"], mm * d["na"]
     out = {k: np.full(n, np.nan) for k in ("bw", "fm", "ffm", "ee", "rmr", "at", "pa", "gly", "ecw")}
     K, delta, ei_b, na_b = b["K"], b["delta"], b["ei_b"], b["na_b"]
     for t in range(i0, n):
@@ -120,7 +138,7 @@ def simulate(pal, beta, m, d, i0=None, F_init=None, L_init=None, at_init=0.0):
         out["rmr"][t], out["at"][t], out["gly"][t], out["ecw"][t] = rmr, AT, G, W
         if t == n - 1:
             break
-        ei, ci, dna = m * cal[t], m * carb[t], m * na[t] - na_b
+        ei, ci, dna = cal[t], carb[t], na[t] - na_b
         G1, W1 = water_step(G, W, ci, dna, b)
         dG = G1 - G
         p = FORBES_C / (FORBES_C + F)
@@ -187,7 +205,10 @@ def metrics(s, d):
                 tdee_rmr=np.mean(s["ee"][d["r_idx"]] / d["r_obs"]))
 
 
-PARAMS = {"PAL": (PAL_DEFAULT, 1.0, 2.2), "beta_AT": (BETA_DEFAULT, 0.0, 0.5), "m": (M_CANON, 0.9, 1.4)}
+PARAMS = {"PAL": (PAL_DEFAULT, 1.0, 2.2), "beta_AT": (BETA_DEFAULT, 0.0, 0.5), "m": (M_CANON, 0.7, 1.5)}
+ERA_NAMES = [e[0] for e in ERA_BOUNDS]
+for _e in ERA_NAMES:
+    PARAMS[f"m_{_e}"] = (M_CANON, 0.7, 1.5)
 
 
 def fit(d, free, fixed=None):
@@ -198,6 +219,9 @@ def fit(d, free, fixed=None):
 
     def unpack(th):
         p = dict(fixed); p.update(zip(free, th))
+        if any(k.startswith("m_") for k in free):
+            m_arr = p["m"] * np.array([p[f"m_{e}"] for e in d["era"]])
+            return p["PAL"], p["beta_AT"], m_arr
         return p["PAL"], p["beta_AT"], p["m"]
 
     def resid(th):
@@ -211,6 +235,23 @@ def fit(d, free, fixed=None):
     n_eff = n * (1 - rr) / (1 + rr)
     return unpack(r.x), dict(zip(free, se)), dict(zip(free, se * np.sqrt(n / max(n_eff, k + 1)))), rr, n_eff, \
         np.sqrt(np.mean(r.fun ** 2))
+
+
+def fit_named(d, free, fixed=None):
+    """fit() returns unpack(x); this returns the raw named parameter vector."""
+    fixed = {**{k: v[0] for k, v in PARAMS.items()}, **(fixed or {})}
+
+    def unpack(th):
+        p = dict(fixed); p.update(zip(free, th))
+        if any(k.startswith("m_") for k in free):
+            return p["PAL"], p["beta_AT"], p["m"] * np.array([p[f"m_{e}"] for e in d["era"]])
+        return p["PAL"], p["beta_AT"], p["m"]
+
+    def resid(th):
+        return simulate(*unpack(th), d)["bw"][d["w_idx"]] - d["w_obs"]
+    r = least_squares(resid, [fixed[k] for k in free], bounds=([PARAMS[k][1] for k in free],
+                      [PARAMS[k][2] for k in free]), diff_step=1e-3)
+    return dict(zip(free, map(float, r.x)))
 
 
 def era_mask(d, lo, hi):
@@ -242,19 +283,37 @@ def main():
                tdee_rmr=np.nanmean(d["k_tdee"][d["r_idx"]] / d["r_obs"]))
 
     # ── 0. Hall defaults, 1. fits ──
-    runs = {"Hall defaults (PAL 1.5, beta .14, m 1.09)": (PAL_DEFAULT, BETA_DEFAULT, M_CANON)}
+    print(f"Intake model: {describe_intake_model()}; Hall's m below is RELATIVE to it (m = 1 ⇒ canonical)")
+    runs = {"Hall defaults (PAL 1.5, beta .14, m 1)": (PAL_DEFAULT, BETA_DEFAULT, M_CANON)}
     print("\n=== Fit on weigh-ins only (scans + calorimetry held out) ===")
-    fits = {}
-    for label, free in (("fit PAL | beta=.14, m=1.09", ["PAL"]), ("fit PAL,beta | m=1.09", ["PAL", "beta_AT"]),
-                        ("fit PAL,beta,m", ["PAL", "beta_AT", "m"])):
+    fits, fit_rows = {}, {}
+    era_free = [f"m_{e}" for e in ERA_NAMES]
+    for label, free in (("fit PAL | beta=.14, m=1", ["PAL"]), ("fit PAL,beta | m=1", ["PAL", "beta_AT"]),
+                        ("fit PAL,m | beta=.14", ["PAL", "m"]), ("fit PAL,beta,m", ["PAL", "beta_AT", "m"]),
+                        ("fit PAL + m per era | beta=.14", ["PAL"] + era_free)):
         th, se, se_eff, rr, n_eff, rm = fit(d, free)
         fits[label] = th; runs[label] = th
-        vals = dict(zip(["PAL", "beta_AT", "m"], th))
+        # recover the named parameter values for printing (unpack folds eras into an array)
+        vals = {k: v[0] for k, v in PARAMS.items()}
+        vals.update(fit_named(d, free))   # named point estimates (fit() returns the unpacked triple)
         txt = "  ".join(f"{k}={vals[k]:.3f}±{se[k]:.3f} (acf-adj ±{se_eff[k]:.3f})" for k in free)
         bnd = [k for k in free if min(abs(vals[k] - PARAMS[k][1]), abs(vals[k] - PARAMS[k][2])) < 1e-3]
         print(f"  {label}: {txt}   [W rmse {rm:.2f}; resid lag-1 ACF {rr:.2f}, n_eff≈{n_eff:.0f}"
               f"{'; AT BOUND: ' + ','.join(bnd) if bnd else ''}]")
-    print("  beta_AT profile (PAL refit at each beta, m=1.09) — the PAL/beta ridge:")
+        fit_rows[label] = dict(params=vals, se=se, se_acf=se_eff, w_rmse=rm, resid_acf1=rr, n_eff=n_eff)
+    # absolute (logged → consumed) multiplier implied per era = Hall's relative factor × canonical era ratio
+    pe = fit_rows["fit PAL + m per era | beta=.14"]
+    print("  Per-era multiplier implied by Hall's structural expenditure (absolute = relative × canonical era ratio):")
+    era_abs = {}
+    for e in ERA_NAMES:
+        mk = d["era"] == e
+        canon_ratio = d["cal"][mk].sum() / d["logged"][mk].sum()
+        rel = pe["params"][f"m_{e}"]; se_e = pe["se_acf"][f"m_{e}"]
+        era_abs[e] = dict(relative=rel, se_acf=se_e, canonical_ratio=canon_ratio, absolute=rel * canon_ratio,
+                          absolute_lo=(rel - 1.96 * se_e) * canon_ratio, absolute_hi=(rel + 1.96 * se_e) * canon_ratio)
+        print(f"    {e:<8} relative {rel:.3f} ± {se_e:.3f}  → absolute {rel * canon_ratio:.3f} "
+              f"[{(rel - 1.96 * se_e) * canon_ratio:.3f}, {(rel + 1.96 * se_e) * canon_ratio:.3f}]  (canonical {canon_ratio:.3f})")
+    print("  beta_AT profile (PAL refit at each beta, m=1) — the PAL/beta ridge:")
     for beta in (0.0, 0.14, 0.3, 0.5):
         th, _, _, _, _, rm = fit(d, ["PAL"], {"beta_AT": beta})
         s = simulate(*th, d)
@@ -276,8 +335,8 @@ def main():
           "\n   RMR = Hall K+3.2F+22L vs 25 calorimetry values, kcal; +AT adds adaptive thermogenesis;"
           "\n   EE/RMR = model TDEE / measured RMR, cf. Kalman TDEE/RMR 1.28)")
 
-    prim_label = "fit PAL | beta=.14, m=1.09"
-    prim, alt = sims[prim_label], sims["fit PAL,beta | m=1.09"]
+    prim_label = "fit PAL | beta=.14, m=1"
+    prim, alt = sims[prim_label], sims["fit PAL,beta | m=1"]
     pal_p, beta_p, _ = fits[prim_label]
     yrs = pd.DatetimeIndex(dates).year
     print("\nYear-by-year forward error (sim − observed weigh-ins, lb), primary fit:")
@@ -290,17 +349,20 @@ def main():
     ei_fit, fm_fit, _ = invert(pal_p, beta_p, d)
     print(f"  inverted-path FM error at scans: PAL 1.5 MAE {np.nanmean(np.abs(fm_def[d['s_idx']] - d['s_fm'])):.1f} lb,"
           f" fitted PAL MAE {np.nanmean(np.abs(fm_fit[d['s_idx']] - d['s_fm'])):.1f} lb (Forbes drift, no scan anchor)")
-    print(f"  {'year':<6}{'logged':>8}{'x1.09':>8}{'impl@1.5':>10}{'ratio':>7}{'impl@fit':>10}{'ratio':>7}{'days':>6}")
+    print("  ratio = implied / LOGGED (the absolute multiplier Hall wants that year); canonical = consumed / logged")
+    print(f"  {'year':<6}{'logged':>8}{'consumed':>9}{'canon':>7}{'impl@1.5':>10}{'ratio':>7}{'impl@fit':>10}{'ratio':>7}{'days':>6}")
     rows = []
     for y in sorted(set(yrs[d["i0"]:n - 1])):
         mk = (yrs == y) & ~np.isnan(ei_def)
-        lg, i1, i2 = d["cal"][mk].mean(), ei_def[mk].mean(), ei_fit[mk].mean()
-        rows.append((y, lg, i1, i2, mk.sum()))
-        print(f"  {y:<6}{lg:>8.0f}{lg * M_CANON:>8.0f}{i1:>10.0f}{i1 / lg:>7.3f}{i2:>10.0f}{i2 / lg:>7.3f}{mk.sum():>6}")
+        lg, cs, i1, i2 = d["logged"][mk].mean(), d["cal"][mk].mean(), ei_def[mk].mean(), ei_fit[mk].mean()
+        rows.append((y, lg, i1, i2, mk.sum(), cs))
+        print(f"  {y:<6}{lg:>8.0f}{cs:>9.0f}{cs / lg:>7.3f}{i1:>10.0f}{i1 / lg:>7.3f}{i2:>10.0f}{i2 / lg:>7.3f}{mk.sum():>6}")
     mk = ~np.isnan(ei_def)
-    lg = d["cal"][mk].mean()
-    print(f"  {'all':<6}{lg:>8.0f}{lg * M_CANON:>8.0f}{ei_def[mk].mean():>10.0f}{ei_def[mk].mean() / lg:>7.3f}"
+    lg = d["logged"][mk].mean(); cs = d["cal"][mk].mean()
+    print(f"  {'all':<6}{lg:>8.0f}{cs:>9.0f}{cs / lg:>7.3f}{ei_def[mk].mean():>10.0f}{ei_def[mk].mean() / lg:>7.3f}"
           f"{ei_fit[mk].mean():>10.0f}{ei_fit[mk].mean() / lg:>7.3f}{mk.sum():>6}")
+    year_ratio = {int(r[0]): dict(logged=r[1], consumed=r[5], implied_fit=r[3], ratio_fit_over_logged=r[3] / r[1],
+                                  canonical=r[5] / r[1]) for r in rows}
     r_y = np.array([r[2] / r[1] for r in rows]); r_f = np.array([r[3] / r[1] for r in rows])
     print(f"  implied/logged ratio across years: PAL 1.5 mean {r_y.mean():.3f} sd {r_y.std():.3f} "
           f"range [{r_y.min():.3f},{r_y.max():.3f}]; fitted PAL mean {r_f.mean():.3f} sd {r_f.std():.3f}")
@@ -311,7 +373,7 @@ def main():
                          index=pd.DatetimeIndex(dates)).iloc[d["i0"]:].resample("MS").mean()
     x = (bw_obs_m - (F0_LB + L0_LB) * KG).reindex(mo.index).values
     bI = np.polyfit(x, mo["ei"].values - ei_fit[mk].mean(), 1)[0]; bL = np.polyfit(x, mo["lg"].values - mo["lg"].mean(), 1)[0]
-    print(f"  appetite-feedback slope dEI/dBW (monthly, vs baseline): implied {bI:+.0f}, logged x1.09 {bL:+.0f} kcal/d per kg"
+    print(f"  appetite-feedback slope dEI/dBW (monthly, vs baseline): implied {bI:+.0f}, consumed {bL:+.0f} kcal/d per kg"
           f"  (Polidori 2016 free-living appetite: ≈ −95 kcal/d per kg; positive here = intake rises with weight)")
 
     # ── 3. adaptive thermogenesis by era vs Kalman ──
@@ -363,7 +425,7 @@ def main():
                 + B_TEF * M_CANON * d["cal"] + prim["at"])          # Hall EE at the *observed* state
     print(f"  observed weigh-ins: n={len(wo)}, mean {wo.mean():.1f}, slope {slope_per_30d(wi, wo):+.2f} lb/30d; "
           f"scans 2025-10-17 FM {s_fm:.1f} -> 2026-02-28 FM {d['s_fm'][-1]:.1f} (weight {d['s_fm'][-1] + d['s_lm'][-1]:.1f})")
-    print(f"  logged intake x1.09 in window: {M_CANON * d['cal'][mk_p].mean():.0f} kcal/d; "
+    print(f"  consumed intake in window: {M_CANON * d['cal'][mk_p].mean():.0f} kcal/d; "
           f"Hall-implied intake (inversion, fitted PAL): {np.nanmean(ei_fit[mk_p]):.0f}; "
           f"gap {np.nanmean(ei_fit[mk_p]) - M_CANON * d['cal'][mk_p].mean():+.0f} kcal/d")
     print(f"  Hall EE evaluated at the observed state (scan composition, Kalman weight, logged EI): "
@@ -378,7 +440,7 @@ def main():
 
     # ── artifact ──
     out = pd.DataFrame({"date": pd.DatetimeIndex(dates).strftime("%Y-%m-%d"),
-                        "logged_cal": d["cal"], "ei_x109": M_CANON * d["cal"],
+                        "logged_cal": d["logged"], "ei_consumed": M_CANON * d["cal"],
                         "hall_bw_lb": prim["bw"], "hall_fm_lb": prim["fm"], "hall_ffm_lb": prim["ffm"],
                         "hall_ee": prim["ee"], "hall_rmr": prim["rmr"], "hall_at": prim["at"],
                         "hall_pa": prim["pa"], "hall_glycogen_kg": prim["gly"], "hall_ecw_kg": prim["ecw"],
@@ -387,6 +449,14 @@ def main():
     path = ROOT / "analysis/DL_hall_daily.csv"
     out.to_csv(path, index=False)
     print(f"\nWrote {len(out)} rows to {path}")
+    save_result("DL_hall_model",
+                intake_model=describe_intake_model(),
+                fits={k: dict(params=v["params"], se=v["se"], se_acf=v["se_acf"], w_rmse=v["w_rmse"],
+                              resid_acf1=v["resid_acf1"], n_eff=v["n_eff"]) for k, v in fit_rows.items()},
+                per_era_multiplier=era_abs, year_implied_over_logged=year_ratio,
+                primary=dict(label=prim_label, PAL=pal_p, beta=beta_p, w_rmse=fit_rows[prim_label]["w_rmse"]),
+                kalman_reference=kal)
+    print("Wrote analysis/results/DL_hall_model.json")
 
 
 if __name__ == "__main__":

@@ -30,7 +30,7 @@ Tests
 4. Out-of-sample increment: does sp_dist improve a year-ahead forecast of the
    next 30/90-day mean intake over a forecast from past intake alone?
 
-Data: 2014-01-01 onward, pre-tirzepatide, Kalman FM (P4), intake × 1.09.
+Data: 2014-01-01 onward, pre-tirzepatide, Kalman FM (P4), consumed intake (P4 intake_true).
 """
 
 from pathlib import Path
@@ -39,7 +39,10 @@ import pandas as pd
 from numpy.linalg import lstsq
 
 ROOT = Path(__file__).resolve().parent.parent
-INTAKE_MULTIPLIER = 1.09
+import sys
+sys.path.insert(0, str(ROOT / "analysis"))
+from intake_model import INTAKE_MULTIPLIER, describe as describe_intake_model  # single source of truth
+from results import save as save_result, load as load_result
 SP_HL = 50
 BINGE_THRESHOLD = 1000       # cal above TDEE (AG's definition)
 WINDOW = 90
@@ -77,7 +80,8 @@ def load():
     df["effective_level"] = df["effective_level"].fillna(0)
     df = df[(df["date"] >= "2014-01-01") & (df["effective_level"] == 0)]
     df = df.sort_values("date").reset_index(drop=True)
-    df["calories"] = df["calories"] * INTAKE_MULTIPLIER
+    # consumed calories from P4 (the series the filter actually used)
+    df = df.drop(columns=["calories"]).merge(kalman[["date", "intake_true"]], on="date").rename(columns={"intake_true": "calories"})
     return df
 
 
@@ -86,7 +90,7 @@ def main():
     fm = df["fat_mass_lbs"].values
     cal = df["calories"].values
     tdee = df["tdee"].values
-    binge = (cal > tdee + BINGE_THRESHOLD * INTAKE_MULTIPLIER).astype(float)
+    binge = (cal > tdee + BINGE_THRESHOLD).astype(float)   # both sides in consumed calories
     sp = ema(fm, SP_HL)
     dist = sp - fm
     n = len(df)
@@ -158,6 +162,7 @@ def main():
     # ── 4. Out-of-sample increment over past intake ─────────────────────
     print(f"\n=== 4. Year-ahead forecast of next-H-day mean intake (train on years < test year) ===")
     df["year"] = df["date"].dt.year
+    fc = {}
     for H in (30, 90):
         fut = pd.Series(cal).rolling(H).mean().shift(-H).values
         past = pd.Series(cal).rolling(H).mean().values
@@ -189,16 +194,26 @@ def main():
                         f"{sum(c > 0 for c in sp_coefs)}/{len(sp_coefs)} folds positive"
                         if sp_coefs else "")
             print(f"    {label:28s} RMSE={rmse:6.1f}  r={r:+.3f}  n={len(ys)}{coef_txt}")
+            fc[(H, label)] = dict(rmse=float(rmse), r=float(r), coef=(float(np.mean(sp_coefs)) if sp_coefs else None),
+                                  folds_pos=(int(sum(c > 0 for c in sp_coefs)) if sp_coefs else None), folds=len(sp_coefs))
 
+    r_tr = np.corrcoef(binned["sp_dist"], binned["trailing"])[0, 1] if "binned" in dir() else float("nan")
+    b90, p90 = fc[(90, "past intake + sp_dist")], fc[(90, "past intake only")]
+    b30, p30 = fc[(30, "past intake + sp_dist")], fc[(30, "past intake only")]
+    gain90 = 100 * (p90["rmse"] - b90["rmse"]) / p90["rmse"]
+    gain30 = 100 * (p30["rmse"] - b30["rmse"]) / p30["rmse"]
     print("\n=== Verdict ===")
     print("  Trailing-window binge rate vs EMA distance (AG) is reverse causation: past binges")
-    print("  push FM above the EMA. With forward windows the gradient collapses (r −0.64 → −0.12)")
-    print("  and its residual sign is anti-lipostat; every forward lead of the raw CCF sits inside")
-    print("  an intake-only AR null. What survives is small: at a 90-day horizon, EMA distance")
-    print("  adds ~3% RMSE improvement to a past-intake forecast with a consistently positive")
-    print("  coefficient of ~+12 cal/day per lb below the EMA — a fifth of the 55 cal/lb claimed,")
-    print("  and absent at 30 days. The pre-drug decade mostly cannot identify a set point because")
-    print("  FM never left its own trailing average; see DF for the drug era, where it can.")
+    print(f"  push FM above the EMA. With forward windows the gradient collapses (r {r_trail:+.2f} → {r_fwd:+.2f})")
+    print("  and its residual sign is anti-lipostat; the forward leads of the raw CCF sit inside")
+    print(f"  an intake-only AR null ({n_outside}/{len(fwd_leads)} outside). What survives: at a 90-day horizon, EMA distance")
+    print(f"  changes a past-intake forecast's RMSE by {gain90:+.1f}% with a coefficient of {b90['coef']:+.0f} cal/day per lb")
+    print(f"  below the EMA ({b90['folds_pos']}/{b90['folds']} folds positive; {b90['coef'] / 55:.0%} of the 55 cal/lb claimed);")
+    print(f"  at 30 days the RMSE change is {gain30:+.1f}% (coefficient {b30['coef']:+.0f}). The pre-drug decade mostly")
+    print("  cannot identify a set point because FM never left its own trailing average; see DF for the drug era.")
+    save_result("DD_forward_setpoint_test", r_trailing=r_trail, r_forward=r_fwd, ccf_leads_outside_null=n_outside,
+                forecast={f"{h}d_{k}": v for (h, k), v in fc.items()}, rmse_gain_pct_90d=gain90, rmse_gain_pct_30d=gain30)
+    print("Wrote analysis/results/DD_forward_setpoint_test.json")
 
 
 if __name__ == "__main__":

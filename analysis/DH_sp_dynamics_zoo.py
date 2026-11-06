@@ -41,7 +41,10 @@ from numpy.linalg import lstsq
 from scipy.optimize import least_squares
 
 ROOT = Path(__file__).resolve().parent.parent
-INTAKE_MULTIPLIER = 1.09
+import sys
+sys.path.insert(0, str(ROOT / "analysis"))
+from intake_model import INTAKE_MULTIPLIER, describe as describe_intake_model  # single source of truth
+from results import save as save_result, load as load_result
 DRUG_START = "2024-09-17"
 WEEKLY_END = "2026-03-31"
 P_REF = 43.0          # cal/day per lb (DG, true cal) for the implied-pressure column
@@ -98,7 +101,7 @@ def load():
     comp = pd.read_csv(ROOT / "analysis" / "P2_daily_composition.csv", parse_dates=["date"])
     tirz = pd.read_csv(ROOT / "drugs" / "tirzepatide.csv", parse_dates=["date"])
     p1 = pd.read_csv(ROOT / "analysis" / "P1_smoothed_weight.csv", parse_dates=["date"])
-    d = intake.merge(kalman[["date", "fat_mass_lbs", "lm_lbs", "tdee"]], on="date")
+    d = intake.merge(kalman[["date", "fat_mass_lbs", "lm_lbs", "tdee", "intake_true"]], on="date")
     d = d.merge(comp[["date", "expected_rmr"]], on="date", how="left")
     d = d.merge(tirz[["date", "blood_level", "days_since_injection"]], on="date", how="left")
     d = d.dropna(subset=["fat_mass_lbs"]).sort_values("date").reset_index(drop=True)
@@ -139,7 +142,7 @@ def main():
     fm, lm = d["fat_mass_lbs"].values, d["lm_lbs"].values
     gaps = build_models(fm, lm)
     pre = (d["date"] < DRUG_START).values
-    cal = d["calories"].values * INTAKE_MULTIPLIER
+    cal = d["intake_true"].values     # consumed calories as used by P4
     binge = d["binge"].values
     fwd_binge = pd.Series(binge).rolling(H).mean().shift(-H).values
     bwd_binge = pd.Series(binge).rolling(H).mean().values

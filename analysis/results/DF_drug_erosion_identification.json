@@ -1,0 +1,80 @@
+{
+  "_source": "analysis/DF_drug_erosion_identification.py",
+  "_written": "2026-11-06",
+  "best_model": "L4 linear + P\u00b7(FM0 \u2212 FM)",
+  "d_aic_vs_tachyphylaxis": -34.788532,
+  "full_record": {
+    "L0 linear, no erosion": {
+      "aic": 6199.43068,
+      "params": [
+        2319.031757,
+        -36.635969
+      ]
+    },
+    "L1 linear \u00d7 exp(\u2212K\u00b7AUC)": {
+      "aic": 6159.350983,
+      "params": [
+        2542.775485,
+        -96.101439,
+        0.001426
+      ]
+    },
+    "L2 linear + c\u00b7t": {
+      "aic": 6129.066188,
+      "params": [
+        2319.566269,
+        -78.780219,
+        9.786163
+      ]
+    },
+    "L3 linear + P\u00b7(SP_ema \u2212 FM)": {
+      "aic": 6201.350206,
+      "params": [
+        2310.01164,
+        -36.789244,
+        3.87896
+      ]
+    },
+    "L4 linear + P\u00b7(FM0 \u2212 FM)": {
+      "aic": 6124.562451,
+      "params": [
+        2264.036951,
+        -78.586625,
+        30.142309
+      ]
+    },
+    "L5 Emax s\u00b7B/(1+B/B50)": {
+      "aic": 6201.954509,
+      "params": [
+        2323.669062,
+        -37.955959,
+        500.0
+      ]
+    },
+    "L6 frozen SP + exp(\u2212K\u00b7AUC)": {
+      "aic": 6125.865916,
+      "params": [
+        2299.464673,
+        -83.145701,
+        27.895029,
+        0.000154
+      ]
+    },
+    "L7 linear + P\u00b7(Latch_subj \u2212 FM)": {
+      "aic": 6198.341788,
+      "params": [
+        2251.976276,
+        -38.498616,
+        19.568684
+      ]
+    },
+    "L8 linear + P\u00b7(Latch_trial \u2212 FM)": {
+      "aic": 6132.944021,
+      "params": [
+        2196.112247,
+        -71.513876,
+        38.299451
+      ]
+    }
+  }
+}

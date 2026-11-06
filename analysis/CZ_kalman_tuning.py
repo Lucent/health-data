@@ -64,9 +64,12 @@ def kalman_with_tdee_anchor(calories, weight_obs, fm_scan, lm_scan, expected_rmr
     q_tdee = sigma_tdee ** 2
     first_scan = np.where(~np.isnan(fm_scan))[0][0]
 
+    # Fallback init is data-driven, matching P4; the old expected_rmr * 1.15
+    # branch embedded an assumed activity factor.
+    _iw = calories[first_scan:first_scan + 60]
+    _iw = _iw[~np.isnan(_iw)]
     init_tdee = (tdee_external[first_scan] if not np.isnan(tdee_external[first_scan])
-                 else expected_rmr[first_scan] * 1.15 if not np.isnan(expected_rmr[first_scan])
-                 else 2100.0)
+                 else float(np.mean(_iw)) if len(_iw) else 2100.0)
 
     x = np.array([fm_start, lm_start, 0.0, init_tdee])
     P = np.diag([4.0, 4.0, 1.0, 200.0 ** 2])

@@ -29,9 +29,9 @@ from BZ_drug_twocomponent import (
     simulate_trial, mifflin_tdee, ACUTE_RATIO, ADAPT_HL,
 )
 
-# Parameters from current BZ fits (under canonical Kalman with INTAKE_MULTIPLIER=1.09)
+# Parameters from BZ fits as of the 1.09-multiplier era of the canonical Kalman (historical; see DG for the current model)
 TRIAL_TONIC_NONDIABETIC = -78.0    # cal/unit blood, BZ trial best-fit
-SUBJECT_TONIC_LOGGED = -69.1       # cal/unit blood, BZ subject fit (already × 1.09 by canonical)
+SUBJECT_TONIC_LOGGED = -69.1       # cal/unit blood, BZ subject fit (historical, 1.09-era canonical)
 SUBJECT_TONIC_CORRECTED = -74.3    # BZ's reported undercount-corrected value
 K_AUC = 0.00187                    # /unit-week, subject-fit AUC tachyphylaxis (BZ)
 

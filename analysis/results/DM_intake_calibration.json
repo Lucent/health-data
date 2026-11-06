@@ -1,0 +1,344 @@
+{
+  "_source": "analysis/DM_intake_calibration.py",
+  "_written": "2026-11-06",
+  "candidates": [
+    {
+      "aic": 10393.959265,
+      "ci": {
+        "m": [
+          0.9,
+          1.15
+        ]
+      },
+      "ci_raw": {
+        "m": [
+          0.95,
+          1.0
+        ]
+      },
+      "d_aic_vs_uniform": 0.0,
+      "eb_residual_lb": 2.961416,
+      "fm_scan_mae": 1.18968,
+      "innov_acf1": 0.043677,
+      "innov_std": 1.170639,
+      "k": 1,
+      "ll": -5195.979633,
+      "lm_scan_mae": 1.788508,
+      "model": "multiplicative",
+      "params": {
+        "m": 0.989063
+      },
+      "tdee_mean": 2150.61657,
+      "tdee_rmr_mean": 1.152342
+    },
+    {
+      "aic": 10395.959265,
+      "ci": {
+        "a": [
+          -400.0,
+          200.0
+        ]
+      },
+      "d_aic_vs_uniform": 2.0,
+      "eb_residual_lb": 2.961416,
+      "fm_scan_mae": 1.18968,
+      "innov_acf1": 0.043677,
+      "innov_std": 1.170639,
+      "k": 2,
+      "ll": -5195.979633,
+      "lm_scan_mae": 1.788508,
+      "model": "affine",
+      "p_boot_beats_uniform": 0.0,
+      "params": {
+        "a": 0.0,
+        "m": 0.989063
+      },
+      "tdee_mean": 2150.61657,
+      "tdee_rmr_mean": 1.152342
+    },
+    {
+      "aic": 10380.711357,
+      "ci": {
+        "m1": [
+          -0.2,
+          0.0
+        ]
+      },
+      "d_aic_vs_uniform": -13.247909,
+      "eb_residual_lb": -1.892528,
+      "fm_scan_mae": 1.182485,
+      "innov_acf1": 0.045386,
+      "innov_std": 1.153091,
+      "k": 2,
+      "ll": -5188.355678,
+      "lm_scan_mae": 1.786779,
+      "model": "level",
+      "p_boot_beats_uniform": 0.694,
+      "params": {
+        "m": 1.164843,
+        "m1": -0.087048
+      },
+      "tdee_mean": 2477.361017,
+      "tdee_rmr_mean": 1.316023
+    },
+    {
+      "aic": 10397.93898,
+      "ci": {
+        "a_fiber": [
+          -3.0,
+          4.0
+        ],
+        "a_protein": [
+          1.5,
+          2.0
+        ]
+      },
+      "d_aic_vs_uniform": 3.979715,
+      "eb_residual_lb": 2.961455,
+      "fm_scan_mae": 1.189681,
+      "innov_acf1": 0.043677,
+      "innov_std": 1.170639,
+      "k": 3,
+      "ll": -5195.96949,
+      "lm_scan_mae": 1.788508,
+      "model": "macro",
+      "p_boot_beats_uniform": 0.993,
+      "params": {
+        "a_fiber": 0.0,
+        "a_protein": 0.00025,
+        "m": 0.989063
+      },
+      "tdee_mean": 2150.635123,
+      "tdee_rmr_mean": 1.152351
+    },
+    {
+      "aic": 10394.69399,
+      "ci": {
+        "m_drug": [
+          0.9,
+          1.1
+        ],
+        "m_loss": [
+          0.9,
+          1.4
+        ],
+        "m_plateau": [
+          0.9,
+          1.05
+        ],
+        "m_regain": [
+          0.9,
+          1.4
+        ]
+      },
+      "d_aic_vs_uniform": 0.734725,
+      "eb_residual_lb": 3.853974,
+      "fm_scan_mae": 1.188638,
+      "innov_acf1": 0.04114,
+      "innov_std": 1.21877,
+      "k": 4,
+      "ll": -5193.346995,
+      "lm_scan_mae": 1.798956,
+      "model": "era",
+      "p_boot_beats_uniform": 0.681,
+      "params": {
+        "m_drug": 0.957165,
+        "m_loss": 1.061615,
+        "m_plateau": 0.973126,
+        "m_regain": 0.97951
+      },
+      "tdee_mean": 2187.984288,
+      "tdee_rmr_mean": 1.143128
+    },
+    {
+      "aic": 10342.211677,
+      "ci": {
+        "m_gaining": [
+          0.95,
+          1.05
+        ],
+        "m_losing": [
+          0.95,
+          1.1
+        ],
+        "m_stable": [
+          0.9,
+          1.0
+        ]
+      },
+      "d_aic_vs_uniform": -51.747589,
+      "eb_residual_lb": 3.601132,
+      "fm_scan_mae": 1.192974,
+      "innov_acf1": 0.045981,
+      "innov_std": 1.180394,
+      "k": 3,
+      "ll": -5168.105838,
+      "lm_scan_mae": 1.793669,
+      "model": "direction",
+      "p_boot_beats_uniform": 0.773,
+      "params": {
+        "m_gaining": 1.011116,
+        "m_losing": 1.010601,
+        "m_stable": 0.965253
+      },
+      "tdee_mean": 2191.062995,
+      "tdee_rmr_mean": 1.167171
+    }
+  ],
+  "ci": {
+    "m": [
+      0.9,
+      1.15
+    ]
+  },
+  "criterion": {
+    "hyperparameters": "one-step prediction-error log-likelihood over weigh-ins + FM + LM scans",
+    "intake_model": "summed (14, 21, 28)-day-ahead weight prediction log-likelihood, block bootstrap 90 d"
+  },
+  "effective_multiplier": 0.989063,
+  "era_fit": {
+    "m_drug": 0.957165,
+    "m_loss": 1.061615,
+    "m_plateau": 0.973126,
+    "m_regain": 0.97951
+  },
+  "filter": {
+    "beta_buf": 0.111681,
+    "buf_hl": 8.065687,
+    "max_dtdee": 100,
+    "q_buf": 0.164948,
+    "r_weight": 0.442944,
+    "sigma_tdee": 13.461587
+  },
+  "horizon_scan_m": {
+    "14": 1.2,
+    "21": 1.15,
+    "28": 1.1,
+    "42": 1.25,
+    "7": 1.4,
+    "one_step": 1.25
+  },
+  "ll": -5195.979633,
+  "model": "multiplicative",
+  "n_obs": {
+    "fm_scans": 70,
+    "lm_scans": 70,
+    "weigh_ins": 1544,
+    "windows_per_horizon": {
+      "14": 933,
+      "21": 906,
+      "28": 861
+    }
+  },
+  "one_step_ll": {
+    "fitted": -2537.738815,
+    "fitted_without_beta_buf": -2546.810227,
+    "hand_set": -2728.849312
+  },
+  "params": {
+    "m": 0.989063
+  },
+  "per_year": [
+    {
+      "hi": 1.3,
+      "lo": 1.05,
+      "m": 1.15,
+      "weigh_ins": 74,
+      "year": 2011
+    },
+    {
+      "hi": 1.05,
+      "lo": 0.9,
+      "m": 0.95,
+      "weigh_ins": 32,
+      "year": 2012
+    },
+    {
+      "hi": 1.05,
+      "lo": 0.9,
+      "m": 0.9,
+      "weigh_ins": 22,
+      "year": 2013
+    },
+    {
+      "hi": 1.1,
+      "lo": 1.0,
+      "m": 1.05,
+      "weigh_ins": 20,
+      "year": 2015
+    },
+    {
+      "hi": 1.0,
+      "lo": 0.95,
+      "m": 1.0,
+      "weigh_ins": 40,
+      "year": 2016
+    },
+    {
+      "hi": 0.9,
+      "lo": 0.9,
+      "m": 0.9,
+      "weigh_ins": 51,
+      "year": 2019
+    },
+    {
+      "hi": 1.05,
+      "lo": 1.0,
+      "m": 1.05,
+      "weigh_ins": 91,
+      "year": 2020
+    },
+    {
+      "hi": 1.0,
+      "lo": 0.95,
+      "m": 0.95,
+      "weigh_ins": 137,
+      "year": 2021
+    },
+    {
+      "hi": 1.0,
+      "lo": 1.0,
+      "m": 1.0,
+      "weigh_ins": 243,
+      "year": 2022
+    },
+    {
+      "hi": 1.0,
+      "lo": 1.0,
+      "m": 1.0,
+      "weigh_ins": 266,
+      "year": 2023
+    },
+    {
+      "hi": 1.0,
+      "lo": 1.0,
+      "m": 1.0,
+      "weigh_ins": 256,
+      "year": 2024
+    },
+    {
+      "hi": 1.0,
+      "lo": 1.0,
+      "m": 1.0,
+      "weigh_ins": 259,
+      "year": 2025
+    },
+    {
+      "hi": 1.1,
+      "lo": 1.05,
+      "m": 1.1,
+      "weigh_ins": 35,
+      "year": 2026
+    }
+  ],
+  "selection_rule": "richer form only if dAIC <= -4.0 and bootstrap P(better) >= 0.95",
+  "uniform_ci": [
+    0.9,
+    1.15
+  ],
+  "uniform_ci_raw": [
+    0.95,
+    1.0
+  ],
+  "uniform_m": 0.989063
+}

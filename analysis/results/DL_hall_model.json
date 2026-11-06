@@ -1,0 +1,283 @@
+{
+  "_source": "analysis/DL_hall_model.py",
+  "_written": "2026-11-06",
+  "fits": {
+    "fit PAL + m per era | beta=.14": {
+      "n_eff": 57.003163,
+      "params": {
+        "PAL": 1.643679,
+        "beta_AT": 0.14,
+        "m": 1.0,
+        "m_drug": 1.462517,
+        "m_loss": 1.309789,
+        "m_plateau": 1.402391,
+        "m_regain": 1.5
+      },
+      "resid_acf1": 0.928657,
+      "se": {
+        "PAL": 0.015872,
+        "m_drug": 0.014096,
+        "m_loss": 0.011675,
+        "m_plateau": 0.012304,
+        "m_regain": 0.012826
+      },
+      "se_acf": {
+        "PAL": 0.082524,
+        "m_drug": 0.073291,
+        "m_loss": 0.060702,
+        "m_plateau": 0.063973,
+        "m_regain": 0.066689
+      },
+      "w_rmse": 3.695156
+    },
+    "fit PAL | beta=.14, m=1": {
+      "n_eff": 5.282545,
+      "params": {
+        "PAL": 1.082525,
+        "beta_AT": 0.14,
+        "m": 1.0,
+        "m_drug": 1.0,
+        "m_loss": 1.0,
+        "m_plateau": 1.0,
+        "m_regain": 1.0
+      },
+      "resid_acf1": 0.993167,
+      "se": {
+        "PAL": 0.000899
+      },
+      "se_acf": {
+        "PAL": 0.01536
+      },
+      "w_rmse": 12.042344
+    },
+    "fit PAL,beta | m=1": {
+      "n_eff": 5.599394,
+      "params": {
+        "PAL": 1.210525,
+        "beta_AT": 0.5,
+        "m": 1.0,
+        "m_drug": 1.0,
+        "m_loss": 1.0,
+        "m_plateau": 1.0,
+        "m_regain": 1.0
+      },
+      "resid_acf1": 0.992759,
+      "se": {
+        "PAL": 0.016553,
+        "beta_AT": 0.01906
+      },
+      "se_acf": {
+        "PAL": 0.274606,
+        "beta_AT": 0.316201
+      },
+      "w_rmse": 11.563842
+    },
+    "fit PAL,beta,m": {
+      "n_eff": 11.683453,
+      "params": {
+        "PAL": 1.857541,
+        "beta_AT": 0.372429,
+        "m": 1.5,
+        "m_drug": 1.0,
+        "m_loss": 1.0,
+        "m_plateau": 1.0,
+        "m_regain": 1.0
+      },
+      "resid_acf1": 0.984951,
+      "se": {
+        "PAL": 0.047132,
+        "beta_AT": 0.012448,
+        "m": 0.031723
+      },
+      "se_acf": {
+        "PAL": 0.541289,
+        "beta_AT": 0.142961,
+        "m": 0.364321
+      },
+      "w_rmse": 8.428012
+    },
+    "fit PAL,m | beta=.14": {
+      "n_eff": 10.709589,
+      "params": {
+        "PAL": 1.724288,
+        "beta_AT": 0.14,
+        "m": 1.5,
+        "m_drug": 1.0,
+        "m_loss": 1.0,
+        "m_plateau": 1.0,
+        "m_regain": 1.0
+      },
+      "resid_acf1": 0.986196,
+      "se": {
+        "PAL": 0.033757,
+        "m": 0.026511
+      },
+      "se_acf": {
+        "PAL": 0.404928,
+        "m": 0.318016
+      },
+      "w_rmse": 9.186218
+    }
+  },
+  "intake_model": "multiplicative (m=0.9891); effective multiplier 0.989",
+  "kalman_reference": {
+    "ffm_mae": 1.788714,
+    "fm_mae": 1.190143,
+    "p1_rmse": 0.524594,
+    "tdee_rmr": 1.15235
+  },
+  "per_era_multiplier": {
+    "drug": {
+      "absolute": 1.446521,
+      "absolute_hi": 1.5886,
+      "absolute_lo": 1.304442,
+      "canonical_ratio": 0.989063,
+      "relative": 1.462517,
+      "se_acf": 0.073291
+    },
+    "loss": {
+      "absolute": 1.295464,
+      "absolute_hi": 1.413138,
+      "absolute_lo": 1.17779,
+      "canonical_ratio": 0.989063,
+      "relative": 1.309789,
+      "se_acf": 0.060702
+    },
+    "plateau": {
+      "absolute": 1.387053,
+      "absolute_hi": 1.511069,
+      "absolute_lo": 1.263037,
+      "canonical_ratio": 0.989063,
+      "relative": 1.402391,
+      "se_acf": 0.063973
+    },
+    "regain": {
+      "absolute": 1.483594,
+      "absolute_hi": 1.612875,
+      "absolute_lo": 1.354314,
+      "canonical_ratio": 0.989063,
+      "relative": 1.5,
+      "se_acf": 0.066689
+    }
+  },
+  "primary": {
+    "PAL": 1.082525,
+    "beta": 0.14,
+    "label": "fit PAL | beta=.14, m=1",
+    "w_rmse": 12.042344
+  },
+  "year_implied_over_logged": {
+    "2011": {
+      "canonical": 0.989063,
+      "consumed": 1871.008084,
+      "implied_fit": 1275.021683,
+      "logged": 1891.697581,
+      "ratio_fit_over_logged": 0.674009
+    },
+    "2012": {
+      "canonical": 0.989063,
+      "consumed": 2038.266976,
+      "implied_fit": 1811.773477,
+      "logged": 2060.806011,
+      "ratio_fit_over_logged": 0.879158
+    },
+    "2013": {
+      "canonical": 0.989063,
+      "consumed": 1941.666157,
+      "implied_fit": 1827.168803,
+      "logged": 1963.136986,
+      "ratio_fit_over_logged": 0.930739
+    },
+    "2014": {
+      "canonical": 0.989063,
+      "consumed": 2200.686853,
+      "implied_fit": 2056.938353,
+      "logged": 2225.021918,
+      "ratio_fit_over_logged": 0.924458
+    },
+    "2015": {
+      "canonical": 0.989063,
+      "consumed": 2197.660049,
+      "implied_fit": 2180.038574,
+      "logged": 2221.961644,
+      "ratio_fit_over_logged": 0.981132
+    },
+    "2016": {
+      "canonical": 0.989063,
+      "consumed": 2099.661845,
+      "implied_fit": 1932.127698,
+      "logged": 2122.879781,
+      "ratio_fit_over_logged": 0.910145
+    },
+    "2017": {
+      "canonical": 0.989063,
+      "consumed": 2237.870202,
+      "implied_fit": 2321.142444,
+      "logged": 2262.616438,
+      "ratio_fit_over_logged": 1.025867
+    },
+    "2018": {
+      "canonical": 0.989063,
+      "consumed": 2075.723485,
+      "implied_fit": 2251.405823,
+      "logged": 2098.676712,
+      "ratio_fit_over_logged": 1.072774
+    },
+    "2019": {
+      "canonical": 0.989063,
+      "consumed": 1997.923519,
+      "implied_fit": 2173.900306,
+      "logged": 2020.016438,
+      "ratio_fit_over_logged": 1.07618
+    },
+    "2020": {
+      "canonical": 0.989063,
+      "consumed": 2135.438362,
+      "implied_fit": 2203.828478,
+      "logged": 2159.051913,
+      "ratio_fit_over_logged": 1.020739
+    },
+    "2021": {
+      "canonical": 0.989063,
+      "consumed": 2181.810653,
+      "implied_fit": 2238.028844,
+      "logged": 2205.936986,
+      "ratio_fit_over_logged": 1.014548
+    },
+    "2022": {
+      "canonical": 0.989063,
+      "consumed": 2260.770398,
+      "implied_fit": 2222.356222,
+      "logged": 2285.769863,
+      "ratio_fit_over_logged": 0.972257
+    },
+    "2023": {
+      "canonical": 0.989063,
+      "consumed": 2321.599127,
+      "implied_fit": 2280.789994,
+      "logged": 2347.271233,
+      "ratio_fit_over_logged": 0.971677
+    },
+    "2024": {
+      "canonical": 0.989063,
+      "consumed": 2294.345115,
+      "implied_fit": 2171.691796,
+      "logged": 2319.715847,
+      "ratio_fit_over_logged": 0.936189
+    },
+    "2025": {
+      "canonical": 0.989063,
+      "consumed": 1963.715488,
+      "implied_fit": 1969.840873,
+      "logged": 1985.430137,
+      "ratio_fit_over_logged": 0.992148
+    },
+    "2026": {
+      "canonical": 0.989063,
+      "consumed": 1893.032476,
+      "implied_fit": 2087.028117,
+      "logged": 1913.965517,
+      "ratio_fit_over_logged": 1.090421
+    }
+  }
+}

@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 from numpy.linalg import lstsq
 
 ROOT = Path(__file__).resolve().parent.parent
-INTAKE_MULTIPLIER = 1.09
+from intake_model import INTAKE_MULTIPLIER  # single source of truth: analysis/intake_model.py (was hardcoded 1.09)
 
 
 def partial_corr(y, x_target, x_controls):

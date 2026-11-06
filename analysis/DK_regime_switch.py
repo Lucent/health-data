@@ -5,7 +5,7 @@ DH showed no set point model puts its peak gap at the 2014Q3-Q4 binge eruption. 
 behavioral regime switch: the restriction regime ended. Here intake is modeled as a hidden regime process
 and the switch is dated without reference to weight, binges or the subject's own epoch annotations.
 
-Methods (all on log true intake = log(1.09 × logged kcal), fasting days floored at 200 kcal):
+Methods (all on log consumed intake = log(P4 intake_true), fasting days floored at 200 kcal):
   split   single best changepoint in the mean (first binary-segmentation split) across windows/transforms
   HMM     Gaussian hidden Markov model, K = 2 and 3, EM (Baum-Welch) + Viterbi, on daily values and on
           non-overlapping 7- and 14-day block means. Era-scale fits constrain the expected dwell to
@@ -32,7 +32,11 @@ import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parent.parent
-MULT = 1.09
+import sys
+sys.path.insert(0, str(ROOT / "analysis"))
+from intake_model import INTAKE_MULTIPLIER, describe as describe_intake_model  # single source of truth
+from results import save as save_result, load as load_result
+MULT = INTAKE_MULTIPLIER
 HORIZON = 30          # hazard horizon (days)
 DWELL_ERA = 120       # minimum expected dwell (days) for the era-scale HMM
 DWELL_EP = 28         # minimum expected dwell (days) for the episode-scale HMM
@@ -140,10 +144,10 @@ def load():
     kal = pd.read_csv(ROOT / "analysis" / "P4_kalman_daily.csv", parse_dates=["date"])
     comp = pd.read_csv(ROOT / "analysis" / "P2_daily_composition.csv", parse_dates=["date"])
     ep = pd.read_csv(ROOT / "intake" / "diet_epochs.csv", parse_dates=["start", "end"])
-    d = intake[["date", "calories"]].merge(kal[["date", "fat_mass_lbs", "lm_lbs", "tdee"]], on="date")
+    d = intake[["date", "calories"]].merge(kal[["date", "fat_mass_lbs", "lm_lbs", "tdee", "intake_true"]], on="date")
     d = d.merge(comp[["date", "expected_rmr"]], on="date", how="left").dropna(subset=["fat_mass_lbs"])
     d = d.sort_values("date").reset_index(drop=True)
-    d["cal"] = d["calories"] * MULT
+    d["cal"] = d["intake_true"]      # consumed calories as used by P4
     d["logcal"] = np.log(np.maximum(d["cal"], 200))
     d["binge"] = (d["calories"] > d["tdee"] + 1000).astype(float)
     d["binge_abs"] = (d["cal"] > 3500).astype(float)

@@ -18,7 +18,9 @@ Design notes:
   - Calorimetry RMR observations are NOT fed to the filter — they are held out
     for posterior validation.
 
-Sweep: σ_TDEE ∈ {15, 30, 50} × max_dTDEE ∈ {30, 60, 100}.
+Tuning: σ_TDEE, Q_BUF, R_WEIGHT and the intake model come from analysis/results/
+DM_intake_calibration.json (one likelihood over all assimilated observations);
+the σ_TDEE × max_dTDEE sweep printed by main() is diagnostic only.
 """
 
 from pathlib import Path
@@ -46,9 +48,16 @@ DFM_GAIN_CAP = 0.5             # lb/day, peak overfeeding
 DLM_LOSS_CAP = 0.5             # lb/day, extreme protein turnover (rarely hit)
 DLM_GAIN_CAP = 0.15            # lb/day, AA per-session ~0.09 + small headroom
 
-BUF_HL = 5.0                   # days
+BUF_HL = 5.0                   # days (default; DM fits it, see FILTER)
 BUF_CAP = 3.0                  # lbs
 BUF_DECAY = np.exp(-np.log(2) / BUF_HL)
+# Intake-driven transient: a day's intake above/below the record mean moves
+# next morning's weight through gut contents and water that P1's glycogen and
+# sodium corrections do not capture. Modelled as a deterministic input to BUF,
+# BETA_BUF lb per 1000 consumed cal of deviation, decaying with BUF's half-life.
+# Without this term the filter reads the transient as stored energy and the
+# intake multiplier runs away against Q_BUF (DM, 2026-11). Default 0 = legacy.
+BETA_BUF = 0.0
 
 # ── Process noise (Q) ─────────────────────────────────────────────────
 Q_FM = 0.005                   # lb²/day — daily FM std ≈ 0.07 lb
@@ -66,15 +75,23 @@ R_LM_SCAN = 2.25               # lb² — same
 R_BOOT_FM = 0.50               # tighter scan noise during burn-in for stable init
 R_BOOT_LM = 0.50
 
-# ── Intake undercount correction (finding A, CI) ─────────────────────
-# Logged intake is biased low by ~9% on this subject. CI's composite-optimum
-# uniform multiplier is 1.09; finding A's composition-aware energy-balance
-# check independently estimated 8-14% by phase. Applying 1.09 closes the
-# cumulative 15-year EB residual from −2.2 lb to −0.04 lb and slightly tightens
-# FM scan MAE. TDEE estimates rise ~9% — calorimetry-day TDEE/RMR ratios shift
-# to a mean of 1.28 (range 1.10-1.47), which is biologically defensible given
-# the subject's actual activity (walks, strength, cycling).
-INTAKE_MULTIPLIER = 1.09
+# ── Intake correction (single source of truth: analysis/intake_model.py) ──
+# Logged intake is converted to consumed energy by `true_intake`, whose form
+# and parameters are selected by analysis/DM_intake_calibration.py (innovation
+# likelihood over candidate correction forms) and stored in
+# analysis/results/DM_intake_calibration.json. Nothing is typed here.
+#
+# Why not energy-balance closure: TDEE is a free random walk, so scaling intake
+# by m raises TDEE by (m-1)*intake almost day for day (measured leakage
+# dEB/dm = 24.9 lb per unit m against 3330.7 lb/unit with TDEE fixed; the
+# filter absorbs 99.25% of any level change). The information about the scale
+# lives in the weight innovation sequence instead: a wrong scale mis-predicts
+# the weight RESPONSE to intake variation. See CR/DM. CQ estimates the same
+# quantity by regression outside the filter; CQ and CR/DM are consistency
+# checks on each other, not independent confirmations.
+sys.path.insert(0, str(ROOT / "analysis"))
+from intake_model import true_intake, INTAKE_MULTIPLIER, CALIBRATION, FILTER, describe as describe_intake_model, describe_filter  # noqa: E402
+from results import save as save_result  # noqa: E402
 
 # ── Workout-modulated Forbes partition (finding CB) ──────────────────
 # CB regression on cuts: each workout/wk reduces lean fraction of weight loss
@@ -113,9 +130,12 @@ def forbes_fat_fraction(fm_lbs, workouts_per_wk=0.0):
     return float(np.clip(ff_modified, 0.0, 1.0))
 
 
-def build_inputs(smooth, intake, strength, comp_scans, p2):
+def build_inputs(smooth, intake, strength, comp_scans, p2, calories_true=None):
+    """`calories_true` lets calibration scripts (CR, DM) inject their own
+    corrected-intake series; default is the canonical intake_model."""
     dates = intake["date"].values
-    calories = intake["calories"].values * INTAKE_MULTIPLIER
+    calories = (np.asarray(calories_true, dtype=float) if calories_true is not None
+                else true_intake(intake))
     n = len(dates)
 
     expected_rmr = p2.set_index("date")["expected_rmr"].reindex(intake["date"]).values
@@ -152,17 +172,104 @@ def build_inputs(smooth, intake, strength, comp_scans, p2):
     return dates, calories, weight_obs, fm_scan, lm_scan, expected_rmr, workouts_per_wk
 
 
+def predict_step(x, P, cal_i, wpw_i, Q, buf_decay, beta_buf, cal_ref):
+    """One-day state prediction (shared by the forward filter and by DM's
+    k-step-ahead prediction-error criterion)."""
+    fm, lm, buf, tdee = x
+    ff = forbes_fat_fraction(fm, wpw_i)
+    deficit = (cal_i if not np.isnan(cal_i) else 0.0) - tdee
+
+    # Proper Forbes-coupled energy partition (energy-conserving):
+    #   deficit = dFM × E_FAT + dLM × E_LEAN
+    #   dFM / dW = ff
+    #   ⇒ dW = deficit / (ff × E_FAT + (1 - ff) × E_LEAN)
+    e_per_lb = ff * E_FAT + (1 - ff) * E_LEAN
+    dW_raw = deficit / e_per_lb
+    dFM_raw = ff * dW_raw
+    dLM_raw = (1 - ff) * dW_raw
+
+    # Apply hard rate caps
+    dFM = np.clip(dFM_raw, -fm * ALPERT_RATE, DFM_GAIN_CAP)
+    dLM = np.clip(dLM_raw, -DLM_LOSS_CAP, DLM_GAIN_CAP)
+
+    cal_dev = ((cal_i - cal_ref) if not np.isnan(cal_i) else 0.0) / 1000.0
+    x_pred = np.array([
+        max(fm + dFM, 5.0),
+        max(lm + dLM, 50.0),
+        buf_decay * buf + beta_buf * cal_dev,
+        tdee,  # random walk; η added via Q
+    ])
+
+    # Jacobian (proper coupled-Forbes partition; ff held locally constant)
+    F = np.array([
+        [1.0, 0.0, 0.0, -ff / e_per_lb],
+        [0.0, 1.0, 0.0, -(1 - ff) / e_per_lb],
+        [0.0, 0.0, buf_decay, 0.0],
+        [0.0, 0.0, 0.0, 1.0],
+    ])
+    P_pred = F @ P @ F.T + Q
+    return x_pred, P_pred
+
+
+def kstep_prediction_errors(x_filt, P_filt, calories, weight_obs, workouts_per_wk, k,
+                            sigma_tdee, q_buf=None, r_weight=None, beta_buf=None, buf_hl=None):
+    """k-day-ahead weight prediction errors from each filtered state, with no
+    intermediate observation updates (TDEE held at its filtered value, BUF
+    decaying, FM/LM driven by the next k days of intake). Returns
+    (innovations, variances) aligned to the start day. Used by DM: at k of a
+    couple of weeks the gut/water transient has washed out and TDEE has not
+    had time to drift, which is exactly where the intake scale is identified."""
+    n = len(calories)
+    q_buf = Q_BUF if q_buf is None else float(q_buf)
+    r_weight = R_WEIGHT if r_weight is None else float(r_weight)
+    beta_buf = BETA_BUF if beta_buf is None else float(beta_buf)
+    buf_decay = BUF_DECAY if buf_hl is None else float(np.exp(-np.log(2) / float(buf_hl)))
+    cal_ref = float(np.nanmean(calories))
+    Q = np.diag([Q_FM, Q_LM, q_buf, sigma_tdee ** 2])
+    H = np.array([1.0, 1.0, 1.0, 0.0])
+    innov = np.full(n, np.nan); var = np.full(n, np.nan)
+    for t in range(n - k):
+        if np.isnan(x_filt[t, 0]) or np.isnan(weight_obs[t + k]) or np.isnan(weight_obs[t]):
+            continue
+        x, P = x_filt[t].copy(), P_filt[t].copy()
+        for j in range(k):
+            x, P = predict_step(x, P, calories[t + j], workouts_per_wk[t + j], Q, buf_decay, beta_buf, cal_ref)
+        innov[t] = weight_obs[t + k] - H @ x
+        var[t] = H @ P @ H + r_weight
+    return innov, var
+
+
 def kalman_v4_forward(calories, weight_obs, fm_scan, lm_scan, expected_rmr,
                       workouts_per_wk, fm_start, lm_start,
-                      sigma_tdee, max_dtdee):
-    """Forward EKF on 4-state (FM, LM, BUF, TDEE)."""
+                      sigma_tdee, max_dtdee, collect=None, q_buf=None, r_weight=None,
+                      beta_buf=None, buf_hl=None):
+    """Forward EKF on 4-state (FM, LM, BUF, TDEE).
+
+    `collect`: optional dict; if given, filled with the innovation and
+    innovation-variance series for every assimilated channel ('innov_var' for
+    weight, plus 'fm_innov'/'fm_var' and 'lm_innov'/'lm_var' for the scans) so
+    callers can form the exact prediction-error-decomposition log-likelihood.
+    `q_buf`, `r_weight`: override the module defaults (used by DM, which fits
+    the noise hyperparameters jointly with the intake model).
+    """
     n = len(calories)
     q_tdee = sigma_tdee ** 2
+    q_buf = Q_BUF if q_buf is None else float(q_buf)
+    r_weight = R_WEIGHT if r_weight is None else float(r_weight)
+    beta_buf = BETA_BUF if beta_buf is None else float(beta_buf)
+    buf_decay = BUF_DECAY if buf_hl is None else float(np.exp(-np.log(2) / float(buf_hl)))
+    cal_ref = float(np.nanmean(calories))      # deviation reference for the BUF input
 
     # Initial state — anchored to first scan
     first_scan = np.where(~np.isnan(fm_scan))[0][0]
-    init_tdee = (expected_rmr[first_scan] * 1.15
-                 if not np.isnan(expected_rmr[first_scan]) else 2100.0)
+    # Initialise TDEE from the data rather than from an assumed activity factor.
+    # The old form was expected_rmr * 1.15, which is the same activity-factor
+    # prior that was removed from the tuning score. Mean corrected intake over
+    # the first 60 logged days is a neutral starting point; the weight
+    # observations move TDEE off it within days, and P is wide (200^2) anyway.
+    _init_window = calories[first_scan:first_scan + 60]
+    _init_window = _init_window[~np.isnan(_init_window)]
+    init_tdee = float(np.mean(_init_window)) if len(_init_window) else 2100.0
 
     x = np.array([fm_start, lm_start, 0.0, init_tdee])
     P = np.diag([4.0, 4.0, 1.0, 200.0 ** 2])  # wide TDEE prior
@@ -172,47 +279,20 @@ def kalman_v4_forward(calories, weight_obs, fm_scan, lm_scan, expected_rmr,
     x_pred_arr = np.full((n, 4), np.nan)
     P_pred_arr = np.full((n, 4, 4), np.nan)
     innovations = np.full(n, np.nan)  # weight innovations
+    innov_var = np.full(n, np.nan)    # weight innovation variance S
+    fm_innov, fm_var = np.full(n, np.nan), np.full(n, np.nan)
+    lm_innov, lm_var = np.full(n, np.nan), np.full(n, np.nan)
 
     x_filt[first_scan] = x
     P_filt[first_scan] = P
     x_pred_arr[first_scan] = x
     P_pred_arr[first_scan] = P
 
-    Q = np.diag([Q_FM, Q_LM, Q_BUF, q_tdee])
+    Q = np.diag([Q_FM, Q_LM, q_buf, q_tdee])
 
     for i in range(first_scan, n - 1):
-        fm, lm, buf, tdee = x
-        ff = forbes_fat_fraction(fm, workouts_per_wk[i])
-        deficit = (calories[i] if not np.isnan(calories[i]) else 0.0) - tdee
-
-        # Proper Forbes-coupled energy partition (energy-conserving):
-        #   deficit = dFM × E_FAT + dLM × E_LEAN
-        #   dFM / dW = ff
-        #   ⇒ dW = deficit / (ff × E_FAT + (1 - ff) × E_LEAN)
-        e_per_lb = ff * E_FAT + (1 - ff) * E_LEAN
-        dW_raw = deficit / e_per_lb
-        dFM_raw = ff * dW_raw
-        dLM_raw = (1 - ff) * dW_raw
-
-        # Apply hard rate caps
-        dFM = np.clip(dFM_raw, -fm * ALPERT_RATE, DFM_GAIN_CAP)
-        dLM = np.clip(dLM_raw, -DLM_LOSS_CAP, DLM_GAIN_CAP)
-
-        x_pred = np.array([
-            max(fm + dFM, 5.0),
-            max(lm + dLM, 50.0),
-            BUF_DECAY * buf,
-            tdee,  # random walk; η added via Q
-        ])
-
-        # Jacobian (proper coupled-Forbes partition; ff held locally constant)
-        F = np.array([
-            [1.0, 0.0, 0.0, -ff / e_per_lb],
-            [0.0, 1.0, 0.0, -(1 - ff) / e_per_lb],
-            [0.0, 0.0, BUF_DECAY, 0.0],
-            [0.0, 0.0, 0.0, 1.0],
-        ])
-        P_pred = F @ P @ F.T + Q
+        x_pred, P_pred = predict_step(x, P, calories[i], workouts_per_wk[i], Q,
+                                      buf_decay, beta_buf, cal_ref)
 
         x_pred_arr[i + 1] = x_pred
         P_pred_arr[i + 1] = P_pred
@@ -227,11 +307,12 @@ def kalman_v4_forward(calories, weight_obs, fm_scan, lm_scan, expected_rmr,
             y = weight_obs[i + 1]
             y_pred = (H @ x)[0]
             innovation = y - y_pred
-            S = (H @ P @ H.T + R_WEIGHT)[0, 0]
+            S = (H @ P @ H.T + r_weight)[0, 0]
             K = (P @ H.T) / S
             x = x + (K * innovation).flatten()
             P = P - np.outer(K.flatten(), H @ P)
             innovations[i + 1] = innovation
+            innov_var[i + 1] = S
 
         # 2. FM scan: H = [1, 0, 0, 0]
         if not np.isnan(fm_scan[i + 1]):
@@ -240,6 +321,7 @@ def kalman_v4_forward(calories, weight_obs, fm_scan, lm_scan, expected_rmr,
             r_use = R_BOOT_FM if (i + 1 - first_scan) < 30 else R_FM_SCAN
             S = (H @ P @ H.T + r_use)[0, 0]
             K = (P @ H.T) / S
+            fm_innov[i + 1], fm_var[i + 1] = y - (H @ x)[0], S
             x = x + (K * (y - (H @ x)[0])).flatten()
             P = P - np.outer(K.flatten(), H @ P)
 
@@ -250,6 +332,7 @@ def kalman_v4_forward(calories, weight_obs, fm_scan, lm_scan, expected_rmr,
             r_use = R_BOOT_LM if (i + 1 - first_scan) < 30 else R_LM_SCAN
             S = (H @ P @ H.T + r_use)[0, 0]
             K = (P @ H.T) / S
+            lm_innov[i + 1], lm_var[i + 1] = y - (H @ x)[0], S
             x = x + (K * (y - (H @ x)[0])).flatten()
             P = P - np.outer(K.flatten(), H @ P)
 
@@ -264,6 +347,10 @@ def kalman_v4_forward(calories, weight_obs, fm_scan, lm_scan, expected_rmr,
         x_filt[i + 1] = x
         P_filt[i + 1] = P
 
+    if collect is not None:
+        collect["innov_var"] = innov_var
+        collect["fm_innov"], collect["fm_var"] = fm_innov, fm_var
+        collect["lm_innov"], collect["lm_var"] = lm_innov, lm_var
     return x_filt, P_filt, x_pred_arr, P_pred_arr, innovations, first_scan
 
 
@@ -422,10 +509,12 @@ def diagnostics(dates, x_smooth, innovations, fm_scan, lm_scan, calories, rmr_df
 
 
 def run_one(dates, calories, weight_obs, fm_scan, lm_scan, expected_rmr,
-            workouts_per_wk, fm_start, lm_start, rmr_df, sigma_tdee, max_dtdee, temp_df=None):
+            workouts_per_wk, fm_start, lm_start, rmr_df, sigma_tdee, max_dtdee, temp_df=None,
+            q_buf=None, r_weight=None, beta_buf=None, buf_hl=None):
     x_filt, P_filt, x_pred, P_pred, innov, first_scan = kalman_v4_forward(
         calories, weight_obs, fm_scan, lm_scan, expected_rmr,
         workouts_per_wk, fm_start, lm_start, sigma_tdee, max_dtdee,
+        q_buf=q_buf, r_weight=r_weight, beta_buf=beta_buf, buf_hl=buf_hl,
     )
     x_smooth, P_smooth = rts_smoother_v4(x_filt, P_filt, x_pred, P_pred, first_scan, workouts_per_wk)
     diag = diagnostics(dates, x_smooth, innov, fm_scan, lm_scan, calories, rmr_df,
@@ -441,10 +530,11 @@ def main():
     first_scan = np.where(~np.isnan(fm_scan))[0][0]
     fm_start = fm_scan[first_scan]
     lm_start = lm_scan[first_scan]
+    print(f"Intake model: {describe_intake_model()}")
+    print(f"Filter tuning (from DM calibration): {describe_filter()}")
     print(f"Start: {str(dates[first_scan])[:10]}  FM={fm_start:.1f}  LM={lm_start:.1f}")
-    print(f"Sweep: σ_TDEE × max_dTDEE")
-    print(f"  σ_TDEE ∈ {SIGMA_TDEE_GRID} cal/day")
-    print(f"  max_dTDEE ∈ {MAX_DTDEE_GRID} cal/day")
+    print(f"Diagnostic sweep (does NOT select the canonical run): σ_TDEE ∈ {SIGMA_TDEE_GRID} × "
+          f"max_dTDEE ∈ {MAX_DTDEE_GRID}, at the calibrated Q_BUF / R_WEIGHT")
     print()
 
     results = []
@@ -457,12 +547,17 @@ def main():
     print(f"{'σ_TDEE':>7} {'max_d':>6} {'FM_MAE':>7} {'LM_MAE':>7} {'innov_acf':>10} "
           f"{'innov_std':>10} {'TDEE/RMR':>9} {'(std)':>6} {'inband':>7} {'EB(lb)':>7} "
           f"{'BUF_max':>8} {'r(T,°F)':>8} {'r|FM':>6}")
-    for sigma_tdee in SIGMA_TDEE_GRID:
-        for max_dtdee in MAX_DTDEE_GRID:
+    canon = (float(FILTER["sigma_tdee"]), int(FILTER["max_dtdee"]))
+    grid = [(s_, c_) for s_ in SIGMA_TDEE_GRID for c_ in MAX_DTDEE_GRID]
+    if canon not in grid:
+        grid.append(canon)
+    for sigma_tdee, max_dtdee in grid:
             x_filt, x_smooth, innov, diag = run_one(
                 dates, calories, weight_obs, fm_scan, lm_scan, expected_rmr,
                 workouts_per_wk, fm_start, lm_start, rmr_df,
                 sigma_tdee, max_dtdee, temp_df=temp_df,
+                q_buf=FILTER["q_buf"], r_weight=FILTER["r_weight"],
+                beta_buf=FILTER["beta_buf"], buf_hl=FILTER["buf_hl"],
             )
             results.append({
                 "sigma_tdee": sigma_tdee,
@@ -479,21 +574,25 @@ def main():
                 f"{diag.get('tdee_temp_r', float('nan')):>8.3f} "
                 f"{diag.get('tdee_temp_r_partial_fm', float('nan')):>6.3f}"
             )
-            # Composite score: rank by held-out metrics with sane priors
+            # The canonical run is the DM-calibrated tuning, selected by the
+            # prediction-error likelihood over all assimilated observations
+            # (weigh-ins + FM + LM scans) jointly with the intake model. No
+            # composite score here: earlier versions ranked the sweep by scan
+            # MAE + innovation ACF, and before that by terms that asserted an
+            # activity factor (|TDEE/RMR − 1.15|) or rewarded a hypothesis the
+            # filter is used to test (TDEE–temperature correlation).
             score = (diag['fm_scan_mae'] + diag['lm_scan_mae']
-                     + max(diag['innov_acf1'], 0) * 5
-                     + max(0, abs(diag['tdee_rmr_mean'] - 1.15) - 0.10) * 10
-                     + max(0, 0.05 - diag['tdee_rmr_std']) * 20
-                     - max(0, diag.get('tdee_temp_r_partial_fm', 0)) * 5)
-            if score < best_score:
+                     + max(diag['innov_acf1'], 0) * 5)
+            if (float(sigma_tdee), int(max_dtdee)) == canon:
                 best_score = score
                 best_key = (sigma_tdee, max_dtdee)
                 best_x = x_smooth
                 best_diag = diag
                 best_innov = innov
 
-    # Save best run.
-    print(f"\nBest: σ_TDEE={best_key[0]}, max_dTDEE={best_key[1]} (composite score {best_score:.2f})")
+    print(f"\nCanonical: σ_TDEE={best_key[0]}, max_dTDEE={best_key[1]}, Q_BUF={FILTER['q_buf']:.3f}, "
+          f"R_WEIGHT={FILTER['r_weight']:.2f}, BETA_BUF={FILTER['beta_buf']:.3f} lb/1000cal, BUF_HL={FILTER['buf_hl']:.1f} d "
+          f"(from DM; scan-MAE+ACF composite {best_score:.2f} for reference)")
     out = pd.DataFrame({
         "date": dates,
         # smoothed states (filtered/std placeholders kept null for downstream interface)
@@ -509,6 +608,10 @@ def main():
         # additional state columns
         "lm_lbs": np.round(best_x[:, 1], 2),
         "buf_lbs": np.round(best_x[:, 2], 3),
+        # the intake series the filter actually consumed (downstream scripts use
+        # intake_true rather than re-applying a multiplier)
+        "intake_logged": intake["calories"].values,
+        "intake_true": np.round(calories, 1),
     })
     out["date"] = pd.to_datetime(out["date"]).dt.strftime("%Y-%m-%d")
     path = ROOT / "analysis" / "P4_kalman_daily.csv"
@@ -518,6 +621,15 @@ def main():
     # Save sweep summary
     pd.DataFrame(results).to_csv(ROOT / "analysis" / "P4_kalman_sweep.csv", index=False)
     print(f"Wrote sweep results to analysis/P4_kalman_sweep.csv")
+    save_result("P4_kalman_filter",
+                sigma_tdee=best_key[0], max_dtdee=best_key[1], q_buf=FILTER["q_buf"], r_weight=FILTER["r_weight"],
+                beta_buf=FILTER["beta_buf"], buf_hl=FILTER["buf_hl"],
+                composite_score=best_score,
+                intake_model=CALIBRATION["model"], intake_params=CALIBRATION["params"],
+                effective_multiplier=INTAKE_MULTIPLIER,
+                diagnostics={k: v for k, v in best_diag.items() if np.isscalar(v)},
+                start_date=str(dates[first_scan])[:10], end_date=str(dates[-1])[:10])
+    print("Wrote analysis/results/P4_kalman_filter.json")
 
     # Calorimetry per-point posterior dump for the best config
     print(f"\n=== Calorimetry posterior (best config — held out, never seen by filter) ===")

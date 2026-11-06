@@ -27,6 +27,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "analysis"))
 
 import P4_kalman_filter as P4
+from intake_model import INTAKE_MULTIPLIER  # single source of truth
 from P4_kalman_filter import (
     kalman_v4_forward, rts_smoother_v4, diagnostics, build_inputs, load_data,
 )
@@ -53,10 +54,10 @@ def make_intake(a_p, b_c, c_f, multiplier):
 
 def run_kalman(intake_alt):
     smooth, _, strength, comp_scans, rmr_df, p2, temp_df = _load_once()
-    # Disable build_inputs' own multiplier — we apply it manually in make_intake.
-    P4.INTAKE_MULTIPLIER = 1.0
+    # Bypass the canonical intake model — make_intake already applied (a, b, c, m).
     dates, calories, weight_obs, fm_scan, lm_scan, expected_rmr, workouts_per_wk = \
-        build_inputs(smooth, intake_alt, strength, comp_scans, p2)
+        build_inputs(smooth, intake_alt, strength, comp_scans, p2,
+                     calories_true=intake_alt["calories"].values)
     first_scan = np.where(~np.isnan(fm_scan))[0][0]
     fm_start = fm_scan[first_scan]
     lm_start = lm_scan[first_scan]
@@ -70,7 +71,8 @@ def run_kalman(intake_alt):
                        calories, rmr_df, weight_obs, temp_df)
 
 
-def find_eb_closing(a_p, b_c, c_f, m_init=1.09, tol=0.02):
+def find_eb_closing(a_p, b_c, c_f, m_init=None, tol=0.02):
+    m_init = INTAKE_MULTIPLIER if m_init is None else m_init
     """Return (multiplier, diagnostics) at which 15-yr EB residual ≈ 0."""
     intake1 = make_intake(a_p, b_c, c_f, m_init)
     d1 = run_kalman(intake1)
@@ -150,7 +152,7 @@ def main():
     print("=" * 80)
 
     # Reference
-    print("\nReference: textbook (4, 4, 9) at canonical m=1.09")
+    print(f"\nReference: textbook (4, 4, 9) at canonical m={INTAKE_MULTIPLIER:.3f}")
     m_ref, d_ref = find_eb_closing(4.0, 4.0, 9.0)
     print(f"  EB-closing m: {m_ref:.5f}  FM_MAE: {d_ref['fm_scan_mae']:.4f}  EB: {d_ref['eb_residual_lb']:+.3f}")
 
